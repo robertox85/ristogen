@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Ristogen Dashboard</title>
+	<script src="app.js" defer></script>
+</head>
+
+<body>
+	<form id="client-form">
+		<h2>Nuovo cliente</h2>
+		<input name="client_slug" placeholder="burger-prati" required>
+		<select name="template">
+			<option value="template-01">Template 01 — Dark Minimal</option>
+			<option value="template-02">Template 02</option>
+		</select>
+		<!-- campi per ogni sezione del config -->
+		<input type="file" id="menu-pdf" accept=".pdf">
+		<button type="button" id="extract-menu">Estrai menù da PDF</button>
+		<div id="menu-preview"></div>
+		<button type="submit">Crea cliente</button>
+	</form>
+</body>
+
+</html>
