@@ -1,0 +1,58 @@
+name: Create Client
+on:
+  workflow_dispatch:
+    inputs:
+      client_slug:
+        description: 'Slug cliente (es. burger-prati)'
+        required: true
+      template:
+        description: 'Template (template-01, template-02)'
+        required: true
+      config:
+        description: 'Config JSON (stringa)'
+        required: true
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create client config
+        run: |
+          mkdir -p clients/${{ github.event.inputs.client_slug }}/content/images
+          mkdir -p clients/${{ github.event.inputs.client_slug }}/content/articles
+          echo '${{ github.event.inputs.config }}' > clients/${{ github.event.inputs.client_slug }}/config.json
+
+      - name: Commit
+        run: |
+          git config user.email "bot@ristogen.it"
+          git config user.name "Ristogen Bot"
+          git add .
+          git commit -m "Add client: ${{ github.event.inputs.client_slug }}"
+          git push
+
+      - name: Create Netlify site
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_ACCOUNT: ${{ secrets.NETLIFY_ACCOUNT }}
+        run: |
+          curl -X POST https://api.netlify.com/api/v1/sites \
+            -H "Authorization: Bearer $NETLIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "${{ github.event.inputs.client_slug }}",
+              "repo": {
+                "provider": "github",
+                "repo": "tuousername/ristogen",
+                "branch": "main",
+                "base_dir": "${{ github.event.inputs.template }}",
+                "cmd": "npm run build",
+                "dir": "dist"
+              },
+              "build_settings": {
+                "env": {
+                  "CLIENT_CONFIG": "clients/${{ github.event.inputs.client_slug }}/config.json"
+                }
+              }
+            }'
