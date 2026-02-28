@@ -1,0 +1,25 @@
+{
+	"name": "Nome Ristorante",
+	"lang": "it",
+	"favicon": "/assets/favicon.ico",
+	"meta": {
+		"title": "Nome Ristorante - Slogan",
+		"description": "Breve descrizione del ristorante.",
+		"og_image": "/assets/og.jpg",
+		"canonical": "https://www.example.it"
+	},
+	"schema_org": {
+		"type": "Restaurant",
+		"name": "Nome Ristorante",
+		"address": "Via Example 1, Città",
+		"telephone": "+39 00 000000",
+		"servesCuisine": "Italiana",
+		"priceRange": "€€",
+		"openingHours": [
+			"Mo-Su 12:00-23:00"
+		]
+	},
+	"seo": {
+		"llms_txt": false
+	}
+}

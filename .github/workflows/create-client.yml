@@ -1,4 +1,4 @@
-name: Create Client
+name: Create new client
 on:
   workflow_dispatch:
     inputs:
@@ -6,11 +6,11 @@ on:
         description: 'Slug cliente (es. burger-prati)'
         required: true
       template:
-        description: 'Template (template-01, template-02)'
+        description: 'Template da usare'
         required: true
-      config:
-        description: 'Config JSON (stringa)'
-        required: true
+        default: 'template-01'
+        type: choice
+        options: ['template-01', 'template-02']
 
 jobs:
   create:
@@ -18,41 +18,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create client config
+      - name: Create content structure
         run: |
-          mkdir -p clients/${{ github.event.inputs.client_slug }}/content/images
-          mkdir -p clients/${{ github.event.inputs.client_slug }}/content/articles
-          echo '${{ github.event.inputs.config }}' > clients/${{ github.event.inputs.client_slug }}/config.json
+          SLUG=${{ inputs.client_slug }}
+          BASE=clients/$SLUG/content
+          mkdir -p $BASE/menu $BASE/assets
+          echo '{"name":"","lang":"it","meta":{"title":"","description":"","og_image":"","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":"","telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true}}' \
+            > $BASE/site.json
+          echo '{"template":"${{ inputs.template }}","colors":{"primary":"#111827","secondary":"#2563EB","background":"#ffffff","text":"#111827"},"fonts":{"heading":"Playfair Display","body":"Inter"}}' \
+            > $BASE/theme.json
+          echo '{"enabled":true,"headline":"","subheadline":"","image":"","image_alt":""}' > $BASE/hero.json
+          echo '{"enabled":true,"title":"","text":""}' > $BASE/about.json
+          echo '{"enabled":true,"indirizzo":"","telefono":"","orari":""}' > $BASE/contatti.json
+          echo '{"enabled":true,"images":[]}' > $BASE/gallery.json
+          echo '{"name":"Menù","items":[]}' > $BASE/menu/menu.json
+
+      - name: Generate Decap config.yml
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          TMPL=${{ inputs.template }}
+          sed 's/burger-demo/'$SLUG'/g; s/template-01/'$TMPL'/g' \
+            $TMPL/public/admin/config.yml \
+            > /tmp/config-$SLUG.yml
+          cp /tmp/config-$SLUG.yml $TMPL/public/admin/config-$SLUG.yml
 
       - name: Commit
         run: |
-          git config user.email "bot@ristogen.it"
-          git config user.name "Ristogen Bot"
+          git config user.name 'Ristogen Bot'
+          git config user.email 'bot@ristogen.it'
           git add .
-          git commit -m "Add client: ${{ github.event.inputs.client_slug }}"
+          git commit -m 'feat: add client ${{ inputs.client_slug }}'
           git push
 
       - name: Create Netlify site
-        env:
-          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-          NETLIFY_ACCOUNT: ${{ secrets.NETLIFY_ACCOUNT }}
         run: |
-          curl -X POST https://api.netlify.com/api/v1/sites \
-            -H "Authorization: Bearer $NETLIFY_TOKEN" \
-            -H "Content-Type: application/json" \
+          curl -s -X POST https://api.netlify.com/api/v1/sites \
+            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
+            -H 'Content-Type: application/json' \
             -d '{
-              "name": "${{ github.event.inputs.client_slug }}",
+              "name": "ristogen-${{ inputs.client_slug }}",
               "repo": {
                 "provider": "github",
-                "repo": "tuousername/ristogen",
+                "repo": "robertox85/ristogen",
                 "branch": "main",
-                "base_dir": "${{ github.event.inputs.template }}",
+                "base_dir": "${{ inputs.template }}",
                 "cmd": "npm run build",
                 "dir": "dist"
               },
               "build_settings": {
                 "env": {
-                  "CLIENT_CONFIG": "clients/${{ github.event.inputs.client_slug }}/config.json"
+                  "CLIENT_SLUG": "${{ inputs.client_slug }}"
                 }
               }
             }'
