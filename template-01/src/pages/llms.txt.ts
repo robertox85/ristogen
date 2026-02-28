@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
 import { getContent } from '../content';
 
+declare const __DEFAULT_LANG__: 'it' | 'en';
+
 export const GET: APIRoute = () => {
-	const { site, sections } = getContent('it');
+	const { site, sections } = getContent(__DEFAULT_LANG__);
 
 	if (!site.seo?.llms_txt) return new Response('', { status: 404 });
 

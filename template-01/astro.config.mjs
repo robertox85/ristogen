@@ -8,6 +8,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'development';
 const isDev = nodeEnv === 'development';
 const env = loadEnv(nodeEnv, process.cwd(), '');
 const clientSlug = env.CLIENT_SLUG || 'burger-demo';
+const defaultLang = /** @type {'it'|'en'} */ (env.DEFAULT_LANG || 'it');
 
 // L'adapter Netlify viene caricato solo in produzione (build).
 // In dev la sua emulation intercetta le richieste statiche e blocca config.yml.
@@ -45,6 +46,7 @@ export default defineConfig({
 	vite: {
 		define: {
 			'__CLIENT_SLUG__': JSON.stringify(clientSlug),
+			'__DEFAULT_LANG__': JSON.stringify(defaultLang),
 		},
 		plugins: [adminRedirectPlugin],
 	},

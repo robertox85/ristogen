@@ -48,7 +48,7 @@ collections:
             label: Schema.org (Google)
             name: schema_org
             widget: object
-        file: clients/burger-demo/content/site.json
+        file: clients/burger-demo/content/it/site.json
         format: json
         label: Meta e SEO
         name: site
@@ -124,7 +124,7 @@ collections:
             name: cta
             required: false
             widget: object
-        file: clients/burger-demo/content/hero.json
+        file: clients/burger-demo/content/it/hero.json
         format: json
         label: Sezione Hero
         name: hero
@@ -150,7 +150,7 @@ collections:
             name: image_alt
             required: false
             widget: string
-        file: clients/burger-demo/content/about.json
+        file: clients/burger-demo/content/it/about.json
         format: json
         label: Sezione Chi siamo
         name: about
@@ -179,7 +179,7 @@ collections:
             name: google_maps_url
             required: false
             widget: string
-        file: clients/burger-demo/content/contatti.json
+        file: clients/burger-demo/content/it/contatti.json
         format: json
         label: Informazioni di contatto
         name: contatti
@@ -201,7 +201,7 @@ collections:
             label: Foto
             name: images
             widget: list
-        file: clients/burger-demo/content/gallery.json
+        file: clients/burger-demo/content/it/gallery.json
         format: json
         label: Galleria foto
         name: gallery
@@ -271,12 +271,12 @@ collections:
         label: Piatti
         name: items
         widget: list
-    folder: clients/burger-demo/content/menu
+    folder: clients/burger-demo/content/it/menu
     format: json
     label: "Menù"
     name: menu
     slug: "{{name}}"
 # Abilita backend locale per sviluppo — rimuovere in produzione
 local_backend: true
-media_folder: clients/burger-demo/content/assets
+media_folder: clients/burger-demo/content/it/assets
 public_folder: /assets

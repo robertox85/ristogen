@@ -1,7 +1,7 @@
 ---
-import { getContent } from '../../content';
-import ArticleLayout from '../../layouts/ArticleLayout.astro';
-import type { Article } from '../../schema/content.schema';
+import { getContent } from '../../../content';
+import ArticleLayout from '../../../layouts/ArticleLayout.astro';
+import type { Article } from '../../../schema/content.schema';
 
 export function getStaticPaths() {
   const content = getContent('it');

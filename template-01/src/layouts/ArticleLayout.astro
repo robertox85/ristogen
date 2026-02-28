@@ -13,11 +13,12 @@ const { content, article, lang } = Astro.props;
 const { site, theme } = content;
 
 const bodyHtml = marked(article.body);
-const basePath = lang === 'it' ? 'articoli' : 'en/articles';
-const canonical = `${site.meta.canonical}/${basePath}/${article.slug}`;
+// URL articoli sempre espliciti — non dipendono da DEFAULT_LANG
+const itPath = `${site.meta.canonical}/it/articoli/${article.slug}`;
+const enPath = `${site.meta.canonical}/en/articles/${article.slug}`;
+const canonical = lang === 'it' ? itPath : enPath;
 const altLang = lang === 'it' ? 'en' : 'it';
-const altPath = lang === 'it' ? 'en/articles' : 'articoli';
-const altCanonical = `${site.meta.canonical}/${altPath}/${article.slug}`;
+const altCanonical = lang === 'it' ? enPath : itPath;
 ---
 
 <!DOCTYPE html>

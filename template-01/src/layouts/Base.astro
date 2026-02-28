@@ -2,6 +2,10 @@
 import type { ClientContent } from '../schema/content.schema';
 import Analytics from '../components/Analytics.astro';
 
+declare const __DEFAULT_LANG__: 'it' | 'en';
+const defaultLang = __DEFAULT_LANG__;
+const altLang = defaultLang === 'it' ? 'en' : 'it';
+
 interface Props { content: ClientContent }
 const { site, theme } = Astro.props.content;
 ---
@@ -14,6 +18,9 @@ const { site, theme } = Astro.props.content;
   <title>{site.meta.title}</title>
   <meta name="description" content={site.meta.description}>
   <link rel="canonical" href={site.meta.canonical}>
+  <link rel="alternate" hreflang="it" href={`${site.meta.canonical}/it/`}>
+  <link rel="alternate" hreflang="en" href={`${site.meta.canonical}/en/`}>
+  <link rel="alternate" hreflang="x-default" href={`${site.meta.canonical}/`}>
   <meta property="og:title" content={site.meta.title}>
   <meta property="og:image" content={site.meta.og_image}>
   <link rel="preconnect" href="https://fonts.googleapis.com">

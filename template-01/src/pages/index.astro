@@ -7,7 +7,9 @@ import Gallery from '../components/Gallery.astro';
 import Contatti from '../components/Contatti.astro';
 import { getContent } from '../content';
 
-const content = getContent('it');
+declare const __DEFAULT_LANG__: 'it' | 'en';
+
+const content = getContent(__DEFAULT_LANG__);
 ---
 
 <Base {content}>
