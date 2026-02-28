@@ -8,6 +8,7 @@ import { loadEnv } from 'vite';
 
 /** @type {string} */
 const mode = process.env.NODE_ENV || 'production';
+const isDev = mode === 'development';
 const env = loadEnv(mode, process.cwd(), '');
 const clientConfigPath = env.CLIENT_CONFIG || 'clients/burger-demo/config.json';
 
