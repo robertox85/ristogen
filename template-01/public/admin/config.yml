@@ -1,0 +1,282 @@
+---
+backend:
+  branch: main
+  name: git-gateway
+collections:
+  - editor:
+      preview: false
+    files:
+      - fields:
+          - label: Nome sito
+            name: name
+            widget: string
+          - fields:
+              - label: Title tag
+                name: title
+                widget: string
+              - label: Meta description
+                name: description
+                widget: text
+              - label: OG Image
+                name: og_image
+                widget: image
+              - label: URL canonico
+                name: canonical
+                widget: string
+            label: Meta tag
+            name: meta
+            widget: object
+          - fields:
+              - label: Nome ristorante
+                name: name
+                widget: string
+              - label: Indirizzo
+                name: address
+                widget: string
+              - label: Telefono
+                name: telephone
+                widget: string
+              - label: Tipo cucina
+                name: servesCuisine
+                widget: string
+              - label: Fascia prezzo (€/€€/€€€)
+                name: priceRange
+                widget: string
+              - label: Orari
+                name: openingHours
+                widget: list
+            label: Schema.org (Google)
+            name: schema_org
+            widget: object
+        file: clients/burger-demo/content/site.json
+        format: json
+        label: Meta e SEO
+        name: site
+    label: Impostazioni sito
+    name: site
+  - editor:
+      preview: false
+    files:
+      - fields:
+          - label: Template
+            name: template
+            options: ['template-01', 'template-02']
+            widget: select
+          - fields:
+              - label: Colore primario
+                name: primary
+                widget: color
+              - label: Colore secondario
+                name: secondary
+                widget: color
+              - label: Sfondo
+                name: background
+                widget: color
+              - label: Testo
+                name: text
+                widget: color
+            label: Colori
+            name: colors
+            widget: object
+          - fields:
+              - label: Font titoli
+                name: heading
+                widget: string
+              - label: Font testo
+                name: body
+                widget: string
+            label: Font
+            name: fonts
+            widget: object
+        file: clients/burger-demo/content/theme.json
+        format: json
+        label: Colori e font
+        name: theme
+    label: Tema grafico
+    name: theme
+  - files:
+      - fields:
+          - default: true
+            label: Abilitata
+            name: enabled
+            widget: boolean
+          - label: Titolo principale
+            name: headline
+            widget: string
+          - label: Sottotitolo
+            name: subheadline
+            required: false
+            widget: string
+          - label: Immagine di sfondo
+            name: image
+            widget: image
+          - label: Testo alternativo immagine
+            name: image_alt
+            widget: string
+          - fields:
+              - label: Testo pulsante
+                name: label
+                widget: string
+              - label: Link
+                name: url
+                widget: string
+            label: Pulsante CTA
+            name: cta
+            required: false
+            widget: object
+        file: clients/burger-demo/content/hero.json
+        format: json
+        label: Sezione Hero
+        name: hero
+    label: Hero
+    name: hero
+  - files:
+      - fields:
+          - default: true
+            label: Abilitata
+            name: enabled
+            widget: boolean
+          - label: Titolo
+            name: title
+            widget: string
+          - label: Testo
+            name: text
+            widget: text
+          - label: Immagine
+            name: image
+            required: false
+            widget: image
+          - label: Testo alternativo
+            name: image_alt
+            required: false
+            widget: string
+        file: clients/burger-demo/content/about.json
+        format: json
+        label: Sezione Chi siamo
+        name: about
+    label: Chi siamo
+    name: about
+  - files:
+      - fields:
+          - default: true
+            label: Abilitata
+            name: enabled
+            widget: boolean
+          - label: Indirizzo
+            name: indirizzo
+            widget: string
+          - label: Telefono
+            name: telefono
+            widget: string
+          - label: Email
+            name: email
+            required: false
+            widget: string
+          - label: Orari di apertura
+            name: orari
+            widget: text
+          - label: Link Google Maps
+            name: google_maps_url
+            required: false
+            widget: string
+        file: clients/burger-demo/content/contatti.json
+        format: json
+        label: Informazioni di contatto
+        name: contatti
+    label: Contatti
+    name: contatti
+  - files:
+      - fields:
+          - default: true
+            label: Abilitata
+            name: enabled
+            widget: boolean
+          - fields:
+              - label: Immagine
+                name: src
+                widget: image
+              - label: Testo alternativo
+                name: alt
+                widget: string
+            label: Foto
+            name: images
+            widget: list
+        file: clients/burger-demo/content/gallery.json
+        format: json
+        label: Galleria foto
+        name: gallery
+    label: Galleria
+    name: gallery
+  - create: true
+    fields:
+      - label: Nome categoria
+        name: name
+        widget: string
+      - fields:
+          - label: Nome piatto
+            name: name
+            widget: string
+          - label: Descrizione
+            name: description
+            widget: text
+          - label: Prezzo (es. 9.00)
+            name: price
+            widget: string
+          - label: Foto
+            name: image
+            required: false
+            widget: image
+          - label: Testo alternativo foto
+            name: image_alt
+            required: false
+            widget: string
+          - label: Badge (es. Best seller)
+            name: badge
+            required: false
+            widget: string
+          - label: Allergeni
+            multiple: true
+            name: allergeni
+            options:
+              - label: 1 - Glutine
+                value: 1
+              - label: 2 - Crostacei
+                value: 2
+              - label: 3 - Uova
+                value: 3
+              - label: 4 - Pesce
+                value: 4
+              - label: 5 - Arachidi
+                value: 5
+              - label: 6 - Soia
+                value: 6
+              - label: 7 - Latte
+                value: 7
+              - label: 8 - Frutta a guscio
+                value: 8
+              - label: 9 - Sedano
+                value: 9
+              - label: 10 - Senape
+                value: 10
+              - label: 11 - Sesamo
+                value: 11
+              - label: 12 - Anidride solforosa
+                value: 12
+              - label: 13 - Lupini
+                value: 13
+              - label: 14 - Molluschi
+                value: 14
+            required: false
+            widget: select
+        label: Piatti
+        name: items
+        widget: list
+    folder: clients/burger-demo/content/menu
+    format: json
+    label: "Menù"
+    name: menu
+    slug: "{{name}}"
+# Abilita backend locale per sviluppo — rimuovere in produzione
+local_backend: true
+media_folder: clients/burger-demo/content/assets
+public_folder: /assets
