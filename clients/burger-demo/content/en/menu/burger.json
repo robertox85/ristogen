@@ -1,0 +1,18 @@
+{
+	"name": "Burger",
+	"items": [
+		{
+			"name": "Classic Burger",
+			"description": "Manzo, lattuga, pomodoro, cipolla",
+			"price": "9.00",
+			"image": "/assets/menu/classic.jpg",
+			"image_alt": "Classic burger su piatto di legno",
+			"badge": null,
+			"allergeni": [
+				1,
+				3,
+				7
+			]
+		}
+	]
+}

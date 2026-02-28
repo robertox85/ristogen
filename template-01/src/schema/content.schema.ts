@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export const AnalyticsSchema = z.object({
+	ga4: z.string().optional(),
+	clarity: z.string().optional()
+}).optional();
+
 export const SiteSchema = z.object({
 	name: z.string(),
 	lang: z.string().default('it'),
@@ -18,7 +23,8 @@ export const SiteSchema = z.object({
 		priceRange: z.string(),
 		openingHours: z.array(z.string())
 	}),
-	seo: z.object({ llms_txt: z.boolean().default(false) }).optional()
+	seo: z.object({ llms_txt: z.boolean().default(false) }).optional(),
+	analytics: AnalyticsSchema
 });
 
 export const ThemeSchema = z.object({
@@ -87,6 +93,18 @@ export const GallerySchema = z.object({
 	}))
 });
 
+export const ArticleSchema = z.object({
+	slug: z.string(),
+	title: z.string(),
+	description: z.string(),
+	body: z.string(),
+	date: z.string(),
+	og_image: z.string().optional(),
+	noindex: z.boolean().default(false)
+});
+
+export type Article = z.infer<typeof ArticleSchema>;
+
 // Schema completo dell'intero contenuto cliente
 export const ClientContentSchema = z.object({
 	site: SiteSchema,
@@ -99,7 +117,8 @@ export const ClientContentSchema = z.object({
 		menu: z.object({
 			categories: z.array(MenuCategorySchema)
 		})
-	})
+	}),
+	articles: z.array(ArticleSchema).default([])
 });
 
 export type ClientContent = z.infer<typeof ClientContentSchema>;

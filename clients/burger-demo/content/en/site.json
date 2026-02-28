@@ -1,0 +1,28 @@
+{
+  "name": "Burger Demo",
+  "lang": "en",
+  "meta": {
+    "title": "Burger Demo - The best burgers in Rome",
+    "description": "Fresh ingredients, every day.",
+    "og_image": "/assets/og.jpg",
+    "canonical": "https://www.burgerdemo.it"
+  },
+  "schema_org": {
+    "type": "Restaurant",
+    "name": "Burger Demo",
+    "address": "Via Roma 1, Roma",
+    "telephone": "+39 06 000000",
+    "servesCuisine": "Hamburger",
+    "priceRange": "\u20ac\u20ac",
+    "openingHours": [
+      "Mo-Su 12:00-23:00"
+    ]
+  },
+  "seo": {
+    "llms_txt": true
+  },
+  "analytics": {
+    "ga4": "",
+    "clarity": ""
+  }
+}

@@ -1,7 +1,8 @@
 ---
-import { content } from '../content';
+import type { ClientContent } from '../schema/content.schema';
 
-const { menu } = content.sections;
+interface Props { sections: ClientContent['sections'] }
+const { menu } = Astro.props.sections;
 
 const ALLERGENI: Record<number, string> = {
   1: 'Glutine', 2: 'Crostacei', 3: 'Uova', 4: 'Pesce',

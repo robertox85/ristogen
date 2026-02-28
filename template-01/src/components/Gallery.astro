@@ -1,7 +1,8 @@
 ---
-import { content } from '../content';
+import type { ClientContent } from '../schema/content.schema';
 
-const { gallery } = content.sections;
+interface Props { sections: ClientContent['sections'] }
+const { gallery } = Astro.props.sections;
 ---
 
 {gallery.enabled && gallery.images.length > 0 && (

@@ -1,7 +1,8 @@
 ---
-import { content } from '../content';
+import type { ClientContent } from '../schema/content.schema';
 
-const { hero } = content.sections;
+interface Props { sections: ClientContent['sections'] }
+const { hero } = Astro.props.sections;
 ---
 
 {hero.enabled && (

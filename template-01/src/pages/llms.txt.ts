@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import { content } from '../content';
+import { getContent } from '../content';
 
 export const GET: APIRoute = () => {
-	const { site, sections } = content;
+	const { site, sections } = getContent('it');
 
 	if (!site.seo?.llms_txt) return new Response('', { status: 404 });
 

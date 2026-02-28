@@ -1,7 +1,9 @@
 ---
-import { content } from '../content';
+import type { ClientContent } from '../schema/content.schema';
+import Analytics from '../components/Analytics.astro';
 
-const { site, theme } = content;
+interface Props { content: ClientContent }
+const { site, theme } = Astro.props.content;
 ---
 
 <!DOCTYPE html>
@@ -26,6 +28,7 @@ const { site, theme } = content;
     'priceRange': site.schema_org.priceRange,
     'openingHoursSpecification': site.schema_org.openingHours
   })} />
+  <Analytics analytics={site.analytics} />
 </head>
 <body style={`
   --color-primary: ${theme.colors.primary};
