@@ -1,0 +1,59 @@
+---
+import { content } from '../content';
+
+const { hero } = content.sections;
+---
+
+{hero.enabled && (
+  <section class="hero" style={`background-image: url(${hero.image})`}>
+    <div class="hero-content">
+      <h1>{hero.headline}</h1>
+      {hero.subheadline && <p class="subheadline">{hero.subheadline}</p>}
+      {hero.cta && (
+        <a href={hero.cta.url} class="cta-btn">{hero.cta.label}</a>
+      )}
+    </div>
+  </section>
+)}
+
+<style>
+  .hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--color-bg);
+    text-align: center;
+    padding: 2rem;
+  }
+  .hero-content {
+    max-width: 700px;
+  }
+  h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 5vw, 4rem);
+    color: var(--color-text);
+    margin-bottom: 1rem;
+  }
+  .subheadline {
+    font-family: var(--font-body);
+    font-size: 1.25rem;
+    color: var(--color-text);
+    margin-bottom: 2rem;
+    opacity: 0.85;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 0.875rem 2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .cta-btn:hover { opacity: 0.85; }
+</style>

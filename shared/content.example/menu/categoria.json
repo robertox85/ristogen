@@ -1,0 +1,14 @@
+{
+	"category": "Nome Categoria",
+	"items": [
+		{
+			"name": "Nome Piatto",
+			"description": "Descrizione del piatto",
+			"price": "0.00",
+			"image": "/assets/menu/piatto.jpg",
+			"image_alt": "Nome Piatto",
+			"badge": "",
+			"allergeni": []
+		}
+	]
+}

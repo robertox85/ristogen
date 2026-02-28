@@ -1,26 +1,21 @@
 <!DOCTYPE html>
-<html lang="it">
-
+<html lang='it'>
 <head>
-	<meta charset="UTF-8">
-	<title>Ristogen Dashboard</title>
-	<script src="app.js" defer></script>
+<meta charset='UTF-8'>
+<title>Ristogen Dashboard</title>
+<script src='https://identity.netlify.com/v1/netlify-identity-widget.js'></script>
 </head>
-
 <body>
-	<form id="client-form">
-		<h2>Nuovo cliente</h2>
-		<input name="client_slug" placeholder="burger-prati" required>
-		<select name="template">
-			<option value="template-01">Template 01 — Dark Minimal</option>
-			<option value="template-02">Template 02</option>
-		</select>
-		<!-- campi per ogni sezione del config -->
-		<input type="file" id="menu-pdf" accept=".pdf">
-		<button type="button" id="extract-menu">Estrai menù da PDF</button>
-		<div id="menu-preview"></div>
-		<button type="submit">Crea cliente</button>
-	</form>
+<h1>Nuovo cliente</h1>
+<input id='slug' placeholder='burger-prati' />
+<select id='template'>
+	<option value='template-01'>Template 01 — Dark</option>
+	<option value='template-02'>Template 02 — Light</option>
+</select>
+<input id='pdf' type='file' accept='.pdf' />
+<button onclick='extractMenu()'>Estrai menù da PDF</button>
+<div id='menu-preview'></div>
+<button onclick='createClient()'>Crea cliente</button>
+<script src='app.js'></script>
 </body>
-
 </html>
