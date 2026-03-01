@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  ignore = "git diff --quiet ${CACHED_COMMIT_REF:-HEAD~1} $COMMIT_REF -- . ../clients/${CLIENT_SLUG:-burger-demo}/"
 
 [build.environment]
   NODE_VERSION = "20"

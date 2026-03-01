@@ -1,25 +1,37 @@
 {
 	"name": "Nome Ristorante",
 	"lang": "it",
-	"favicon": "/assets/favicon.ico",
 	"meta": {
 		"title": "Nome Ristorante - Slogan",
 		"description": "Breve descrizione del ristorante.",
-		"og_image": "/assets/og.jpg",
+		"og_image": "/images/og.jpg",
+		"og_type": "restaurant.restaurant",
+		"og_locale": "it_IT",
+		"og_site_name": "Nome Ristorante",
+		"twitter_card": "summary_large_image",
 		"canonical": "https://www.example.it"
 	},
 	"schema_org": {
 		"type": "Restaurant",
 		"name": "Nome Ristorante",
-		"address": "Via Example 1, Città",
+		"address": {
+			"streetAddress": "Via Example 1",
+			"addressLocality": "Città",
+			"postalCode": "00000",
+			"addressRegion": "XX",
+			"addressCountry": "IT"
+		},
 		"telephone": "+39 00 000000",
 		"servesCuisine": "Italiana",
 		"priceRange": "€€",
 		"openingHours": [
-			"Mo-Su 12:00-23:00"
+			{ "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "12:00", "closes": "15:00" },
+			{ "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "19:00", "closes": "23:00" },
+			{ "dayOfWeek": ["Saturday","Sunday"], "opens": "12:00", "closes": "23:00" }
 		]
 	},
 	"seo": {
-		"llms_txt": false
+		"llms_txt": false,
+		"robots": "index, follow"
 	}
 }

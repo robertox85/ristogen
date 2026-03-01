@@ -11,6 +11,18 @@ on:
         default: 'template-01'
         type: choice
         options: ['template-01', 'template-02']
+      default_lang:
+        description: 'Lingua principale'
+        required: true
+        default: 'it'
+        type: choice
+        options: ['it', 'en']
+      custom_domain:
+        description: 'Dominio personalizzato (es. www.ristoranteprati.it)'
+        required: false
+      menu_json:
+        description: 'Array JSON categorie IT estratto da Claude (opzionale)'
+        required: false
 
 jobs:
   create:
@@ -22,25 +34,59 @@ jobs:
         run: |
           SLUG=${{ inputs.client_slug }}
           BASE=clients/$SLUG/content
-          mkdir -p $BASE/menu $BASE/assets
-          echo '{"name":"","lang":"it","meta":{"title":"","description":"","og_image":"","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":"","telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true}}' \
-            > $BASE/site.json
-          echo '{"template":"${{ inputs.template }}","colors":{"primary":"#111827","secondary":"#2563EB","background":"#ffffff","text":"#111827"},"fonts":{"heading":"Playfair Display","body":"Inter"}}' \
-            > $BASE/theme.json
-          echo '{"enabled":true,"headline":"","subheadline":"","image":"","image_alt":""}' > $BASE/hero.json
-          echo '{"enabled":true,"title":"","text":""}' > $BASE/about.json
-          echo '{"enabled":true,"indirizzo":"","telefono":"","orari":""}' > $BASE/contatti.json
-          echo '{"enabled":true,"images":[]}' > $BASE/gallery.json
-          echo '{"name":"Menù","items":[]}' > $BASE/menu/menu.json
+          mkdir -p $BASE/it/menu $BASE/it/articles $BASE/en/menu $BASE/en/articles $BASE/images
+
+          # theme.json — condiviso, senza lingua
+          cat > $BASE/theme.json <<'EOF'
+          {"template":"${{ inputs.template }}","colors":{"primary":"#111827","secondary":"#2563EB","background":"#ffffff","text":"#111827"},"fonts":{"heading":"Playfair Display","body":"Inter"}}
+          EOF
+
+          # it/site.json
+          cat > $BASE/it/site.json <<'EOF'
+          {"name":"","lang":"it","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"it_IT","og_site_name":"","twitter_card":"summary_large_image","canonical":"https://"},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
+          EOF
+
+          # en/site.json
+          cat > $BASE/en/site.json <<'EOF'
+          {"name":"","lang":"en","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"en_US","og_site_name":"","twitter_card":"summary_large_image","canonical":"https://"},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
+          EOF
+
+          echo '{"enabled":true,"headline":"","subheadline":"","image":"/images/hero.jpg","image_alt":""}' > $BASE/it/hero.json
+          echo '{"enabled":true,"headline":"","subheadline":"","image":"/images/hero.jpg","image_alt":""}' > $BASE/en/hero.json
+          echo '{"enabled":true,"title":"Chi siamo","text":""}' > $BASE/it/about.json
+          echo '{"enabled":true,"title":"About us","text":""}' > $BASE/en/about.json
+          echo '{"enabled":true,"indirizzo":"","telefono":"","orari":""}' > $BASE/it/contatti.json
+          echo '{"enabled":true,"indirizzo":"","telefono":"","orari":""}' > $BASE/en/contatti.json
+          echo '{"enabled":true,"images":[]}' > $BASE/it/gallery.json
+          echo '{"enabled":true,"images":[]}' > $BASE/en/gallery.json
+
+          # Placeholder menu EN
+          echo '{"name":"Menu","items":[]}' > $BASE/en/menu/default.json
+
+          # Keep assets directory
+          touch $BASE/images/.gitkeep
+
+      - name: Create IT menu files from JSON
+        if: ${{ inputs.menu_json != '' }}
+        env:
+          MENU_PAYLOAD: ${{ inputs.menu_json }}
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          BASE=clients/$SLUG/content/it/menu
+          echo "$MENU_PAYLOAD" | jq -c '.[]' | while read -r cat; do
+            name=$(echo "$cat" | jq -r '.name')
+            slug=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
+            echo "$cat" > "$BASE/${slug}.json"
+          done
 
       - name: Generate Decap config.yml
         run: |
           SLUG=${{ inputs.client_slug }}
           TMPL=${{ inputs.template }}
-          sed 's/burger-demo/'$SLUG'/g; s/template-01/'$TMPL'/g' \
+          sed 's/burger-demo/'"$SLUG"'/g; s/template-01/'"$TMPL"'/g' \
             $TMPL/public/admin/config.yml \
             > /tmp/config-$SLUG.yml
-          cp /tmp/config-$SLUG.yml $TMPL/public/admin/config-$SLUG.yml
+          cp /tmp/config-$SLUG.yml clients/$SLUG/decap-config.yml
 
       - name: Commit
         run: |
@@ -52,7 +98,7 @@ jobs:
 
       - name: Create Netlify site
         run: |
-          curl -s -X POST https://api.netlify.com/api/v1/sites \
+          RESPONSE=$(curl -s -X POST https://api.netlify.com/api/v1/sites \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
             -d '{
@@ -67,7 +113,19 @@ jobs:
               },
               "build_settings": {
                 "env": {
-                  "CLIENT_SLUG": "${{ inputs.client_slug }}"
+                  "CLIENT_SLUG": "${{ inputs.client_slug }}",
+                  "DEFAULT_LANG": "${{ inputs.default_lang }}"
                 }
               }
-            }'
+            }')
+          SITE_ID=$(echo "$RESPONSE" | jq -r '.id')
+          echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
+
+      - name: Set custom domain
+        if: ${{ inputs.custom_domain != '' }}
+        run: |
+          curl -s -X PUT "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
+            -H 'Content-Type: application/json' \
+            -d '{"custom_domain": "${{ inputs.custom_domain }}"}'
+
