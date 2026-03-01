@@ -31,6 +31,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: develop
 
       - name: Create content structure
         run: |
@@ -96,7 +98,7 @@ jobs:
           git config user.email 'bot@ristogen.it'
           git add .
           git commit -m 'feat: add client ${{ inputs.client_slug }}'
-          git push
+          git push origin HEAD:master
 
       - name: Create Netlify site
         run: |
