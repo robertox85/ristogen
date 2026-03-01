@@ -2,8 +2,6 @@
 backend:
   name: git-gateway
   branch: master
-# Abilita backend locale per sviluppo — rimuovere in produzione
-local_backend: true
 media_folder: clients/burger-demo/content/images
 public_folder: /images
 collections:
