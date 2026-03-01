@@ -125,21 +125,21 @@ jobs:
             -d '{}' > /dev/null
           echo "Netlify Identity abilitato"
 
-          # 4. Imposta registrazione invite-only
-          curl -sf -X PATCH \
+          # 4. Imposta registrazione invite-only (non bloccante)
+          INVITE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH \
             "https://api.netlify.com/api/v1/sites/$SITE_ID/identity" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
-            -d '{"registration_preference":"invite"}' > /dev/null
-          echo "Registrazione: invite only"
+            -d '{"registration_preference":"invite"}')
+          echo "Invite-only PATCH → HTTP $INVITE_RESP"
 
-          # 5. Abilita Git Gateway (richiesto da Decap CMS)
-          curl -sf -X POST \
+          # 5. Abilita Git Gateway (non bloccante)
+          GG_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
             "https://api.netlify.com/api/v1/sites/$SITE_ID/services/git/instances" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
-            -d '{}' > /dev/null
-          echo "Git Gateway abilitato"
+            -d '{}')
+          echo "Git Gateway POST → HTTP $GG_RESP"
 
           # 6. Build hook per i redeploy — comando non disponibile in CLI
           HOOK_URL=$(curl -sf -X POST \
