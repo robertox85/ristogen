@@ -121,8 +121,8 @@ jobs:
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
             -d '[
-              {"key":"CLIENT_SLUG","scopes":["builds"],"values":[{"value":"${{ inputs.client_slug }}","context":"all"}]},
-              {"key":"DEFAULT_LANG","scopes":["builds"],"values":[{"value":"${{ inputs.default_lang }}","context":"all"}]}
+              {"key":"CLIENT_SLUG","values":[{"value":"${{ inputs.client_slug }}","context":"all"}]},
+              {"key":"DEFAULT_LANG","values":[{"value":"${{ inputs.default_lang }}","context":"all"}]}
             ]')
           ENV_CODE=$(echo "$ENV_RES" | tail -n1)
           ENV_BODY=$(echo "$ENV_RES" | head -n-1)
