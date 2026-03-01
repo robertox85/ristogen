@@ -93,14 +93,7 @@ jobs:
             > /tmp/config-$SLUG.yml
           cp /tmp/config-$SLUG.yml clients/$SLUG/decap-config.yml
 
-      - name: Commit
-        run: |
-          git config user.name 'Ristogen Bot'
-          git config user.email 'bot@ristogen.it'
-          git add .
-          git commit -m 'feat: add client ${{ inputs.client_slug }}'
-          git push origin HEAD:master
-
+      # ── NETLIFY: crea sito, env vars e build hook PRIMA di committare ──────
       - name: Create Netlify site
         run: |
           # 1. Crea il sito (solo nome — nessuna connessione repo via SSH)
@@ -123,7 +116,6 @@ jobs:
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
           # 2. Imposta le variabili d'ambiente CLIENT_SLUG e DEFAULT_LANG
-          # L'API moderna di Netlify usa POST /accounts/{accountId}/env?site_id={siteId}
           ENV_RES=$(curl -s -w "\n%{http_code}" \
             -X POST "https://api.netlify.com/api/v1/accounts/$ACCOUNT_ID/env?site_id=$SITE_ID" \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
@@ -149,22 +141,7 @@ jobs:
           echo "Build hook creato: $HOOK_URL"
           echo "NETLIFY_BUILD_HOOK=$HOOK_URL" >> $GITHUB_ENV
 
-      - name: Save Netlify metadata
-        run: |
-          SLUG=${{ inputs.client_slug }}
-          # Salva site_id e build_hook nel repo per i redeploy futuri (usato da redeploy-client.yml)
-          jq -n \
-            --arg site_id "$NETLIFY_SITE_ID" \
-            --arg site_url "$NETLIFY_SITE_URL" \
-            --arg build_hook "$NETLIFY_BUILD_HOOK" \
-            '{"site_id": $site_id, "site_url": $site_url, "build_hook": $build_hook}' \
-            > "clients/$SLUG/netlify.json"
-          git config user.name 'Ristogen Bot'
-          git config user.email 'bot@ristogen.it'
-          git add clients/$SLUG/netlify.json
-          git commit -m 'chore: salva metadata Netlify per ${{ inputs.client_slug }}'
-          git push origin HEAD:master
-
+      # ── BUILD: i file sono già su disco (non serve il commit) ──────────────
       - name: Build template
         run: |
           cd ${{ inputs.template }}
@@ -176,14 +153,29 @@ jobs:
 
       - name: Deploy to Netlify
         run: |
-          # Deploy diretto via CLI — Netlify non deve clonare il repo (evita SSH errors)
-          # netlify.toml in template-01/ viene letto automaticamente per i redirects
           cd ${{ inputs.template }}
           npx netlify-cli@latest deploy --prod \
             --dir=dist \
             --site=$NETLIFY_SITE_ID \
             --auth=${{ secrets.NETLIFY_TOKEN }} \
             --message="Initial deploy for ${{ inputs.client_slug }}"
+
+      # ── COMMIT: un solo commit a fine successo (repo pulito in caso di errore) ──
+      - name: Commit
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          # Aggiungi netlify.json con i metadata del sito
+          jq -n \
+            --arg site_id "$NETLIFY_SITE_ID" \
+            --arg site_url "$NETLIFY_SITE_URL" \
+            --arg build_hook "$NETLIFY_BUILD_HOOK" \
+            '{"site_id": $site_id, "site_url": $site_url, "build_hook": $build_hook}' \
+            > "clients/$SLUG/netlify.json"
+          git config user.name 'Ristogen Bot'
+          git config user.email 'bot@ristogen.it'
+          git add .
+          git commit -m 'feat: add client ${{ inputs.client_slug }}'
+          git push origin HEAD:master
 
       - name: Set custom domain
         if: ${{ inputs.custom_domain != '' }}
