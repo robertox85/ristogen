@@ -103,37 +103,48 @@ jobs:
 
       - name: Create Netlify site
         run: |
+          # 1. Crea il sito
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.netlify.com/api/v1/sites \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
-            -d '{
-              "name": "ristogen-${{ inputs.client_slug }}",
-              "repo": {
-                "provider": "github",
-                "repo": "robertox85/ristogen",
-                "branch": "master",
-                "base_dir": "${{ inputs.template }}",
-                "cmd": "npm run build",
-                "dir": "dist"
-              },
-              "build_settings": {
-                "env": {
-                  "CLIENT_SLUG": "${{ inputs.client_slug }}",
-                  "DEFAULT_LANG": "${{ inputs.default_lang }}"
-                }
-              }
-            }')
+            -d '{"name": "ristogen-${{ inputs.client_slug }}"}')
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | head -n-1)
-          echo "Netlify API response ($HTTP_CODE): $BODY"
+          echo "Create site response ($HTTP_CODE): $BODY"
           if [ "$HTTP_CODE" != "201" ]; then
-            echo "::error::Netlify API ha risposto con codice $HTTP_CODE"
+            echo "::error::Netlify create site fallito con codice $HTTP_CODE"
             exit 1
           fi
           SITE_ID=$(echo "$BODY" | jq -r '.id')
           SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
           echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
+
+          # 2. Configura repo e build settings
+          PATCH=$(curl -s -w "\n%{http_code}" -X PATCH "https://api.netlify.com/api/v1/sites/$SITE_ID" \
+            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "repo": {
+                "provider": "github",
+                "repo": "robertox85/ristogen",
+                "branch": "master",
+                "base_dir": "${{ inputs.template }}",
+                "cmd": "npm run build",
+                "dir": "dist",
+                "env": {
+                  "CLIENT_SLUG": "${{ inputs.client_slug }}",
+                  "DEFAULT_LANG": "${{ inputs.default_lang }}"
+                }
+              }
+            }')
+          PATCH_CODE=$(echo "$PATCH" | tail -n1)
+          PATCH_BODY=$(echo "$PATCH" | head -n-1)
+          echo "Patch build settings response ($PATCH_CODE): $PATCH_BODY"
+          if [ "$PATCH_CODE" != "200" ]; then
+            echo "::error::Netlify patch build settings fallito con codice $PATCH_CODE"
+            exit 1
+          fi
 
       - name: Set custom domain
         if: ${{ inputs.custom_domain != '' }}
