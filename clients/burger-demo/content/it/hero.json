@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "headline": "Il burger che cercavi",
+  "subheadline": "Solo ingredienti freschi, ogni giorno",
+  "image": "/images/hero.jpg",
+  "image_alt": "Burger con ingredienti freschi su tagliere di legno",
+  "cta": { "label": "Prenota un tavolo", "url": "#contatti" }
+}

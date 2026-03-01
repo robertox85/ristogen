@@ -1,0 +1,16 @@
+---
+import ArticleLayout from '../../../layouts/ArticleLayout.astro';
+import { getContent } from '../../../content';
+
+export async function getStaticPaths() {
+  const content = await getContent('en');
+  return content.articles.map(article => ({
+    params: { slug: article.slug },
+    props: { article, content }
+  }));
+}
+
+const { article, content } = Astro.props;
+---
+
+<ArticleLayout content={content} article={article} lang="en" />

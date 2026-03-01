@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "headline": "The burger you were looking for",
+  "subheadline": "Fresh ingredients only, every day",
+  "image": "/images/hero.jpg",
+  "image_alt": "Burger with fresh ingredients on a wooden board",
+  "cta": { "label": "Book a table", "url": "#contatti" }
+}

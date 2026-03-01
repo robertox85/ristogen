@@ -1,11 +1,10 @@
 ---
-import Base from '../layouts/Base.astro';
-import Hero from '../components/Hero.astro';
-import Menu from '../components/Menu.astro';
-import { getContent } from '../content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Menu from '../../components/Menu.astro';
+import { getContent } from '../../content';
 
-declare const __DEFAULT_LANG__: string;
-const lang = __DEFAULT_LANG__;
+const lang = 'it';
 const content = await getContent(lang);
 const { site } = content;
 
@@ -41,7 +40,7 @@ const jsonLd = JSON.stringify({
     'opens': h.opens,
     'closes': h.closes
   })),
-  'hasMenu': { '@id': `${site.schema_org.url}/${lang}/menu` }
+  'hasMenu': { '@id': `${site.schema_org.url}/it/menu` }
 });
 ---
 

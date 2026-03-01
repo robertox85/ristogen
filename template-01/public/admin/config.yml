@@ -1,0 +1,242 @@
+backend:
+  name: git-gateway
+  branch: main
+  local_backend: true
+
+media_folder: clients/burger-demo/content/images
+public_folder: /images
+
+media_library:
+  max_file_size: 512000
+
+collections:
+  - name: theme
+    label: Theme
+    files:
+      - name: theme
+        label: Theme Settings
+        file: clients/burger-demo/content/theme.json
+        fields:
+          - { label: Template, name: template, widget: string }
+          - label: Colors
+            name: colors
+            widget: object
+            fields:
+              - { label: Primary, name: primary, widget: color }
+              - { label: Secondary, name: secondary, widget: color }
+              - { label: Background, name: background, widget: color }
+              - { label: Text, name: text, widget: color }
+          - label: Fonts
+            name: fonts
+            widget: object
+            fields:
+              - { label: Heading font, name: heading, widget: string }
+              - { label: Body font, name: body, widget: string }
+
+  - name: site_it
+    label: Site (IT)
+    files:
+      - name: site_it
+        label: Site Settings IT
+        file: clients/burger-demo/content/it/site.json
+        fields:
+          - { label: Name, name: name, widget: string }
+          - { label: Lang, name: lang, widget: hidden, default: it }
+
+  - name: hero_it
+    label: Hero (IT)
+    files:
+      - name: hero_it
+        label: Hero IT
+        file: clients/burger-demo/content/it/hero.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Headline, name: headline, widget: string }
+          - { label: Subheadline, name: subheadline, widget: string, required: false }
+          - { label: Image, name: image, widget: image }
+          - { label: Image alt, name: image_alt, widget: string }
+          - label: CTA
+            name: cta
+            widget: object
+            required: false
+            fields:
+              - { label: Label, name: label, widget: string }
+              - { label: URL, name: url, widget: string }
+
+  - name: about_it
+    label: About (IT)
+    files:
+      - name: about_it
+        label: About IT
+        file: clients/burger-demo/content/it/about.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Title, name: title, widget: string }
+          - { label: Text, name: text, widget: text }
+          - { label: Image, name: image, widget: image, required: false }
+          - { label: Image alt, name: image_alt, widget: string, required: false }
+
+  - name: contatti_it
+    label: Contatti (IT)
+    files:
+      - name: contatti_it
+        label: Contatti IT
+        file: clients/burger-demo/content/it/contatti.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Indirizzo, name: indirizzo, widget: string }
+          - { label: Telefono, name: telefono, widget: string }
+          - { label: Email, name: email, widget: string }
+          - { label: Orari, name: orari, widget: string }
+          - { label: Google Maps URL, name: google_maps_url, widget: string }
+
+  - name: gallery_it
+    label: Gallery (IT)
+    files:
+      - name: gallery_it
+        label: Gallery IT
+        file: clients/burger-demo/content/it/gallery.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Images, name: images, widget: list, field: { label: Image, name: image, widget: image } }
+
+  - name: menu_it
+    label: Menu (IT)
+    folder: clients/burger-demo/content/it/menu
+    create: true
+    slug: "{{name}}"
+    extension: json
+    format: json
+    fields:
+      - { label: Category name, name: name, widget: string }
+      - label: Items
+        name: items
+        widget: list
+        fields:
+          - { label: Name, name: name, widget: string }
+          - { label: Description, name: description, widget: text }
+          - { label: Price, name: price, widget: string }
+          - { label: Image, name: image, widget: image, required: false }
+          - { label: Image alt, name: image_alt, widget: string, required: false }
+          - { label: Badge, name: badge, widget: string, required: false }
+          - label: Allergeni
+            name: allergeni
+            widget: select
+            multiple: true
+            options: ["1","2","3","4","5","6","7","8","9","10","11","12","13","14"]
+            required: false
+
+  - name: articles_it
+    label: Articoli (IT)
+    folder: clients/burger-demo/content/it/articles
+    create: true
+    slug: "{{slug}}"
+    extension: json
+    format: json
+    fields:
+      - { label: Slug, name: slug, widget: string }
+      - { label: Title, name: title, widget: string }
+      - { label: Description, name: description, widget: text, required: false }
+      - { label: Content, name: content, widget: markdown }
+      - { label: Published at, name: published_at, widget: datetime }
+      - { label: Image, name: image, widget: image, required: false }
+      - { label: Image alt, name: image_alt, widget: string, required: false }
+
+  - name: hero_en
+    label: Hero (EN)
+    files:
+      - name: hero_en
+        label: Hero EN
+        file: clients/burger-demo/content/en/hero.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Headline, name: headline, widget: string }
+          - { label: Subheadline, name: subheadline, widget: string, required: false }
+          - { label: Image, name: image, widget: image }
+          - { label: Image alt, name: image_alt, widget: string }
+          - label: CTA
+            name: cta
+            widget: object
+            required: false
+            fields:
+              - { label: Label, name: label, widget: string }
+              - { label: URL, name: url, widget: string }
+
+  - name: about_en
+    label: About (EN)
+    files:
+      - name: about_en
+        label: About EN
+        file: clients/burger-demo/content/en/about.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Title, name: title, widget: string }
+          - { label: Text, name: text, widget: text }
+          - { label: Image, name: image, widget: image, required: false }
+          - { label: Image alt, name: image_alt, widget: string, required: false }
+
+  - name: contatti_en
+    label: Contatti (EN)
+    files:
+      - name: contatti_en
+        label: Contatti EN
+        file: clients/burger-demo/content/en/contatti.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Indirizzo, name: indirizzo, widget: string }
+          - { label: Telefono, name: telefono, widget: string }
+          - { label: Email, name: email, widget: string }
+          - { label: Orari, name: orari, widget: string }
+          - { label: Google Maps URL, name: google_maps_url, widget: string }
+
+  - name: gallery_en
+    label: Gallery (EN)
+    files:
+      - name: gallery_en
+        label: Gallery EN
+        file: clients/burger-demo/content/en/gallery.json
+        fields:
+          - { label: Enabled, name: enabled, widget: boolean, default: true }
+          - { label: Images, name: images, widget: list, field: { label: Image, name: image, widget: image } }
+
+  - name: menu_en
+    label: Menu (EN)
+    folder: clients/burger-demo/content/en/menu
+    create: true
+    slug: "{{name}}"
+    extension: json
+    format: json
+    fields:
+      - { label: Category name, name: name, widget: string }
+      - label: Items
+        name: items
+        widget: list
+        fields:
+          - { label: Name, name: name, widget: string }
+          - { label: Description, name: description, widget: text }
+          - { label: Price, name: price, widget: string }
+          - { label: Image, name: image, widget: image, required: false }
+          - { label: Image alt, name: image_alt, widget: string, required: false }
+          - { label: Badge, name: badge, widget: string, required: false }
+          - label: Allergeni
+            name: allergeni
+            widget: select
+            multiple: true
+            options: ["1","2","3","4","5","6","7","8","9","10","11","12","13","14"]
+            required: false
+
+  - name: articles_en
+    label: Articles (EN)
+    folder: clients/burger-demo/content/en/articles
+    create: true
+    slug: "{{slug}}"
+    extension: json
+    format: json
+    fields:
+      - { label: Slug, name: slug, widget: string }
+      - { label: Title, name: title, widget: string }
+      - { label: Description, name: description, widget: text, required: false }
+      - { label: Content, name: content, widget: markdown }
+      - { label: Published at, name: published_at, widget: datetime }
+      - { label: Image, name: image, widget: image, required: false }
+      - { label: Image alt, name: image_alt, widget: string, required: false }

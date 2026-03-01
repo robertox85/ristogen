@@ -1,0 +1,35 @@
+---
+import type { MenuCategorySchema } from '../schema/content.schema';
+import { z } from 'zod';
+
+type MenuCategory = z.infer<typeof MenuCategorySchema>;
+
+export interface Props {
+  categories: MenuCategory[];
+  lang: string;
+}
+
+const { categories, lang } = Astro.props;
+const preview = categories.slice(0, 4);
+const menuPath = lang === 'it' ? '/it/menu' : '/en/menu';
+---
+
+<section id="menu">
+  {preview.map(category => (
+    <div>
+      <h2>{category.name}</h2>
+      <ul>
+        {category.items.map(item => (
+          <li>
+            {item.image && <img src={item.image} alt={item.image_alt ?? item.name} loading="lazy" />}
+            <strong>{item.name}</strong>
+            <span>{item.description}</span>
+            <span>€{item.price}</span>
+            {item.badge && <span>{item.badge}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+  <a href={menuPath}>{lang === 'it' ? 'Vedi menù completo' : 'View full menu'}</a>
+</section>

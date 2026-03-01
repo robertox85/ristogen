@@ -1,0 +1,77 @@
+---
+import type { ClientContent } from '../schema/content.schema';
+
+export interface Props {
+  content: ClientContent;
+  title?: string;
+  description?: string;
+}
+
+const { content, title, description } = Astro.props;
+const { site, theme } = content;
+const pageTitle = title ?? site.meta.title;
+const pageDesc = description ?? site.meta.description;
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDesc} />
+    <meta name="robots" content={site.seo?.robots ?? 'index, follow'} />
+    <link rel="canonical" href={site.meta.canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDesc} />
+    <meta property="og:image" content={site.meta.og_image} />
+    {site.meta.og_type && <meta property="og:type" content={site.meta.og_type} />}
+    {site.meta.og_locale && <meta property="og:locale" content={site.meta.og_locale} />}
+    {site.meta.twitter_card && <meta name="twitter:card" content={site.meta.twitter_card} />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(theme.fonts.heading)}:wght@400;700&family=${encodeURIComponent(theme.fonts.body)}:wght@400;600&display=swap`}
+      rel="stylesheet"
+    />
+    <style define:vars={{
+      'color-primary': theme.colors.primary,
+      'color-secondary': theme.colors.secondary,
+      'color-background': theme.colors.background,
+      'color-text': theme.colors.text,
+      'font-heading': theme.fonts.heading,
+      'font-body': theme.fonts.body
+    }}>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: var(--font-body), sans-serif;
+        background-color: var(--color-background);
+        color: var(--color-text);
+      }
+      h1, h2, h3, h4 { font-family: var(--font-heading), serif; }
+    </style>
+    <!-- Netlify Identity widget -->
+    <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <!-- JSON-LD anchor for Restaurant -->
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': site.schema_org.type,
+      '@id': `${site.schema_org.url}/#restaurant`,
+      'name': site.schema_org.name,
+      'url': site.schema_org.url
+    })}></script>
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+    <script is:inline>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', user => {
+          if (!user) {
+            window.netlifyIdentity.on('login', () => { document.location.href = '/admin/'; });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

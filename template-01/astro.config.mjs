@@ -1,20 +1,30 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import keystatic from '@keystatic/astro';
 import { loadEnv } from 'vite';
 
 /** @type {string} */
 const mode = process.env.NODE_ENV || 'production';
 const env = loadEnv(mode, process.cwd(), '');
-const clientConfigPath = env.CLIENT_CONFIG || 'clients/burger-demo/config.json';
+
+const clientSlug = env.CLIENT_SLUG || 'burger-demo';
+const defaultLang = env.DEFAULT_LANG || 'it';
+const altLang = defaultLang === 'it' ? 'en' : 'it';
 
 // https://astro.build/config
 export default defineConfig({
-	integrations: [sitemap(), keystatic()],
-	vite: {
-		define: {
-			'__CLIENT_CONFIG_PATH__': JSON.stringify(clientConfigPath),
-		},
-	},
+  output: 'static',
+  site: env.SITE_URL || 'http://localhost:4321',
+  integrations: [sitemap()],
+  i18n: {
+    defaultLocale: defaultLang,
+    locales: [defaultLang, altLang],
+    routing: { prefixDefaultLocale: false }
+  },
+  vite: {
+    define: {
+      '__CLIENT_SLUG__': JSON.stringify(clientSlug),
+      '__DEFAULT_LANG__': JSON.stringify(defaultLang)
+    }
+  }
 });

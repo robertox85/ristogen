@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getContent } from '../../content';
+
+const lang = 'it';
+const content = await getContent(lang);
+const { site } = content;
+
+const menuJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Menu',
+  '@id': `${site.schema_org.url}/it/menu`,
+  'name': 'Menù',
+  'isPartOf': { '@id': `${site.schema_org.url}/#restaurant` },
+  'hasMenuSection': content.menu.map(cat => ({
+    '@type': 'MenuSection',
+    'name': cat.name,
+    'hasMenuItem': cat.items.map(item => ({
+      '@type': 'MenuItem',
+      'name': item.name,
+      'description': item.description,
+      'offers': { '@type': 'Offer', 'price': item.price, 'priceCurrency': 'EUR' }
+    }))
+  }))
+});
+---
+
+<Base content={content}>
+  <script type="application/ld+json" is:inline slot="head" set:html={menuJsonLd}></script>
+  <main>
+    <h1>Menù</h1>
+    {content.menu.map(category => (
+      <section>
+        <h2>{category.name}</h2>
+        <ul>
+          {category.items.map(item => (
+            <li>
+              {item.image && <img src={item.image} alt={item.image_alt ?? item.name} loading="lazy" />}
+              <strong>{item.name}</strong>
+              <p>{item.description}</p>
+              <span>€{item.price}</span>
+              {item.badge && <span>{item.badge}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </main>
+</Base>

@@ -1,0 +1,30 @@
+---
+import type { HeroSchema } from '../schema/content.schema';
+import { z } from 'zod';
+
+type Hero = z.infer<typeof HeroSchema>;
+
+export interface Props {
+  hero: Hero;
+}
+
+const { hero } = Astro.props;
+---
+
+{hero.enabled && (
+  <section id="hero">
+    <img
+      src={hero.image}
+      alt={hero.image_alt}
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div>
+      <h1>{hero.headline}</h1>
+      {hero.subheadline && <p>{hero.subheadline}</p>}
+      {hero.cta && (
+        <a href={hero.cta.url}>{hero.cta.label}</a>
+      )}
+    </div>
+  </section>
+)}

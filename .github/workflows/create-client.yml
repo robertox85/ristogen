@@ -1,0 +1,121 @@
+name: Create Client
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_slug:
+        description: Client slug (e.g. burger-prati)
+        required: true
+      template:
+        description: Template to use
+        required: true
+        default: template-01
+        type: choice
+        options:
+          - template-01
+          - template-02
+      default_lang:
+        description: Default language
+        required: true
+        default: it
+        type: choice
+        options:
+          - it
+          - en
+      custom_domain:
+        description: Custom domain (optional)
+        required: false
+      menu_json:
+        description: JSON array of IT menu categories (extracted by Claude)
+        required: false
+
+jobs:
+  create-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create content structure
+        run: |
+          SLUG="${{ inputs.client_slug }}"
+          mkdir -p "clients/${SLUG}/content/it/menu"
+          mkdir -p "clients/${SLUG}/content/it/articles"
+          mkdir -p "clients/${SLUG}/content/en/menu"
+          mkdir -p "clients/${SLUG}/content/en/articles"
+          mkdir -p "clients/${SLUG}/content/images"
+
+          cp clients/burger-demo/content/theme.json "clients/${SLUG}/content/theme.json"
+
+          for lang in it en; do
+            for file in site.json hero.json about.json contatti.json gallery.json; do
+              cp "clients/burger-demo/content/${lang}/${file}" "clients/${SLUG}/content/${lang}/${file}"
+            done
+            echo '{"name":"Menu","items":[]}' > "clients/${SLUG}/content/${lang}/menu/default.json"
+          done
+
+      - name: Validate menu JSON
+        if: inputs.menu_json != ''
+        run: |
+          echo '${{ inputs.menu_json }}' | jq empty || { echo "Invalid menu_json provided"; exit 1; }
+
+      - name: Create menu files (IT)
+        if: inputs.menu_json != ''
+        env:
+          MENU_PAYLOAD: ${{ inputs.menu_json }}
+        run: |
+          SLUG="${{ inputs.client_slug }}"
+          echo "${MENU_PAYLOAD}" | jq -c '.[]' | while IFS= read -r category; do
+            name=$(echo "${category}" | jq -r '.name' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
+            echo "${category}" > "clients/${SLUG}/content/it/menu/${name}.json"
+          done
+          rm -f "clients/${SLUG}/content/it/menu/default.json"
+
+      - name: Generate Decap config.yml
+        run: |
+          SLUG="${{ inputs.client_slug }}"
+          TEMPLATE="${{ inputs.template }}"
+          sed "s/burger-demo/${SLUG}/g; s/template-01/${TEMPLATE}/g" \
+            "${{ inputs.template }}/public/admin/config.yml" \
+            > "clients/${SLUG}/decap-config.yml"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "clients/${{ inputs.client_slug }}/"
+          git commit -m "feat: add client ${{ inputs.client_slug }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Netlify site
+        if: env.NETLIFY_TOKEN != ''
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: |
+          SLUG="${{ inputs.client_slug }}"
+          DOMAIN="${{ inputs.custom_domain }}"
+
+          SITE_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer ${NETLIFY_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"${SLUG}\"}" \
+            "https://api.netlify.com/api/v1/sites")
+
+          SITE_ID=$(echo "${SITE_RESPONSE}" | jq -r '.id')
+          echo "Created Netlify site: ${SITE_ID}"
+
+          curl -s -X PUT \
+            -H "Authorization: Bearer ${NETLIFY_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"env\":{\"CLIENT_SLUG\":\"${SLUG}\",\"DEFAULT_LANG\":\"${{ inputs.default_lang }}\"}}" \
+            "https://api.netlify.com/api/v1/sites/${SITE_ID}/env"
+
+          if [ -n "${DOMAIN}" ]; then
+            curl -s -X PATCH \
+              -H "Authorization: Bearer ${NETLIFY_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"custom_domain\":\"${DOMAIN}\"}" \
+              "https://api.netlify.com/api/v1/sites/${SITE_ID}"
+          fi
