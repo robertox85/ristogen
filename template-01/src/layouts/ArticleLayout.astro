@@ -12,7 +12,7 @@ export interface Props {
 const { content, article, lang } = Astro.props;
 const { site } = content;
 const htmlContent = marked(article.content);
-const breadcrumbHome = lang === 'it' ? 'Home' : 'Home';
+const breadcrumbHome = 'Home';
 const breadcrumbArticles = lang === 'it' ? 'Articoli' : 'Articles';
 const articlesPath = lang === 'it' ? '/it/articoli' : '/en/articles';
 

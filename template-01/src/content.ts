@@ -74,7 +74,10 @@ export async function getArticles(
   return Object.entries(allFiles)
     .filter(([path]) => path.startsWith(prefix) && path.endsWith('.json'))
     .map(([, mod]) => ArticleSchema.parse((mod as { default: unknown }).default))
-    .sort((a, b) =>
-      new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
-    );
+    .sort((a, b) => {
+      const timeA = new Date(a.published_at).getTime();
+      const timeB = new Date(b.published_at).getTime();
+      if (isNaN(timeA) || isNaN(timeB)) return 0;
+      return timeB - timeA;
+    });
 }

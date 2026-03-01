@@ -54,6 +54,11 @@ jobs:
             echo '{"name":"Menu","items":[]}' > "clients/${SLUG}/content/${lang}/menu/default.json"
           done
 
+      - name: Validate menu JSON
+        if: inputs.menu_json != ''
+        run: |
+          echo '${{ inputs.menu_json }}' | jq empty || { echo "Invalid menu_json provided"; exit 1; }
+
       - name: Create menu files (IT)
         if: inputs.menu_json != ''
         env:

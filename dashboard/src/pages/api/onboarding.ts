@@ -70,8 +70,9 @@ export const POST: APIRoute = async ({ request }) => {
           const anthropicData = await anthropicRes.json() as { content: Array<{ text: string }> };
           menuJson = anthropicData.content[0]?.text ?? '';
         }
-      } catch {
-        // proceed without menu extraction
+      } catch (err) {
+        // Menu extraction failed; proceed without it
+        console.error('Anthropic menu extraction failed:', err);
       }
     }
   }
