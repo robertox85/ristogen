@@ -1,0 +1,79 @@
+---
+export const prerender = false;
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ristogen Dashboard</title>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  </head>
+  <body>
+    <h1>Crea nuovo sito cliente</h1>
+    <form id="onboarding-form" enctype="multipart/form-data">
+      <div>
+        <label for="client_slug">Slug cliente *</label>
+        <input type="text" id="client_slug" name="client_slug" required placeholder="burger-prati" />
+      </div>
+      <div>
+        <label for="template">Template *</label>
+        <select id="template" name="template">
+          <option value="template-01">template-01</option>
+          <option value="template-02">template-02</option>
+        </select>
+      </div>
+      <div>
+        <label for="default_lang">Lingua default *</label>
+        <select id="default_lang" name="default_lang">
+          <option value="it">Italiano</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div>
+        <label for="custom_domain">Dominio personalizzato</label>
+        <input type="text" id="custom_domain" name="custom_domain" placeholder="www.burgerprati.it" />
+      </div>
+      <div>
+        <label for="menu_pdf">Menu PDF (opzionale)</label>
+        <input type="file" id="menu_pdf" name="menu_pdf" accept="application/pdf" />
+      </div>
+      <button type="submit">Crea sito</button>
+    </form>
+    <div id="status"></div>
+
+    <script is:inline>
+      document.getElementById('onboarding-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('status');
+        status.textContent = 'Elaborazione in corso...';
+
+        const user = window.netlifyIdentity?.currentUser();
+        if (!user) {
+          status.textContent = 'Errore: effettua il login prima di procedere.';
+          return;
+        }
+
+        const token = user.token?.access_token;
+        const formData = new FormData(e.target);
+
+        try {
+          const res = await fetch('/api/onboarding', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+          });
+          const data = await res.json();
+          if (res.ok) {
+            status.textContent = `Sito creato con successo! Workflow ID: ${data.workflow_run_id ?? 'avviato'}`;
+          } else {
+            status.textContent = `Errore: ${data.error ?? res.statusText}`;
+          }
+        } catch (err) {
+          status.textContent = `Errore di rete: ${err.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+---
+import Base from './Base.astro';
+import type { ClientContent, Article } from '../schema/content.schema';
+import { marked } from 'marked';
+
+export interface Props {
+  content: ClientContent;
+  article: Article;
+  lang: string;
+}
+
+const { content, article, lang } = Astro.props;
+const { site } = content;
+const htmlContent = marked(article.content);
+const breadcrumbHome = lang === 'it' ? 'Home' : 'Home';
+const breadcrumbArticles = lang === 'it' ? 'Articoli' : 'Articles';
+const articlesPath = lang === 'it' ? '/it/articoli' : '/en/articles';
+
+const jsonLd = JSON.stringify([
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    'headline': article.title,
+    'description': article.description,
+    'datePublished': article.published_at,
+    'image': article.image,
+    'author': { '@id': `${site.schema_org.url}/#restaurant` },
+    'publisher': { '@id': `${site.schema_org.url}/#restaurant` }
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': breadcrumbHome, 'item': site.schema_org.url },
+      { '@type': 'ListItem', 'position': 2, 'name': breadcrumbArticles, 'item': `${site.schema_org.url}${articlesPath}` },
+      { '@type': 'ListItem', 'position': 3, 'name': article.title }
+    ]
+  }
+]);
+---
+
+<Base content={content} title={article.title} description={article.description}>
+  <script type="application/ld+json" is:inline slot="head" set:html={jsonLd}></script>
+  <main>
+    <article>
+      <h1>{article.title}</h1>
+      {article.image && <img src={article.image} alt={article.image_alt ?? article.title} />}
+      <div set:html={htmlContent} />
+    </article>
+  </main>
+</Base>
