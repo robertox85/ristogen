@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: master
 
       - name: Create content structure
         run: |
@@ -41,17 +41,14 @@ jobs:
           BASE=clients/$SLUG/content
           mkdir -p $BASE/it/menu $BASE/it/articles $BASE/en/menu $BASE/en/articles $BASE/images
 
-          # theme.json — condiviso, senza lingua
           cat > $BASE/theme.json <<'EOF'
           {"template":"${{ inputs.template }}","colors":{"primary":"#111827","secondary":"#2563EB","background":"#ffffff","text":"#111827"},"fonts":{"heading":"Playfair Display","body":"Inter"}}
           EOF
 
-          # it/site.json
           cat > $BASE/it/site.json <<'EOF'
           {"name":"","lang":"it","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"it_IT","og_site_name":"","twitter_card":"summary_large_image","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
           EOF
 
-          # en/site.json
           cat > $BASE/en/site.json <<'EOF'
           {"name":"","lang":"en","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"en_US","og_site_name":"","twitter_card":"summary_large_image","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
           EOF
@@ -64,11 +61,7 @@ jobs:
           echo '{"enabled":true,"indirizzo":"","telefono":"","orari":""}' > $BASE/en/contatti.json
           echo '{"enabled":true,"images":[]}' > $BASE/it/gallery.json
           echo '{"enabled":true,"images":[]}' > $BASE/en/gallery.json
-
-          # Placeholder menu EN
           echo '{"name":"Menu","items":[]}' > $BASE/en/menu/default.json
-
-          # Keep assets directory
           touch $BASE/images/.gitkeep
 
       - name: Create IT menu files from JSON
@@ -89,79 +82,102 @@ jobs:
           SLUG=${{ inputs.client_slug }}
           TMPL=${{ inputs.template }}
           sed 's/burger-demo/'"$SLUG"'/g; s/template-01/'"$TMPL"'/g' \
-            $TMPL/public/admin/config.yml \
+            $TMPL/public/admin/config.yml | \
+            sed '/local_backend/d' \
             > /tmp/config-$SLUG.yml
           cp /tmp/config-$SLUG.yml clients/$SLUG/decap-config.yml
 
-      # ── NETLIFY: crea sito, env vars e build hook PRIMA di committare ──────
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
       - name: Create Netlify site
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          # 1. Crea il sito via API (sites:create --json non esiste nella CLI)
+          # 1. Crea il sito (solo nome)
           BODY=$(curl -sf -X POST https://api.netlify.com/api/v1/sites \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
             -d '{"name": "ristogen-${{ inputs.client_slug }}"}')
-          echo "Create site response: $BODY"
           SITE_ID=$(echo "$BODY" | jq -r '.id')
           SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
+          [ -z "$SITE_ID" ] || [ "$SITE_ID" = "null" ] && { echo "::error::Creazione sito fallita: $BODY"; exit 1; }
           echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
-          # 2. Env vars — netlify env:set legge NETLIFY_SITE_ID dall'ambiente
+          # 2. Build settings — base dice a Netlify da quale sottocartella buildare
+          #    quando il build hook viene triggerato da redeploy-client.yml
+          PATCH_BODY=$(jq -n \
+            --arg base "${{ inputs.template }}" \
+            '{
+              "build_settings": {
+                "base": $base,
+                "cmd": "npm run build",
+                "dir": "dist"
+              }
+            }')
+          PATCH_HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d "$PATCH_BODY")
+          [ "$PATCH_HTTP" != "200" ] && { echo "::error::PATCH build_settings fallito (HTTP $PATCH_HTTP)"; exit 1; }
+          echo "Build settings aggiornati (base: ${{ inputs.template }})"
+
+          # 3. Env vars via CLI
           NETLIFY_SITE_ID=$SITE_ID netlify env:set CLIENT_SLUG "${{ inputs.client_slug }}"
           NETLIFY_SITE_ID=$SITE_ID netlify env:set DEFAULT_LANG "${{ inputs.default_lang }}"
 
-          # 3. Abilita Netlify Identity sul sito
+          # 4. Build hook per i redeploy futuri
+          HOOK_BODY=$(curl -sf -X POST \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{"title":"Ristogen redeploy","branch":"master"}')
+          HOOK_URL=$(echo "$HOOK_BODY" | jq -r '.url')
+          [ -z "$HOOK_URL" ] || [ "$HOOK_URL" = "null" ] && { echo "::warning::Build hook non creato: $HOOK_BODY"; }
+          echo "NETLIFY_BUILD_HOOK=$HOOK_URL" >> $GITHUB_ENV
+
+      - name: Configure Netlify Identity and Git Gateway
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          # 1. Abilita Identity
           curl -sf -X POST \
-            "https://api.netlify.com/api/v1/sites/$SITE_ID/identity" \
+            "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/identity" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
             -d '{}' > /dev/null
           echo "Netlify Identity abilitato"
 
-          # 4. Imposta registrazione invite-only (non bloccante)
-          INVITE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH \
-            "https://api.netlify.com/api/v1/sites/$SITE_ID/identity" \
+          # 2. Invite-only (non bloccante — alcuni piani non supportano questa API)
+          INVITE_HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH \
+            "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/identity" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
             -d '{"registration_preference":"invite"}')
-          echo "Invite-only PATCH → HTTP $INVITE_RESP"
+          echo "Invite-only → HTTP $INVITE_HTTP"
 
-          # 5. Abilita Git Gateway con token GitHub (necessario per hasWriteAccess in Decap CMS)
-          #    Richiede il secret GH_PAT: GitHub PAT con scope "repo"
-          if [ -n "$GH_PAT" ]; then
-            GG_BODY=$(curl -s -w "\n%{http_code}" -X POST \
-              "https://api.netlify.com/api/v1/sites/$SITE_ID/services/git/instances" \
-              -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-              -H 'Content-Type: application/json' \
-              -d "{\"url\":\"https://github.com/robertox85/ristogen\",\"access_token\":\"$GH_PAT\"}")
-            GG_HTTP=$(echo "$GG_BODY" | tail -1)
-            echo "Git Gateway POST → HTTP $GG_HTTP"
-          else
-            echo "⚠️  GH_PAT non configurato — Git Gateway saltato (Decap CMS non funzionerà)"
+          # 3. Git Gateway — senza questo Decap crasha su hasWriteAccess al login
+          if [ -z "$GH_PAT" ]; then
+            echo "::error::GH_PAT non configurato — Git Gateway non attivato. Decap CMS non funzionerà."
+            exit 1
           fi
-
-          # 6. Build hook per i redeploy — comando non disponibile in CLI
-          HOOK_URL=$(curl -sf -X POST \
-            "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
+          GG_BODY=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/services/git/instances" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
-            -d '{"title":"GitHub Actions redeploy","branch":"master"}' | jq -r '.url')
-          echo "Build hook: $HOOK_URL"
-          echo "NETLIFY_BUILD_HOOK=$HOOK_URL" >> $GITHUB_ENV
+            -d "{\"url\":\"https://github.com/robertox85/ristogen\",\"access_token\":\"$GH_PAT\"}")
+          GG_HTTP=$(echo "$GG_BODY" | tail -1)
+          GG_RESP=$(echo "$GG_BODY" | head -n -1)
+          [ "$GG_HTTP" != "201" ] && { echo "::error::Git Gateway fallito (HTTP $GG_HTTP): $GG_RESP"; exit 1; }
+          echo "Git Gateway attivo"
 
-      # ── BUILD: i file sono già su disco (non serve il commit) ──────────────
       - name: Build template
         run: |
           cd ${{ inputs.template }}
-          # loadEnv() di Vite legge file .env, non le variabili shell — scriviamo prima
           printf 'CLIENT_SLUG=${{ inputs.client_slug }}\nDEFAULT_LANG=${{ inputs.default_lang }}\n' > .env
           npm ci
           npm run build
@@ -177,7 +193,6 @@ jobs:
             --site=$NETLIFY_SITE_ID \
             --message="Initial deploy for ${{ inputs.client_slug }}"
 
-      # ── COMMIT: un solo commit a fine successo (repo pulito in caso di errore) ──
       - name: Commit
         run: |
           SLUG=${{ inputs.client_slug }}
