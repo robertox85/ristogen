@@ -160,6 +160,7 @@ jobs:
           git config user.email 'bot@ristogen.it'
           git add .
           git commit -m 'feat: add client ${{ inputs.client_slug }}'
+          git pull --rebase origin master
           git push origin HEAD:master
 
       - name: Set custom domain
