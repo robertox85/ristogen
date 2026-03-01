@@ -323,11 +323,16 @@
 
 		<script is:inline>
 			// --- Tabella clienti ---
+			let _authToken = null; // token globale per riuso
+
 			async function loadClients(authToken) {
+				if (authToken) _authToken = authToken;
+				const token = _authToken;
+				if (!token) return;
 				const tbody = document.getElementById('clients-tbody');
 				try {
 					const r = await fetch('/api/clients', {
-						headers: { Authorization: 'Bearer ' + authToken }
+						headers: { Authorization: 'Bearer ' + token }
 					});
 					if (!r.ok) throw new Error(r.statusText);
 					const { clients } = await r.json();
@@ -355,7 +360,7 @@
 							try {
 								const dr = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
 									method: 'DELETE',
-									headers: { Authorization: 'Bearer ' + authToken }
+										headers: { Authorization: 'Bearer ' + _authToken }
 								});
 								const dj = await dr.json();
 								if (!dr.ok) throw new Error(dj.error || dr.statusText);
@@ -444,7 +449,20 @@
 					}, 600);
 				});
 
-			// Netlify Identity: reindirizza a /admin dopo login
+			// Netlify Identity: carica clienti e gestisce login
+			function tryLoadClients() {
+				const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+				if (!user) return;
+				// refresh() garantisce un token valido anche se access_token è null al momento dell'init
+				window.netlifyIdentity.refresh().then(function(jwt) {
+					if (jwt) loadClients(jwt);
+				}).catch(function() {
+					// fallback: prova con il token già in memoria
+					const t = user.token && user.token.access_token;
+					if (t) loadClients(t);
+				});
+			}
+
 			if (window.netlifyIdentity) {
 				window.netlifyIdentity.on("init", function (user) {
 					if (!user) {
@@ -452,10 +470,13 @@
 							document.location.reload();
 						});
 					} else {
-						const token = user.token && user.token.access_token;
-						if (token) loadClients(token);
+						tryLoadClients();
 					}
 				});
+				// Fallback: se netlifyIdentity era già pronto prima di registrare l'handler
+				if (window.netlifyIdentity.currentUser()) {
+					tryLoadClients();
+				}
 			}
 
 			document
@@ -476,11 +497,7 @@
 						window.netlifyIdentity && window.netlifyIdentity.open();
 						return;
 					}
-
-					// Blocca submit se slug non è stato validato
-					if (!slugValid) {
-						const hint = document.getElementById("slug-hint");
-						hint.className = "error";
+				_authToken = token;
 						hint.textContent =
 							"✗ Verifica prima la disponibilità dello slug";
 						document.getElementById("slug").focus();
@@ -509,7 +526,7 @@
 								startPolling(json.run_id, token);
 							}
 							// Ricarica tabella dopo ~10s (il workflow impiega qualche secondo)
-							setTimeout(() => loadClients(token), 10000);
+							setTimeout(() => loadClients(), 10000);
 						} else {
 							status.className = "error";
 							status.textContent =
