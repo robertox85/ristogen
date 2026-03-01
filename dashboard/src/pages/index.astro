@@ -186,6 +186,63 @@
 				background: #fee2e2;
 				color: #991b1b;
 			}
+			#clients-section {
+				margin-top: 3rem;
+			}
+			#clients-section h2 {
+				font-size: 1.25rem;
+				margin-bottom: 1rem;
+			}
+			#clients-table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 0.875rem;
+			}
+			#clients-table th {
+				text-align: left;
+				padding: 0.5rem 0.75rem;
+				background: #f3f4f6;
+				border-bottom: 2px solid #e5e7eb;
+				color: #374151;
+				font-weight: 600;
+			}
+			#clients-table td {
+				padding: 0.5rem 0.75rem;
+				border-bottom: 1px solid #f3f4f6;
+				vertical-align: middle;
+			}
+			#clients-table tr:last-child td {
+				border-bottom: none;
+			}
+			#clients-table a {
+				color: #2563eb;
+				text-decoration: none;
+			}
+			#clients-table a:hover {
+				text-decoration: underline;
+			}
+			.btn-delete {
+				background: #fee2e2;
+				color: #991b1b;
+				border: none;
+				padding: 0.3rem 0.75rem;
+				border-radius: 4px;
+				font-size: 0.8rem;
+				cursor: pointer;
+				transition: background 0.15s;
+			}
+			.btn-delete:hover {
+				background: #fca5a5;
+			}
+			.btn-delete:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+			#clients-empty {
+				color: #6b7280;
+				font-size: 0.875rem;
+				padding: 0.75rem 0;
+			}
 		</style>
 	</head>
 	<body>
@@ -247,7 +304,78 @@
 			</div>
 		</div>
 
+		<section id="clients-section">
+			<h2>Siti creati</h2>
+			<table id="clients-table">
+				<thead>
+					<tr>
+						<th>Slug</th>
+						<th>URL</th>
+						<th>Admin CMS</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="clients-tbody">
+					<tr><td colspan="4" id="clients-empty">Caricamento…</td></tr>
+				</tbody>
+			</table>
+		</section>
+
 		<script is:inline>
+			// --- Tabella clienti ---
+			async function loadClients(authToken) {
+				const tbody = document.getElementById('clients-tbody');
+				try {
+					const r = await fetch('/api/clients', {
+						headers: { Authorization: 'Bearer ' + authToken }
+					});
+					if (!r.ok) throw new Error(r.statusText);
+					const { clients } = await r.json();
+					if (!clients || clients.length === 0) {
+						tbody.innerHTML = '<tr><td colspan="4" id="clients-empty">Nessun sito creato</td></tr>';
+						return;
+					}
+					tbody.innerHTML = clients.map(c => {
+						const url = c.site_url || '';
+						const adminUrl = url ? url.replace(/\/$/, '') + '/admin/' : '';
+						return `<tr data-slug="${c.slug}">
+							<td><strong>${c.slug}</strong></td>
+							<td>${url ? `<a href="${url}" target="_blank" rel="noopener">${url}</a>` : '—'}</td>
+							<td>${adminUrl ? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS ↗</a>` : '—'}</td>
+							<td><button class="btn-delete" data-slug="${c.slug}">Elimina</button></td>
+						</tr>`;
+					}).join('');
+
+					tbody.querySelectorAll('.btn-delete').forEach(btn => {
+						btn.addEventListener('click', async function() {
+							const slug = this.dataset.slug;
+							if (!confirm(`Eliminare "${slug}" da Netlify e dal repo?`)) return;
+							this.disabled = true;
+							this.textContent = 'Eliminando…';
+							try {
+								const dr = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
+									method: 'DELETE',
+									headers: { Authorization: 'Bearer ' + authToken }
+								});
+								const dj = await dr.json();
+								if (!dr.ok) throw new Error(dj.error || dr.statusText);
+								document.querySelector(`tr[data-slug="${slug}"]`)?.remove();
+								if (!document.querySelector('#clients-tbody tr')) {
+									document.getElementById('clients-tbody').innerHTML =
+										'<tr><td colspan="4" id="clients-empty">Nessun sito creato</td></tr>';
+								}
+							} catch(e) {
+								alert('Errore: ' + e.message);
+								this.disabled = false;
+								this.textContent = 'Elimina';
+							}
+						});
+					});
+				} catch(e) {
+					tbody.innerHTML = '<tr><td colspan="4" id="clients-empty">Errore caricamento: ' + e.message + '</td></tr>';
+				}
+			}
+
 			// --- Validazione slug real-time ---
 			let slugValid = false;
 			let slugTimer = null;
@@ -323,6 +451,9 @@
 						window.netlifyIdentity.on("login", function () {
 							document.location.reload();
 						});
+					} else {
+						const token = user.token && user.token.access_token;
+						if (token) loadClients(token);
 					}
 				});
 			}
@@ -377,6 +508,8 @@
 							if (json.run_id) {
 								startPolling(json.run_id, token);
 							}
+							// Ricarica tabella dopo ~10s (il workflow impiega qualche secondo)
+							setTimeout(() => loadClients(token), 10000);
 						} else {
 							status.className = "error";
 							status.textContent =
