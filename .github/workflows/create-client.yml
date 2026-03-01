@@ -94,51 +94,36 @@ jobs:
           cp /tmp/config-$SLUG.yml clients/$SLUG/decap-config.yml
 
       # ── NETLIFY: crea sito, env vars e build hook PRIMA di committare ──────
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
       - name: Create Netlify site
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
-          # 1. Crea il sito (solo nome — nessuna connessione repo via SSH)
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.netlify.com/api/v1/sites \
-            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
-            -H 'Content-Type: application/json' \
-            -d '{"name": "ristogen-${{ inputs.client_slug }}"}')
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | head -n-1)
-          echo "Create site response ($HTTP_CODE): $BODY"
-          if [ "$HTTP_CODE" != "201" ]; then
-            echo "::error::Netlify create site fallito con codice $HTTP_CODE: $BODY"
-            exit 1
-          fi
-          SITE_ID=$(echo "$BODY" | jq -r '.id')
-          ACCOUNT_ID=$(echo "$BODY" | jq -r '.account_id')
-          SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
-          echo "Sito creato: $SITE_URL (id=$SITE_ID, account=$ACCOUNT_ID)"
+          # 1. Crea il sito — CLI usa NETLIFY_AUTH_TOKEN automaticamente
+          SITE_JSON=$(netlify sites:create \
+            --name "ristogen-${{ inputs.client_slug }}" \
+            --account-slug robertox85 \
+            --json)
+          echo "Create site response: $SITE_JSON"
+          SITE_ID=$(echo "$SITE_JSON" | jq -r '.id')
+          SITE_URL=$(echo "$SITE_JSON" | jq -r '.ssl_url // .url')
+          echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
-          # 2. Imposta le variabili d'ambiente CLIENT_SLUG e DEFAULT_LANG
-          ENV_RES=$(curl -s -w "\n%{http_code}" \
-            -X POST "https://api.netlify.com/api/v1/accounts/$ACCOUNT_ID/env?site_id=$SITE_ID" \
-            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
-            -H 'Content-Type: application/json' \
-            -d '[
-              {"key":"CLIENT_SLUG","values":[{"value":"${{ inputs.client_slug }}","context":"all"}]},
-              {"key":"DEFAULT_LANG","values":[{"value":"${{ inputs.default_lang }}","context":"all"}]}
-            ]')
-          ENV_CODE=$(echo "$ENV_RES" | tail -n1)
-          ENV_BODY=$(echo "$ENV_RES" | head -n-1)
-          echo "Set env vars response ($ENV_CODE): $ENV_BODY"
-          if [ "$ENV_CODE" != "201" ]; then
-            echo "::error::Netlify set env vars fallito con codice $ENV_CODE: $ENV_BODY"
-            exit 1
-          fi
+          # 2. Env vars — CLI: netlify env:set
+          netlify env:set CLIENT_SLUG "${{ inputs.client_slug }}" --site "$SITE_ID"
+          netlify env:set DEFAULT_LANG "${{ inputs.default_lang }}" --site "$SITE_ID"
 
-          # 3. Crea un build hook per i redeploy futuri (dopo modifiche contenuti)
-          HOOK_RES=$(curl -s -X POST "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
-            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
+          # 3. Build hook per i redeploy — CLI non lo supporta, un solo curl rimane
+          HOOK_URL=$(curl -sf -X POST \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
+            -H "Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}" \
             -H 'Content-Type: application/json' \
-            -d '{"title": "GitHub Actions redeploy", "branch": "master"}')
-          HOOK_URL=$(echo "$HOOK_RES" | jq -r '.url')
-          echo "Build hook creato: $HOOK_URL"
+            -d '{"title":"GitHub Actions redeploy","branch":"master"}' | jq -r '.url')
+          echo "Build hook: $HOOK_URL"
           echo "NETLIFY_BUILD_HOOK=$HOOK_URL" >> $GITHUB_ENV
 
       # ── BUILD: i file sono già su disco (non serve il commit) ──────────────
@@ -152,19 +137,19 @@ jobs:
           rm .env
 
       - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
           cd ${{ inputs.template }}
-          npx netlify-cli@latest deploy --prod \
+          netlify deploy --prod \
             --dir=dist \
             --site=$NETLIFY_SITE_ID \
-            --auth=${{ secrets.NETLIFY_TOKEN }} \
             --message="Initial deploy for ${{ inputs.client_slug }}"
 
       # ── COMMIT: un solo commit a fine successo (repo pulito in caso di errore) ──
       - name: Commit
         run: |
           SLUG=${{ inputs.client_slug }}
-          # Aggiungi netlify.json con i metadata del sito
           jq -n \
             --arg site_id "$NETLIFY_SITE_ID" \
             --arg site_url "$NETLIFY_SITE_URL" \
@@ -179,9 +164,9 @@ jobs:
 
       - name: Set custom domain
         if: ${{ inputs.custom_domain != '' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
-          curl -s -X PATCH "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
-            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
-            -H 'Content-Type: application/json' \
-            -d '{"custom_domain": "${{ inputs.custom_domain }}"}'
-
+          netlify sites:update \
+            --id=$NETLIFY_SITE_ID \
+            --custom-domain="${{ inputs.custom_domain }}"
