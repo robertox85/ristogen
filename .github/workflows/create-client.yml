@@ -96,7 +96,7 @@ jobs:
           git config user.email 'bot@ristogen.it'
           git add .
           git commit -m 'feat: add client ${{ inputs.client_slug }}'
-          git push
+          git push origin HEAD:master
 
       - name: Create Netlify site
         run: |
