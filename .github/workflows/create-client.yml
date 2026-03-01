@@ -116,27 +116,27 @@ jobs:
             exit 1
           fi
           SITE_ID=$(echo "$BODY" | jq -r '.id')
+          ACCOUNT_ID=$(echo "$BODY" | jq -r '.account_id')
           SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
-          echo "Sito creato: $SITE_URL (id=$SITE_ID)"
+          echo "Sito creato: $SITE_URL (id=$SITE_ID, account=$ACCOUNT_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
           # 2. Imposta le variabili d'ambiente CLIENT_SLUG e DEFAULT_LANG
-          ENV_RES=$(curl -s -w "\n%{http_code}" -X PATCH "https://api.netlify.com/api/v1/sites/$SITE_ID" \
+          # L'API moderna di Netlify usa POST /accounts/{accountId}/env?site_id={siteId}
+          ENV_RES=$(curl -s -w "\n%{http_code}" \
+            -X POST "https://api.netlify.com/api/v1/accounts/$ACCOUNT_ID/env?site_id=$SITE_ID" \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
-            -d '{
-              "build_settings": {
-                "env": {
-                  "CLIENT_SLUG": "${{ inputs.client_slug }}",
-                  "DEFAULT_LANG": "${{ inputs.default_lang }}"
-                }
-              }
-            }')
+            -d '[
+              {"key":"CLIENT_SLUG","scopes":["builds"],"values":[{"value":"${{ inputs.client_slug }}","context":"all"}]},
+              {"key":"DEFAULT_LANG","scopes":["builds"],"values":[{"value":"${{ inputs.default_lang }}","context":"all"}]}
+            ]')
           ENV_CODE=$(echo "$ENV_RES" | tail -n1)
-          echo "Set env vars response ($ENV_CODE)"
-          if [ "$ENV_CODE" != "200" ]; then
-            echo "::error::Netlify set env vars fallito con codice $ENV_CODE"
+          ENV_BODY=$(echo "$ENV_RES" | head -n-1)
+          echo "Set env vars response ($ENV_CODE): $ENV_BODY"
+          if [ "$ENV_CODE" != "201" ]; then
+            echo "::error::Netlify set env vars fallito con codice $ENV_CODE: $ENV_BODY"
             exit 1
           fi
 
