@@ -103,7 +103,7 @@ jobs:
 
       - name: Create Netlify site
         run: |
-          # 1. Crea il sito
+          # 1. Crea il sito (solo nome — nessuna connessione repo via SSH)
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.netlify.com/api/v1/sites \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
@@ -112,44 +112,83 @@ jobs:
           BODY=$(echo "$RESPONSE" | head -n-1)
           echo "Create site response ($HTTP_CODE): $BODY"
           if [ "$HTTP_CODE" != "201" ]; then
-            echo "::error::Netlify create site fallito con codice $HTTP_CODE"
+            echo "::error::Netlify create site fallito con codice $HTTP_CODE: $BODY"
             exit 1
           fi
           SITE_ID=$(echo "$BODY" | jq -r '.id')
           SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
           echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
+          echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
-          # 2. Configura repo e build settings
-          PATCH=$(curl -s -w "\n%{http_code}" -X PATCH "https://api.netlify.com/api/v1/sites/$SITE_ID" \
+          # 2. Imposta le variabili d'ambiente CLIENT_SLUG e DEFAULT_LANG
+          ENV_RES=$(curl -s -w "\n%{http_code}" -X PATCH "https://api.netlify.com/api/v1/sites/$SITE_ID" \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
             -d '{
-              "repo": {
-                "provider": "github",
-                "repo": "robertox85/ristogen",
-                "branch": "master",
-                "base_dir": "${{ inputs.template }}",
-                "cmd": "npm run build",
-                "dir": "dist",
+              "build_settings": {
                 "env": {
                   "CLIENT_SLUG": "${{ inputs.client_slug }}",
                   "DEFAULT_LANG": "${{ inputs.default_lang }}"
                 }
               }
             }')
-          PATCH_CODE=$(echo "$PATCH" | tail -n1)
-          PATCH_BODY=$(echo "$PATCH" | head -n-1)
-          echo "Patch build settings response ($PATCH_CODE): $PATCH_BODY"
-          if [ "$PATCH_CODE" != "200" ]; then
-            echo "::error::Netlify patch build settings fallito con codice $PATCH_CODE"
+          ENV_CODE=$(echo "$ENV_RES" | tail -n1)
+          echo "Set env vars response ($ENV_CODE)"
+          if [ "$ENV_CODE" != "200" ]; then
+            echo "::error::Netlify set env vars fallito con codice $ENV_CODE"
             exit 1
           fi
+
+          # 3. Crea un build hook per i redeploy futuri (dopo modifiche contenuti)
+          HOOK_RES=$(curl -s -X POST "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
+            -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
+            -H 'Content-Type: application/json' \
+            -d '{"title": "GitHub Actions redeploy", "branch": "master"}')
+          HOOK_URL=$(echo "$HOOK_RES" | jq -r '.url')
+          echo "Build hook creato: $HOOK_URL"
+          echo "NETLIFY_BUILD_HOOK=$HOOK_URL" >> $GITHUB_ENV
+
+      - name: Save Netlify metadata
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          # Salva site_id e build_hook nel repo per i redeploy futuri (usato da redeploy-client.yml)
+          jq -n \
+            --arg site_id "$NETLIFY_SITE_ID" \
+            --arg site_url "$NETLIFY_SITE_URL" \
+            --arg build_hook "$NETLIFY_BUILD_HOOK" \
+            '{"site_id": $site_id, "site_url": $site_url, "build_hook": $build_hook}' \
+            > "clients/$SLUG/netlify.json"
+          git config user.name 'Ristogen Bot'
+          git config user.email 'bot@ristogen.it'
+          git add clients/$SLUG/netlify.json
+          git commit -m 'chore: salva metadata Netlify per ${{ inputs.client_slug }}'
+          git push origin HEAD:master
+
+      - name: Build template
+        run: |
+          cd ${{ inputs.template }}
+          # loadEnv() di Vite legge file .env, non le variabili shell — scriviamo prima
+          printf 'CLIENT_SLUG=${{ inputs.client_slug }}\nDEFAULT_LANG=${{ inputs.default_lang }}\n' > .env
+          npm ci
+          npm run build
+          rm .env
+
+      - name: Deploy to Netlify
+        run: |
+          # Deploy diretto via CLI — Netlify non deve clonare il repo (evita SSH errors)
+          # netlify.toml in template-01/ viene letto automaticamente per i redirects
+          cd ${{ inputs.template }}
+          npx netlify-cli@latest deploy --prod \
+            --dir=dist \
+            --site=$NETLIFY_SITE_ID \
+            --auth=${{ secrets.NETLIFY_TOKEN }} \
+            --message="Initial deploy for ${{ inputs.client_slug }}"
 
       - name: Set custom domain
         if: ${{ inputs.custom_domain != '' }}
         run: |
-          curl -s -X PUT "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+          curl -s -X PATCH "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
             -d '{"custom_domain": "${{ inputs.custom_domain }}"}'

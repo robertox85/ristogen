@@ -1,0 +1,54 @@
+name: Redeploy changed clients
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'clients/*/content/**'
+
+jobs:
+  detect-and-redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 2  # serve per git diff con il commit precedente
+
+      - name: Find changed clients
+        id: changed
+        run: |
+          # Trova le cartelle clients/* che hanno file modificati in questo push
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^clients/' | \
+            sed 's|^clients/\([^/]*\)/.*|\1|' | sort -u)
+          echo "Changed clients: $CHANGED"
+          # Converti in JSON array per matrix
+          JSON=$(echo "$CHANGED" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+
+      - name: Trigger build hooks
+        if: steps.changed.outputs.matrix != '[]' && steps.changed.outputs.matrix != ''
+        run: |
+          SLUGS='${{ steps.changed.outputs.matrix }}'
+          echo "$SLUGS" | jq -r '.[]' | while read SLUG; do
+            NETLIFY_JSON="clients/$SLUG/netlify.json"
+            if [ ! -f "$NETLIFY_JSON" ]; then
+              echo "⚠️  $SLUG: netlify.json non trovato, salto"
+              continue
+            fi
+            HOOK=$(jq -r '.build_hook // empty' "$NETLIFY_JSON")
+            if [ -z "$HOOK" ]; then
+              echo "⚠️  $SLUG: build_hook non configurato in netlify.json, salto"
+              continue
+            fi
+            echo "🔄 Triggero redeploy per $SLUG..."
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$HOOK" \
+              -H 'Content-Type: application/json' \
+              -d '{}')
+            if [ "$HTTP" = "200" ] || [ "$HTTP" = "201" ]; then
+              echo "✅ $SLUG: build hook triggerato (HTTP $HTTP)"
+            else
+              echo "::warning::$SLUG: build hook fallito con HTTP $HTTP"
+            fi
+          done
