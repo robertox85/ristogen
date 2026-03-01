@@ -30,7 +30,7 @@ export const SiteSchema = z.object({
 		og_locale: z.string().optional(),
 		og_site_name: z.string().optional(),
 		twitter_card: z.string().optional(),
-		canonical: z.string().url()
+		canonical: z.union([z.string().url(), z.literal('')]).optional()
 	}),
 	schema_org: z.object({
 		type: z.string(),
