@@ -101,26 +101,26 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
-          # 1. Crea il sito — CLI usa NETLIFY_AUTH_TOKEN automaticamente
-          SITE_JSON=$(netlify sites:create \
-            --name "ristogen-${{ inputs.client_slug }}" \
-            --account-slug robertox85 \
-            --json)
-          echo "Create site response: $SITE_JSON"
-          SITE_ID=$(echo "$SITE_JSON" | jq -r '.id')
-          SITE_URL=$(echo "$SITE_JSON" | jq -r '.ssl_url // .url')
+          # 1. Crea il sito via API (sites:create --json non esiste nella CLI)
+          BODY=$(curl -sf -X POST https://api.netlify.com/api/v1/sites \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{"name": "ristogen-${{ inputs.client_slug }}"}')
+          echo "Create site response: $BODY"
+          SITE_ID=$(echo "$BODY" | jq -r '.id')
+          SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
           echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
-          # 2. Env vars — CLI: netlify env:set
+          # 2. Env vars — CLI gestisce l'autenticazione via NETLIFY_AUTH_TOKEN
           netlify env:set CLIENT_SLUG "${{ inputs.client_slug }}" --site "$SITE_ID"
           netlify env:set DEFAULT_LANG "${{ inputs.default_lang }}" --site "$SITE_ID"
 
-          # 3. Build hook per i redeploy — CLI non lo supporta, un solo curl rimane
+          # 3. Build hook per i redeploy — comando non disponibile in CLI
           HOOK_URL=$(curl -sf -X POST \
             "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
-            -H "Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H 'Content-Type: application/json' \
             -d '{"title":"GitHub Actions redeploy","branch":"master"}' | jq -r '.url')
           echo "Build hook: $HOOK_URL"
@@ -167,6 +167,7 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
-          netlify sites:update \
-            --id=$NETLIFY_SITE_ID \
-            --custom-domain="${{ inputs.custom_domain }}"
+          curl -sf -X PATCH "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{"custom_domain": "${{ inputs.custom_domain }}"}'
