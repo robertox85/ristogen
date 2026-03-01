@@ -117,7 +117,15 @@ jobs:
           NETLIFY_SITE_ID=$SITE_ID netlify env:set CLIENT_SLUG "${{ inputs.client_slug }}"
           NETLIFY_SITE_ID=$SITE_ID netlify env:set DEFAULT_LANG "${{ inputs.default_lang }}"
 
-          # 3. Build hook per i redeploy — comando non disponibile in CLI
+          # 3. Abilita Netlify Identity sul sito
+          curl -sf -X POST \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID/identity" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{}' > /dev/null
+          echo "Netlify Identity abilitato"
+
+          # 4. Build hook per i redeploy — comando non disponibile in CLI
           HOOK_URL=$(curl -sf -X POST \
             "https://api.netlify.com/api/v1/sites/$SITE_ID/build_hooks" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
