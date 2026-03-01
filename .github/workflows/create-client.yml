@@ -113,9 +113,9 @@ jobs:
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
 
-          # 2. Env vars — CLI gestisce l'autenticazione via NETLIFY_AUTH_TOKEN
-          netlify env:set CLIENT_SLUG "${{ inputs.client_slug }}" --site "$SITE_ID"
-          netlify env:set DEFAULT_LANG "${{ inputs.default_lang }}" --site "$SITE_ID"
+          # 2. Env vars — netlify env:set legge NETLIFY_SITE_ID dall'ambiente
+          NETLIFY_SITE_ID=$SITE_ID netlify env:set CLIENT_SLUG "${{ inputs.client_slug }}"
+          NETLIFY_SITE_ID=$SITE_ID netlify env:set DEFAULT_LANG "${{ inputs.default_lang }}"
 
           # 3. Build hook per i redeploy — comando non disponibile in CLI
           HOOK_URL=$(curl -sf -X POST \
