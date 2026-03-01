@@ -48,12 +48,12 @@ jobs:
 
           # it/site.json
           cat > $BASE/it/site.json <<'EOF'
-          {"name":"","lang":"it","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"it_IT","og_site_name":"","twitter_card":"summary_large_image","canonical":"https://"},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
+          {"name":"","lang":"it","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"it_IT","og_site_name":"","twitter_card":"summary_large_image","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
           EOF
 
           # en/site.json
           cat > $BASE/en/site.json <<'EOF'
-          {"name":"","lang":"en","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"en_US","og_site_name":"","twitter_card":"summary_large_image","canonical":"https://"},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
+          {"name":"","lang":"en","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"en_US","og_site_name":"","twitter_card":"summary_large_image","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
           EOF
 
           echo '{"enabled":true,"headline":"","subheadline":"","image":"/images/hero.jpg","image_alt":""}' > $BASE/it/hero.json
