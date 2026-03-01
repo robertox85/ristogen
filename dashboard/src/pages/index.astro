@@ -497,7 +497,11 @@
 						window.netlifyIdentity && window.netlifyIdentity.open();
 						return;
 					}
-				_authToken = token;
+					_authToken = token;
+
+					const hint = document.getElementById("slug-hint");
+					if (!slugValid) {
+						hint.className = "error";
 						hint.textContent =
 							"✗ Verifica prima la disponibilità dello slug";
 						document.getElementById("slug").focus();
