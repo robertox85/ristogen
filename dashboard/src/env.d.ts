@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
 	readonly GITHUB_TOKEN: string;
+	readonly NETLIFY_TOKEN: string;
 	readonly ANTHROPIC_API_KEY: string;
 }
 

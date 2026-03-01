@@ -158,6 +158,17 @@
 					transform: rotate(360deg);
 				}
 			}
+			#slug-hint {
+				margin-top: -1rem;
+				margin-bottom: 1rem;
+				font-size: 0.82rem;
+				min-height: 1.2em;
+				padding: 0.25rem 0.5rem;
+				border-radius: 4px;
+			}
+			#slug-hint.checking { color: #6b7280; }
+			#slug-hint.ok { color: #065f46; background: #d1fae5; }
+			#slug-hint.error { color: #991b1b; background: #fee2e2; }
 		</style>
 	</head>
 	<body>
@@ -174,6 +185,7 @@
 				pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
 				title="Solo lettere minuscole, numeri e trattini (senza trattino iniziale o finale)"
 			/>
+			<div id="slug-hint"></div>
 
 			<label for="template">Template</label>
 			<select id="template" name="template">
@@ -216,6 +228,51 @@
 		</div>
 
 		<script is:inline>
+			// --- Validazione slug real-time ---
+			let slugValid = false;
+			let slugTimer = null;
+
+			document.getElementById('slug').addEventListener('input', function () {
+				const hint = document.getElementById('slug-hint');
+				const val = this.value.trim();
+				slugValid = false;
+				clearTimeout(slugTimer);
+
+				if (!val) { hint.className = ''; hint.textContent = ''; return; }
+				if (!/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
+					hint.className = 'error';
+					hint.textContent = '✗ Formato non valido';
+					return;
+				}
+
+				hint.className = 'checking';
+				hint.textContent = '⏳ Verifica disponibilità…';
+
+				slugTimer = setTimeout(async () => {
+					const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+					const token = user && user.token && user.token.access_token;
+					if (!token) { hint.className = ''; hint.textContent = ''; return; }
+					try {
+						const r = await fetch('/api/validate-slug?slug=' + encodeURIComponent(val), {
+							headers: { 'Authorization': 'Bearer ' + token }
+						});
+						const data = await r.json();
+						if (data.valid) {
+							slugValid = true;
+							hint.className = 'ok';
+							hint.textContent = '✓ Slug disponibile';
+						} else {
+							slugValid = false;
+							hint.className = 'error';
+							hint.textContent = '✗ ' + (data.errors ? data.errors.join(' — ') : data.error);
+						}
+					} catch {
+						hint.className = '';
+						hint.textContent = '';
+					}
+				}, 600);
+			});
+
 			// Netlify Identity: reindirizza a /admin dopo login
 			if (window.netlifyIdentity) {
 				window.netlifyIdentity.on("init", function (user) {
@@ -243,6 +300,15 @@
 					const token = user && user.token && user.token.access_token;
 					if (!token) {
 						window.netlifyIdentity && window.netlifyIdentity.open();
+						return;
+					}
+
+					// Blocca submit se slug non è stato validato
+					if (!slugValid) {
+						const hint = document.getElementById('slug-hint');
+						hint.className = 'error';
+						hint.textContent = '✗ Verifica prima la disponibilità dello slug';
+						document.getElementById('slug').focus();
 						return;
 					}
 
