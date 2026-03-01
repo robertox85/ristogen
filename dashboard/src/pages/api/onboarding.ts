@@ -113,7 +113,7 @@ Usa numeri 1-14 per gli allergeni EU. Nessun testo aggiuntivo.`
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				ref: 'main',
+				ref: 'develop',
 				inputs: {
 					client_slug: clientSlug,
 					template,

@@ -99,8 +99,8 @@
 				name="client_slug"
 				placeholder="burger-prati"
 				required
-				pattern="[-a-z0-9]+"
-				title="Solo lettere minuscole, numeri e trattini"
+				pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
+				title="Solo lettere minuscole, numeri e trattini (senza trattino iniziale o finale)"
 			/>
 
 			<label for="template">Template</label>
@@ -151,7 +151,7 @@
 					const btn = document.getElementById("submit-btn");
 					const status = document.getElementById("status");
 					status.className = "";
-					status.style.display = "none";
+					status.textContent = "";
 
 					// Leggi JWT da Netlify Identity
 					const user =
