@@ -66,7 +66,7 @@ jobs:
         run: |
           SLUG="${{ inputs.client_slug }}"
           echo "${MENU_PAYLOAD}" | jq -c '.[]' | while IFS= read -r category; do
-            name=$(echo "${category}" | jq -r '.name' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+            name=$(echo "${category}" | jq -r '.name' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
             echo "${category}" > "clients/${SLUG}/content/it/menu/${name}.json"
           done
           rm -f "clients/${SLUG}/content/it/menu/default.json"

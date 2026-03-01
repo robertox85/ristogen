@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (anthropicKey) {
       try {
         const pdfBuffer = await menuPdf.arrayBuffer();
-        const base64Pdf = Buffer.from(pdfBuffer).toString('base64');
+        const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
 
         const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
