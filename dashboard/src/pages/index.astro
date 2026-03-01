@@ -166,9 +166,26 @@
 				padding: 0.25rem 0.5rem;
 				border-radius: 4px;
 			}
-			#slug-hint.checking { color: #6b7280; }
-			#slug-hint.ok { color: #065f46; background: #d1fae5; }
-			#slug-hint.error { color: #991b1b; background: #fee2e2; }
+			#slug-hint.checking {
+				color: #6b7280;
+			}
+			#slug-hint.ok {
+				color: #065f46;
+				background: #d1fae5;
+			}
+			#slug-hint.error {
+				color: #991b1b;
+				background: #fee2e2;
+			}
+			#action-errors {
+				display: none;
+			}
+			#action-errors.visible {
+				display: block;
+				padding: 0.75rem 1rem;
+				background: #fee2e2;
+				color: #991b1b;
+			}
 		</style>
 	</head>
 	<body>
@@ -225,7 +242,9 @@
 				>
 			</div>
 			<ul id="action-steps"></ul>
-			<div id="action-errors"><h4>Dettaglio errore</h4><pre id="action-errors-text"></pre></div>
+			<div id="action-errors">
+				<h4>Dettaglio errore</h4><pre id="action-errors-text"></pre>
+			</div>
 		</div>
 
 		<script is:inline>
@@ -233,46 +252,69 @@
 			let slugValid = false;
 			let slugTimer = null;
 
-			document.getElementById('slug').addEventListener('input', function () {
-				const hint = document.getElementById('slug-hint');
-				const val = this.value.trim();
-				slugValid = false;
-				clearTimeout(slugTimer);
+			document
+				.getElementById("slug")
+				.addEventListener("input", function () {
+					const hint = document.getElementById("slug-hint");
+					const val = this.value.trim();
+					slugValid = false;
+					clearTimeout(slugTimer);
 
-				if (!val) { hint.className = ''; hint.textContent = ''; return; }
-				if (!/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
-					hint.className = 'error';
-					hint.textContent = '✗ Formato non valido';
-					return;
-				}
-
-				hint.className = 'checking';
-				hint.textContent = '⏳ Verifica disponibilità…';
-
-				slugTimer = setTimeout(async () => {
-					const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-					const token = user && user.token && user.token.access_token;
-					if (!token) { hint.className = ''; hint.textContent = ''; return; }
-					try {
-						const r = await fetch('/api/validate-slug?slug=' + encodeURIComponent(val), {
-							headers: { 'Authorization': 'Bearer ' + token }
-						});
-						const data = await r.json();
-						if (data.valid) {
-							slugValid = true;
-							hint.className = 'ok';
-							hint.textContent = '✓ Slug disponibile';
-						} else {
-							slugValid = false;
-							hint.className = 'error';
-							hint.textContent = '✗ ' + (data.errors ? data.errors.join(' — ') : data.error);
-						}
-					} catch {
-						hint.className = '';
-						hint.textContent = '';
+					if (!val) {
+						hint.className = "";
+						hint.textContent = "";
+						return;
 					}
-				}, 600);
-			});
+					if (!/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
+						hint.className = "error";
+						hint.textContent = "✗ Formato non valido";
+						return;
+					}
+
+					hint.className = "checking";
+					hint.textContent = "⏳ Verifica disponibilità…";
+
+					slugTimer = setTimeout(async () => {
+						const user =
+							window.netlifyIdentity &&
+							window.netlifyIdentity.currentUser();
+						const token =
+							user && user.token && user.token.access_token;
+						if (!token) {
+							hint.className = "";
+							hint.textContent = "";
+							return;
+						}
+						try {
+							const r = await fetch(
+								"/api/validate-slug?slug=" +
+									encodeURIComponent(val),
+								{
+									headers: {
+										Authorization: "Bearer " + token,
+									},
+								},
+							);
+							const data = await r.json();
+							if (data.valid) {
+								slugValid = true;
+								hint.className = "ok";
+								hint.textContent = "✓ Slug disponibile";
+							} else {
+								slugValid = false;
+								hint.className = "error";
+								hint.textContent =
+									"✗ " +
+									(data.errors
+										? data.errors.join(" — ")
+										: data.error);
+							}
+						} catch {
+							hint.className = "";
+							hint.textContent = "";
+						}
+					}, 600);
+				});
 
 			// Netlify Identity: reindirizza a /admin dopo login
 			if (window.netlifyIdentity) {
@@ -306,10 +348,11 @@
 
 					// Blocca submit se slug non è stato validato
 					if (!slugValid) {
-						const hint = document.getElementById('slug-hint');
-						hint.className = 'error';
-						hint.textContent = '✗ Verifica prima la disponibilità dello slug';
-						document.getElementById('slug').focus();
+						const hint = document.getElementById("slug-hint");
+						hint.className = "error";
+						hint.textContent =
+							"✗ Verifica prima la disponibilità dello slug";
+						document.getElementById("slug").focus();
 						return;
 					}
 
@@ -354,8 +397,9 @@
 				const label = document.getElementById("action-label");
 				const link = document.getElementById("action-link");
 				const stepsList = document.getElementById("action-steps");
-				const errorsBox = document.getElementById('action-errors');
-				const errorsText = document.getElementById('action-errors-text');
+				const errorsBox = document.getElementById("action-errors");
+				const errorsText =
+					document.getElementById("action-errors-text");
 				box.classList.add("visible");
 
 				const ICONS = {
@@ -404,14 +448,14 @@
 
 						// Mostra errori dalle annotazioni GitHub
 						const allErrors = data.jobs
-							.flatMap(j => j.errors ?? [])
+							.flatMap((j) => j.errors ?? [])
 							.filter(Boolean);
 						if (allErrors.length > 0) {
-							errorsBox.className = 'visible';
-							errorsText.textContent = allErrors.join('\n\n');
+							errorsBox.className = "visible";
+							errorsText.textContent = allErrors.join("\n\n");
 						} else {
-							errorsBox.className = '';
-							errorsText.textContent = '';
+							errorsBox.className = "";
+							errorsText.textContent = "";
 						}
 					}
 				}
