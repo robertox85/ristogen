@@ -1,0 +1,65 @@
+name: Rebuild & redeploy existing client
+on:
+  workflow_dispatch:
+    inputs:
+      client_slug:
+        description: 'Slug cliente da rideploy (es. basso2)'
+        required: true
+      template:
+        description: 'Template da usare'
+        required: true
+        default: 'template-01'
+        type: choice
+        options: ['template-01', 'template-02']
+      default_lang:
+        description: 'Lingua principale'
+        required: true
+        default: 'it'
+        type: choice
+        options: ['it', 'en']
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    environment: NETLIFY_TOKEN
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Read site_id from netlify.json
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          NETLIFY_JSON="clients/$SLUG/netlify.json"
+          if [ ! -f "$NETLIFY_JSON" ]; then
+            echo "❌ $NETLIFY_JSON non trovato"
+            exit 1
+          fi
+          SITE_ID=$(jq -r '.site_id' "$NETLIFY_JSON")
+          SITE_URL=$(jq -r '.site_url' "$NETLIFY_JSON")
+          echo "Sito: $SITE_URL (id=$SITE_ID)"
+          echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Build template
+        run: |
+          cd ${{ inputs.template }}
+          printf 'CLIENT_SLUG=${{ inputs.client_slug }}\nDEFAULT_LANG=${{ inputs.default_lang }}\n' > .env
+          npm ci
+          npm run build
+          rm .env
+
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: |
+          cd ${{ inputs.template }}
+          netlify deploy --prod \
+            --dir=dist \
+            --site=$NETLIFY_SITE_ID \
+            --message="Rebuild ${{ inputs.client_slug }} with latest template"
+          echo "✅ Redeploy completato"
