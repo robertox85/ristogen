@@ -225,6 +225,7 @@
 				>
 			</div>
 			<ul id="action-steps"></ul>
+			<div id="action-errors"><h4>Dettaglio errore</h4><pre id="action-errors-text"></pre></div>
 		</div>
 
 		<script is:inline>
@@ -353,6 +354,8 @@
 				const label = document.getElementById("action-label");
 				const link = document.getElementById("action-link");
 				const stepsList = document.getElementById("action-steps");
+				const errorsBox = document.getElementById('action-errors');
+				const errorsText = document.getElementById('action-errors-text');
 				box.classList.add("visible");
 
 				const ICONS = {
@@ -398,6 +401,18 @@
 								return "<li>" + sIcon + " " + s.name + "</li>";
 							})
 							.join("");
+
+						// Mostra errori dalle annotazioni GitHub
+						const allErrors = data.jobs
+							.flatMap(j => j.errors ?? [])
+							.filter(Boolean);
+						if (allErrors.length > 0) {
+							errorsBox.className = 'visible';
+							errorsText.textContent = allErrors.join('\n\n');
+						} else {
+							errorsBox.className = '';
+							errorsText.textContent = '';
+						}
 					}
 				}
 

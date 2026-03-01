@@ -10,7 +10,9 @@ interface GitHubRun {
 }
 
 interface GitHubJob {
+	id: number;
 	name: string;
+	html_url: string;
 	status: string;
 	conclusion: string | null;
 	steps: Array<{ name: string; status: string; conclusion: string | null }>;
@@ -18,6 +20,13 @@ interface GitHubJob {
 
 interface GitHubJobsResponse {
 	jobs: GitHubJob[];
+}
+
+interface GitHubAnnotation {
+	annotation_level: string;
+	message: string;
+	path: string;
+	start_line: number;
 }
 
 export const GET: APIRoute = async ({ url, request }) => {
@@ -74,20 +83,42 @@ export const GET: APIRoute = async ({ url, request }) => {
 		jobs = jobsData.jobs ?? [];
 	}
 
-	return new Response(JSON.stringify({
-		status: run.status,         // queued | in_progress | completed
-		conclusion: run.conclusion, // success | failure | cancelled | timed_out | ...
-		url: run.html_url,
-		jobs: jobs.map(j => ({
+	// Per i job falliti, recupera le annotazioni (contengono il messaggio di errore reale)
+	const jobsWithAnnotations = await Promise.all(jobs.map(async (j) => {
+		let errors: string[] = [];
+		if (j.conclusion === 'failure') {
+			try {
+				const annRes = await fetch(
+					`https://api.github.com/repos/robertox85/ristogen/check-runs/${j.id}/annotations`,
+					{ headers }
+				);
+				if (annRes.ok) {
+					const annotations = await annRes.json() as GitHubAnnotation[];
+					errors = annotations
+						.filter(a => a.annotation_level === 'failure' || a.annotation_level === 'error')
+						.map(a => a.message);
+				}
+			} catch { /* non bloccante */ }
+		}
+		return {
 			name: j.name,
 			status: j.status,
 			conclusion: j.conclusion,
+			url: j.html_url,
+			errors,
 			steps: j.steps?.map(s => ({
 				name: s.name,
 				status: s.status,
 				conclusion: s.conclusion
 			})) ?? []
-		}))
+		};
+	}));
+
+	return new Response(JSON.stringify({
+		status: run.status,
+		conclusion: run.conclusion,
+		url: run.html_url,
+		jobs: jobsWithAnnotations
 	}), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' }
