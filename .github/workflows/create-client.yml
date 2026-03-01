@@ -102,7 +102,7 @@ jobs:
 
       - name: Create Netlify site
         run: |
-          RESPONSE=$(curl -s -X POST https://api.netlify.com/api/v1/sites \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.netlify.com/api/v1/sites \
             -H 'Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}' \
             -H 'Content-Type: application/json' \
             -d '{
@@ -110,7 +110,7 @@ jobs:
               "repo": {
                 "provider": "github",
                 "repo": "robertox85/ristogen",
-                "branch": "main",
+                "branch": "master",
                 "base_dir": "${{ inputs.template }}",
                 "cmd": "npm run build",
                 "dir": "dist"
@@ -122,7 +122,16 @@ jobs:
                 }
               }
             }')
-          SITE_ID=$(echo "$RESPONSE" | jq -r '.id')
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          echo "Netlify API response ($HTTP_CODE): $BODY"
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "::error::Netlify API ha risposto con codice $HTTP_CODE"
+            exit 1
+          fi
+          SITE_ID=$(echo "$BODY" | jq -r '.id')
+          SITE_URL=$(echo "$BODY" | jq -r '.ssl_url // .url')
+          echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
 
       - name: Set custom domain
