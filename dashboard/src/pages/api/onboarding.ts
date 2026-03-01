@@ -133,7 +133,26 @@ Usa numeri 1-14 per gli allergeni EU. Nessun testo aggiuntivo.`
 		});
 	}
 
-	return new Response(JSON.stringify({ ok: true, client_slug: clientSlug }), {
+	// Attende 3s poi recupera il run_id dall'ultimo run avviato
+	await new Promise(r => setTimeout(r, 3000));
+	let runId: number | null = null;
+	try {
+		const runsRes = await fetch(
+			'https://api.github.com/repos/robertox85/ristogen/actions/workflows/create-client.yml/runs?branch=master&per_page=1',
+			{
+				headers: {
+					'Authorization': `Bearer ${githubToken}`,
+					'Accept': 'application/vnd.github+json'
+				}
+			}
+		);
+		if (runsRes.ok) {
+			const runsData = await runsRes.json() as { workflow_runs: Array<{ id: number }> };
+			runId = runsData.workflow_runs[0]?.id ?? null;
+		}
+	} catch { /* non bloccante */ }
+
+	return new Response(JSON.stringify({ ok: true, client_slug: clientSlug, run_id: runId }), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' }
 	});

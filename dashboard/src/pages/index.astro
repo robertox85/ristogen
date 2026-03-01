@@ -86,6 +86,78 @@
 				color: #991b1b;
 				display: block;
 			}
+			#action-box {
+				display: none;
+				margin-top: 1.5rem;
+				border: 1px solid #e5e7eb;
+				border-radius: 8px;
+				overflow: hidden;
+			}
+			#action-box.visible {
+				display: block;
+			}
+			#action-header {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				padding: 0.75rem 1rem;
+				background: #f3f4f6;
+				font-weight: 600;
+				font-size: 0.95rem;
+			}
+			#action-header a {
+				margin-left: auto;
+				font-size: 0.8rem;
+				font-weight: 400;
+				color: #2563eb;
+			}
+			#action-header.queued {
+				background: #f3f4f6;
+				color: #374151;
+			}
+			#action-header.in_progress {
+				background: #eff6ff;
+				color: #1d4ed8;
+			}
+			#action-header.success {
+				background: #d1fae5;
+				color: #065f46;
+			}
+			#action-header.failure {
+				background: #fee2e2;
+				color: #991b1b;
+			}
+			#action-header.cancelled,
+			#action-header.warning {
+				background: #fef9c3;
+				color: #854d0e;
+			}
+			#action-steps {
+				list-style: none;
+				margin: 0;
+				padding: 0.5rem 1rem;
+			}
+			#action-steps li {
+				padding: 0.35rem 0;
+				font-size: 0.875rem;
+				color: #374151;
+				border-bottom: 1px solid #f3f4f6;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			#action-steps li:last-child {
+				border-bottom: none;
+			}
+			.spin {
+				display: inline-block;
+				animation: spin 1s linear infinite;
+			}
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -131,6 +203,17 @@
 		</form>
 
 		<div id="status"></div>
+
+		<div id="action-box">
+			<div id="action-header">
+				<span id="action-icon"></span>
+				<span id="action-label">GitHub Action</span>
+				<a id="action-link" href="#" target="_blank" rel="noopener"
+					>Apri su GitHub ↗</a
+				>
+			</div>
+			<ul id="action-steps"></ul>
+		</div>
 
 		<script is:inline>
 			// Netlify Identity: reindirizza a /admin dopo login
@@ -180,7 +263,10 @@
 							status.textContent =
 								'✓ Cliente "' +
 								formData.get("client_slug") +
-								'" creato! La GitHub Action è in esecuzione.';
+								'" creato! Monitoraggio Action in corso…';
+							if (json.run_id) {
+								startPolling(json.run_id, token);
+							}
 						} else {
 							status.className = "error";
 							status.textContent =
@@ -194,6 +280,81 @@
 						btn.textContent = "Crea cliente";
 					}
 				});
+			function startPolling(runId, authToken) {
+				const box = document.getElementById("action-box");
+				const header = document.getElementById("action-header");
+				const icon = document.getElementById("action-icon");
+				const label = document.getElementById("action-label");
+				const link = document.getElementById("action-link");
+				const stepsList = document.getElementById("action-steps");
+				box.classList.add("visible");
+
+				const ICONS = {
+					queued: "⏳",
+					in_progress: '<span class="spin">⚙️</span>',
+					success: "✅",
+					failure: "❌",
+					cancelled: "⚠️",
+					timed_out: "⏱️",
+				};
+				const LABELS = {
+					queued: "In coda…",
+					in_progress: "In esecuzione…",
+					success: "Completata con successo",
+					failure: "Fallita",
+					cancelled: "Annullata",
+					timed_out: "Timeout",
+				};
+				const STEP_ICONS = {
+					success: "✅",
+					failure: "❌",
+					skipped: "⏭️",
+					in_progress: '<span class="spin">⚙️</span>',
+				};
+
+				function render(data) {
+					const key =
+						data.status === "completed"
+							? (data.conclusion ?? "failure")
+							: data.status;
+					header.className = key;
+					icon.innerHTML = ICONS[key] ?? "❓";
+					label.textContent = LABELS[key] ?? key;
+					link.href = data.url;
+
+					if (data.jobs && data.jobs.length > 0) {
+						const steps = data.jobs[0].steps ?? [];
+						stepsList.innerHTML = steps
+							.map((s) => {
+								const sIcon =
+									STEP_ICONS[s.conclusion ?? s.status] ??
+									"⬜";
+								return "<li>" + sIcon + " " + s.name + "</li>";
+							})
+							.join("");
+					}
+				}
+
+				let interval = setInterval(async () => {
+					try {
+						const r = await fetch(
+							"/api/action-status?run_id=" + runId,
+							{
+								headers: {
+									Authorization: "Bearer " + authToken,
+								},
+							},
+						);
+						if (!r.ok) return;
+						const data = await r.json();
+						render(data);
+						if (data.status === "completed")
+							clearInterval(interval);
+					} catch {
+						/* ignora errori transitori */
+					}
+				}, 4000);
+			}
 		</script>
 	</body>
 </html>
