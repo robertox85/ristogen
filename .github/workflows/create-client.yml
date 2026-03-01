@@ -27,6 +27,7 @@ on:
 jobs:
   create:
     runs-on: ubuntu-latest
+    environment: NETLIFY_TOKEN
     permissions:
       contents: write
     steps:
