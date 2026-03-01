@@ -1,0 +1,120 @@
+---
+// Questa pagina è protetta da Netlify Identity (Invite Only)
+// Il form invia a /api/onboarding via POST (server-side)
+---
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ristogen — Onboarding</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem 1rem; background: #f9fafb; color: #111; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    p.sub { color: #6b7280; margin-top: 0; margin-bottom: 2rem; }
+    label { display: block; font-weight: 500; margin-bottom: 0.25rem; }
+    input, select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; margin-bottom: 1.25rem; }
+    input[type="file"] { padding: 0.4rem; }
+    button[type="submit"] {
+      background: #111827; color: #fff; border: none;
+      padding: 0.75rem 2rem; border-radius: 6px; font-size: 1rem;
+      cursor: pointer; width: 100%; transition: opacity 0.2s;
+    }
+    button[type="submit"]:hover { opacity: 0.85; }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 6px; display: none; }
+    #status.success { background: #d1fae5; color: #065f46; display: block; }
+    #status.error { background: #fee2e2; color: #991b1b; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Ristogen Dashboard</h1>
+  <p class="sub">Crea un nuovo sito ristorante</p>
+
+  <form id="onboarding-form" enctype="multipart/form-data">
+    <label for="slug">Slug cliente *</label>
+    <input id="slug" name="client_slug" placeholder="burger-prati" required pattern="[a-z0-9-]+" title="Solo lettere minuscole, numeri e trattini" />
+
+    <label for="template">Template</label>
+    <select id="template" name="template">
+      <option value="template-01">Template 01 — Dark</option>
+      <option value="template-02">Template 02 — Light</option>
+    </select>
+
+    <label for="lang">Lingua principale</label>
+    <select id="lang" name="default_lang">
+      <option value="it">Italiano</option>
+      <option value="en">English</option>
+    </select>
+
+    <label for="domain">Dominio personalizzato (opzionale)</label>
+    <input id="domain" name="custom_domain" placeholder="www.ristoranteprati.it" />
+
+    <label for="pdf">Menù PDF (opzionale — estrazione automatica via Claude)</label>
+    <input id="pdf" name="menu_pdf" type="file" accept=".pdf" />
+
+    <button type="submit" id="submit-btn">Crea cliente</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script is:inline>
+    // Netlify Identity: reindirizza a /admin dopo login
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', function(user) {
+        if (!user) {
+          window.netlifyIdentity.on('login', function() {
+            document.location.reload();
+          });
+        }
+      });
+    }
+
+    document.getElementById('onboarding-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const status = document.getElementById('status');
+      status.className = '';
+      status.style.display = 'none';
+
+      // Leggi JWT da Netlify Identity
+      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const token = user && user.token && user.token.access_token;
+      if (!token) {
+        window.netlifyIdentity && window.netlifyIdentity.open();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Elaborazione in corso…';
+
+      const formData = new FormData(this);
+
+      try {
+        const res = await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: formData
+        });
+        const json = await res.json();
+        if (res.ok) {
+          status.className = 'success';
+          status.textContent = '✓ Cliente "' + formData.get('client_slug') + '" creato! La GitHub Action è in esecuzione.';
+        } else {
+          status.className = 'error';
+          status.textContent = '✗ Errore: ' + (json.error || res.statusText);
+        }
+      } catch (err) {
+        status.className = 'error';
+        status.textContent = '✗ Errore di rete: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crea cliente';
+      }
+    });
+  </script>
+</body>
+</html>

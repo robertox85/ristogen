@@ -5,6 +5,20 @@ export const AnalyticsSchema = z.object({
 	clarity: z.string().optional()
 }).optional();
 
+export const PostalAddressSchema = z.object({
+	streetAddress: z.string(),
+	addressLocality: z.string(),
+	postalCode: z.string(),
+	addressRegion: z.string().optional(),
+	addressCountry: z.string().optional()
+});
+
+export const OpeningHoursSpecificationSchema = z.object({
+	dayOfWeek: z.array(z.string()),
+	opens: z.string(),
+	closes: z.string()
+});
+
 export const SiteSchema = z.object({
 	name: z.string(),
 	lang: z.string().default('it'),
@@ -12,18 +26,34 @@ export const SiteSchema = z.object({
 		title: z.string(),
 		description: z.string(),
 		og_image: z.string(),
+		og_type: z.string().optional(),
+		og_locale: z.string().optional(),
+		og_site_name: z.string().optional(),
+		twitter_card: z.string().optional(),
 		canonical: z.string().url()
 	}),
 	schema_org: z.object({
 		type: z.string(),
 		name: z.string(),
-		address: z.string(),
+		description: z.string().optional(),
+		url: z.string().url().optional(),
+		logo: z.string().optional(),
+		image: z.array(z.string()).optional(),
+		address: PostalAddressSchema,
+		latitude: z.string().optional(),
+		longitude: z.string().optional(),
 		telephone: z.string(),
+		email: z.string().email().optional(),
 		servesCuisine: z.string(),
 		priceRange: z.string(),
-		openingHours: z.array(z.string())
+		currenciesAccepted: z.string().optional(),
+		paymentAccepted: z.string().optional(),
+		openingHours: z.array(OpeningHoursSpecificationSchema)
 	}),
-	seo: z.object({ llms_txt: z.boolean().default(false) }).optional(),
+	seo: z.object({
+		llms_txt: z.boolean().default(false),
+		robots: z.string().optional()
+	}).optional(),
 	analytics: AnalyticsSchema
 });
 
@@ -82,7 +112,11 @@ export const ContattiSchema = z.object({
 	telefono: z.string(),
 	email: z.string().email().optional(),
 	orari: z.string(),
-	google_maps_url: z.string().url().optional()
+	google_maps_url: z.string().url().optional(),
+	social: z.object({
+		instagram: z.string().url().optional(),
+		facebook: z.string().url().optional()
+	}).optional()
 });
 
 export const GallerySchema = z.object({
@@ -104,6 +138,8 @@ export const ArticleSchema = z.object({
 });
 
 export type Article = z.infer<typeof ArticleSchema>;
+export type PostalAddress = z.infer<typeof PostalAddressSchema>;
+export type OpeningHoursSpecification = z.infer<typeof OpeningHoursSpecificationSchema>;
 
 // Schema completo dell'intero contenuto cliente
 export const ClientContentSchema = z.object({

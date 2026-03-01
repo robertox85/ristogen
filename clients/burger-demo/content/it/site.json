@@ -1,29 +1,44 @@
 {
   "name": "Burger Demo",
   "lang": "it",
-  "favicon": "/assets/favicon.ico",
   "meta": {
     "title": "Burger Demo - I migliori burger di Roma",
     "description": "Ingredienti freschi, ogni giorno.",
-    "og_image": "/assets/og.jpg",
+    "og_image": "/images/og.jpg",
+    "og_type": "restaurant.restaurant",
+    "og_locale": "it_IT",
+    "og_site_name": "Burger Demo",
+    "twitter_card": "summary_large_image",
     "canonical": "https://www.burgerdemo.it"
   },
   "schema_org": {
     "type": "Restaurant",
     "name": "Burger Demo",
-    "address": "Via Roma 1, Roma",
+    "description": "Hamburgeria artigianale nel cuore di Roma.",
+    "url": "https://www.burgerdemo.it",
+    "logo": "/images/logo.png",
+    "image": ["/images/og.jpg"],
+    "address": {
+      "streetAddress": "Via Roma 1",
+      "addressLocality": "Roma",
+      "postalCode": "00100",
+      "addressRegion": "RM",
+      "addressCountry": "IT"
+    },
+    "latitude": "41.9028",
+    "longitude": "12.4964",
     "telephone": "+39 06 000000",
+    "email": "info@burgerdemo.it",
     "servesCuisine": "Hamburger",
-    "priceRange": "\u20ac\u20ac",
+    "priceRange": "€€",
+    "currenciesAccepted": "EUR",
+    "paymentAccepted": "Cash, Credit Card",
     "openingHours": [
-      "Mo-Su 12:00-23:00"
+      { "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "12:00", "closes": "15:00" },
+      { "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "19:00", "closes": "23:00" },
+      { "dayOfWeek": ["Saturday","Sunday"], "opens": "12:00", "closes": "23:00" }
     ]
   },
-  "seo": {
-    "llms_txt": true
-  },
-  "analytics": {
-    "ga4": "",
-    "clarity": ""
-  }
+  "seo": { "llms_txt": true, "robots": "index, follow" },
+  "analytics": { "ga4": "", "clarity": "" }
 }

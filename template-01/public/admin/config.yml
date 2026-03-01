@@ -1,7 +1,11 @@
 ---
 backend:
-  branch: develop
   name: git-gateway
+  branch: main
+# Abilita backend locale per sviluppo — rimuovere in produzione
+local_backend: true
+media_folder: clients/burger-demo/content/images
+public_folder: /images
 collections:
   - editor:
       preview: false
@@ -30,9 +34,27 @@ collections:
               - label: Nome ristorante
                 name: name
                 widget: string
-              - label: Indirizzo
+              - fields:
+                  - label: Via/Indirizzo
+                    name: streetAddress
+                    widget: string
+                  - label: Città
+                    name: addressLocality
+                    widget: string
+                  - label: CAP
+                    name: postalCode
+                    widget: string
+                  - label: Regione
+                    name: addressRegion
+                    required: false
+                    widget: string
+                  - label: Paese (es. IT)
+                    name: addressCountry
+                    required: false
+                    widget: string
+                label: Indirizzo
                 name: address
-                widget: string
+                widget: object
               - label: Telefono
                 name: telephone
                 widget: string
@@ -42,18 +64,107 @@ collections:
               - label: Fascia prezzo (€/€€/€€€)
                 name: priceRange
                 widget: string
-              - label: Orari
+              - label: Orari apertura
                 name: openingHours
                 widget: list
+                fields:
+                  - label: Giorni
+                    name: dayOfWeek
+                    widget: list
+                  - label: Apertura
+                    name: opens
+                    widget: string
+                  - label: Chiusura
+                    name: closes
+                    widget: string
             label: Schema.org (Google)
             name: schema_org
             widget: object
         file: clients/burger-demo/content/it/site.json
         format: json
-        label: Meta e SEO
-        name: site
-    label: Impostazioni sito
-    name: site
+        label: Meta e SEO (IT)
+        name: site_it
+    label: Impostazioni sito (IT)
+    name: site_it
+  - editor:
+      preview: false
+    files:
+      - fields:
+          - label: Site name
+            name: name
+            widget: string
+          - fields:
+              - label: Title tag
+                name: title
+                widget: string
+              - label: Meta description
+                name: description
+                widget: text
+              - label: OG Image
+                name: og_image
+                widget: image
+              - label: Canonical URL
+                name: canonical
+                widget: string
+            label: Meta tags
+            name: meta
+            widget: object
+          - fields:
+              - label: Restaurant name
+                name: name
+                widget: string
+              - fields:
+                  - label: Street address
+                    name: streetAddress
+                    widget: string
+                  - label: City
+                    name: addressLocality
+                    widget: string
+                  - label: Postal code
+                    name: postalCode
+                    widget: string
+                  - label: Region
+                    name: addressRegion
+                    required: false
+                    widget: string
+                  - label: Country (e.g. IT)
+                    name: addressCountry
+                    required: false
+                    widget: string
+                label: Address
+                name: address
+                widget: object
+              - label: Phone
+                name: telephone
+                widget: string
+              - label: Cuisine type
+                name: servesCuisine
+                widget: string
+              - label: Price range (€/€€/€€€)
+                name: priceRange
+                widget: string
+              - label: Opening hours
+                name: openingHours
+                widget: list
+                fields:
+                  - label: Days of week
+                    name: dayOfWeek
+                    widget: list
+                  - label: Opens
+                    name: opens
+                    widget: string
+                  - label: Closes
+                    name: closes
+                    widget: string
+            label: Schema.org (Google)
+            name: schema_org
+            widget: object
+        file: clients/burger-demo/content/en/site.json
+        format: json
+        label: Meta & SEO (EN)
+        name: site_en
+    label: Site settings (EN)
+    name: site_en
   - editor:
       preview: false
     files:
@@ -126,10 +237,46 @@ collections:
             widget: object
         file: clients/burger-demo/content/it/hero.json
         format: json
-        label: Sezione Hero
-        name: hero
-    label: Hero
-    name: hero
+        label: Sezione Hero (IT)
+        name: hero_it
+    label: Hero (IT)
+    name: hero_it
+  - files:
+      - fields:
+          - default: true
+            label: Enabled
+            name: enabled
+            widget: boolean
+          - label: Main headline
+            name: headline
+            widget: string
+          - label: Subheadline
+            name: subheadline
+            required: false
+            widget: string
+          - label: Background image
+            name: image
+            widget: image
+          - label: Image alt text
+            name: image_alt
+            widget: string
+          - fields:
+              - label: Button label
+                name: label
+                widget: string
+              - label: Link
+                name: url
+                widget: string
+            label: CTA button
+            name: cta
+            required: false
+            widget: object
+        file: clients/burger-demo/content/en/hero.json
+        format: json
+        label: Hero section (EN)
+        name: hero_en
+    label: Hero (EN)
+    name: hero_en
   - files:
       - fields:
           - default: true
@@ -152,10 +299,36 @@ collections:
             widget: string
         file: clients/burger-demo/content/it/about.json
         format: json
-        label: Sezione Chi siamo
-        name: about
-    label: Chi siamo
-    name: about
+        label: Sezione Chi siamo (IT)
+        name: about_it
+    label: Chi siamo (IT)
+    name: about_it
+  - files:
+      - fields:
+          - default: true
+            label: Enabled
+            name: enabled
+            widget: boolean
+          - label: Title
+            name: title
+            widget: string
+          - label: Text
+            name: text
+            widget: text
+          - label: Image
+            name: image
+            required: false
+            widget: image
+          - label: Image alt text
+            name: image_alt
+            required: false
+            widget: string
+        file: clients/burger-demo/content/en/about.json
+        format: json
+        label: About us (EN)
+        name: about_en
+    label: About (EN)
+    name: about_en
   - files:
       - fields:
           - default: true
@@ -181,10 +354,39 @@ collections:
             widget: string
         file: clients/burger-demo/content/it/contatti.json
         format: json
-        label: Informazioni di contatto
-        name: contatti
-    label: Contatti
-    name: contatti
+        label: Informazioni di contatto (IT)
+        name: contatti_it
+    label: Contatti (IT)
+    name: contatti_it
+  - files:
+      - fields:
+          - default: true
+            label: Enabled
+            name: enabled
+            widget: boolean
+          - label: Address
+            name: indirizzo
+            widget: string
+          - label: Phone
+            name: telefono
+            widget: string
+          - label: Email
+            name: email
+            required: false
+            widget: string
+          - label: Opening hours
+            name: orari
+            widget: text
+          - label: Google Maps link
+            name: google_maps_url
+            required: false
+            widget: string
+        file: clients/burger-demo/content/en/contatti.json
+        format: json
+        label: Contact info (EN)
+        name: contatti_en
+    label: Contacts (EN)
+    name: contatti_en
   - files:
       - fields:
           - default: true
@@ -203,10 +405,32 @@ collections:
             widget: list
         file: clients/burger-demo/content/it/gallery.json
         format: json
-        label: Galleria foto
-        name: gallery
-    label: Galleria
-    name: gallery
+        label: Galleria foto (IT)
+        name: gallery_it
+    label: Galleria (IT)
+    name: gallery_it
+  - files:
+      - fields:
+          - default: true
+            label: Enabled
+            name: enabled
+            widget: boolean
+          - fields:
+              - label: Image
+                name: src
+                widget: image
+              - label: Alt text
+                name: alt
+                widget: string
+            label: Photos
+            name: images
+            widget: list
+        file: clients/burger-demo/content/en/gallery.json
+        format: json
+        label: Photo gallery (EN)
+        name: gallery_en
+    label: Gallery (EN)
+    name: gallery_en
   - create: true
     fields:
       - label: Nome categoria
@@ -273,10 +497,137 @@ collections:
         widget: list
     folder: clients/burger-demo/content/it/menu
     format: json
-    label: "Menù"
-    name: menu
+    label: "Menù (IT)"
+    name: menu_it
     slug: "{{name}}"
-# Abilita backend locale per sviluppo — rimuovere in produzione
-local_backend: true
-media_folder: clients/burger-demo/content/it/assets
-public_folder: /assets
+  - create: true
+    fields:
+      - label: Category name
+        name: name
+        widget: string
+      - fields:
+          - label: Item name
+            name: name
+            widget: string
+          - label: Description
+            name: description
+            widget: text
+          - label: Price (e.g. 9.00)
+            name: price
+            widget: string
+          - label: Photo
+            name: image
+            required: false
+            widget: image
+          - label: Photo alt text
+            name: image_alt
+            required: false
+            widget: string
+          - label: Badge (e.g. Best seller)
+            name: badge
+            required: false
+            widget: string
+          - label: Allergens
+            multiple: true
+            name: allergeni
+            options:
+              - label: 1 - Gluten
+                value: 1
+              - label: 2 - Crustaceans
+                value: 2
+              - label: 3 - Eggs
+                value: 3
+              - label: 4 - Fish
+                value: 4
+              - label: 5 - Peanuts
+                value: 5
+              - label: 6 - Soy
+                value: 6
+              - label: 7 - Milk
+                value: 7
+              - label: 8 - Tree nuts
+                value: 8
+              - label: 9 - Celery
+                value: 9
+              - label: 10 - Mustard
+                value: 10
+              - label: 11 - Sesame
+                value: 11
+              - label: 12 - Sulphur dioxide
+                value: 12
+              - label: 13 - Lupin
+                value: 13
+              - label: 14 - Molluscs
+                value: 14
+            required: false
+            widget: select
+        label: Items
+        name: items
+        widget: list
+    folder: clients/burger-demo/content/en/menu
+    format: json
+    label: "Menu (EN)"
+    name: menu_en
+    slug: "{{name}}"
+  - create: true
+    fields:
+      - label: Slug
+        name: slug
+        widget: string
+      - label: Titolo
+        name: title
+        widget: string
+      - label: Descrizione
+        name: description
+        widget: text
+      - label: Testo articolo (markdown)
+        name: body
+        widget: markdown
+      - label: Data pubblicazione
+        name: date
+        widget: datetime
+        format: YYYY-MM-DD
+      - label: OG Image
+        name: og_image
+        required: false
+        widget: image
+      - label: No index
+        name: noindex
+        default: false
+        widget: boolean
+    folder: clients/burger-demo/content/it/articles
+    format: json
+    label: Articoli (IT)
+    name: articles_it
+    slug: "{{slug}}"
+  - create: true
+    fields:
+      - label: Slug
+        name: slug
+        widget: string
+      - label: Title
+        name: title
+        widget: string
+      - label: Description
+        name: description
+        widget: text
+      - label: Article body (markdown)
+        name: body
+        widget: markdown
+      - label: Publication date
+        name: date
+        widget: datetime
+        format: YYYY-MM-DD
+      - label: OG Image
+        name: og_image
+        required: false
+        widget: image
+      - label: No index
+        name: noindex
+        default: false
+        widget: boolean
+    folder: clients/burger-demo/content/en/articles
+    format: json
+    label: Articles (EN)
+    name: articles_en
+    slug: "{{slug}}"

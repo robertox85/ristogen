@@ -13,7 +13,7 @@ export const GET: APIRoute = () => {
 		`> ${site.meta.description}`,
 		``,
 		`## Informazioni`,
-		`- Indirizzo: ${site.schema_org.address}`,
+		`- Indirizzo: ${site.schema_org.address.streetAddress}, ${site.schema_org.address.postalCode} ${site.schema_org.address.addressLocality}`,
 		`- Telefono: ${site.schema_org.telephone}`,
 		`- Cucina: ${site.schema_org.servesCuisine}`,
 		`- Fascia prezzo: ${site.schema_org.priceRange}`,
