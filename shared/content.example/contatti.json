@@ -1,0 +1,12 @@
+{
+	"enabled": true,
+	"indirizzo": "Via Example 1, Città",
+	"telefono": "+39 00 000000",
+	"email": "info@example.it",
+	"orari": "Lun-Dom 12:00-23:00",
+	"google_maps_url": "https://maps.google.com/",
+	"social": {
+		"instagram": "",
+		"facebook": ""
+	}
+}

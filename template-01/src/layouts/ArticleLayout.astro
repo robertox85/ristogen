@@ -1,0 +1,109 @@
+---
+import { marked } from 'marked';
+import Analytics from '../components/Analytics.astro';
+import type { ClientContent, Article } from '../schema/content.schema';
+
+interface Props {
+  content: ClientContent;
+  article: Article;
+  lang: 'it' | 'en';
+}
+
+const { content, article, lang } = Astro.props;
+const { site, theme } = content;
+
+const bodyHtml = marked(article.body);
+// URL articoli sempre espliciti — non dipendono da DEFAULT_LANG
+const itPath = `${site.meta.canonical}/it/articoli/${article.slug}`;
+const enPath = `${site.meta.canonical}/en/articles/${article.slug}`;
+const canonical = lang === 'it' ? itPath : enPath;
+const altLang = lang === 'it' ? 'en' : 'it';
+const altCanonical = lang === 'it' ? enPath : itPath;
+---
+
+<!DOCTYPE html>
+<html lang={lang}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{article.title} — {site.schema_org.name}</title>
+  <meta name="description" content={article.description}>
+  <link rel="canonical" href={canonical}>
+  {article.noindex && <meta name="robots" content="noindex">}
+  <meta property="og:title" content={article.title}>
+  <meta property="og:description" content={article.description}>
+  {article.og_image && <meta property="og:image" content={article.og_image}>}
+  <meta property="og:type" content="article">
+  <link rel="alternate" hreflang={altLang} href={altCanonical}>
+  <link rel="alternate" hreflang={lang} href={canonical}>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href={`https://fonts.googleapis.com/css2?family=${theme.fonts.heading}:wght@400;700&family=${theme.fonts.body}:wght@400;500&display=swap`} rel="stylesheet">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    'headline': article.title,
+    'description': article.description,
+    'datePublished': article.date,
+    'author': { '@type': 'Organization', 'name': site.schema_org.name },
+    'publisher': { '@type': 'Organization', 'name': site.schema_org.name }
+  })} />
+  <Analytics analytics={site.analytics} />
+</head>
+<body style={`
+  --color-primary: ${theme.colors.primary};
+  --color-secondary: ${theme.colors.secondary};
+  --color-bg: ${theme.colors.background};
+  --color-text: ${theme.colors.text};
+  --font-heading: '${theme.fonts.heading}';
+  --font-body: '${theme.fonts.body}'
+`}>
+  <article class="article-body">
+    <header>
+      <p class="date">{article.date}</p>
+      <h1>{article.title}</h1>
+      <p class="description">{article.description}</p>
+    </header>
+    <div class="content" set:html={bodyHtml} />
+    <footer>
+      <a href={lang === 'it' ? '/' : '/en/'}>← {lang === 'it' ? 'Torna alla home' : 'Back to home'}</a>
+    </footer>
+  </article>
+
+  <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script is:inline>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', user => {
+        if (!user) {
+          window.netlifyIdentity.on('login', () => {
+            document.location.href = '/admin/';
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+
+<style>
+  .article-body {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+  }
+  header { margin-bottom: 2.5rem; }
+  h1 {
+    font-family: var(--font-heading);
+    font-size: 2.25rem;
+    margin: 0.5rem 0;
+    color: var(--color-primary);
+  }
+  .date { font-size: 0.85rem; opacity: 0.6; margin: 0; }
+  .description { font-size: 1.1rem; opacity: 0.8; margin: 0.5rem 0 0; }
+  .content { line-height: 1.8; }
+  .content h2 { font-family: var(--font-heading); color: var(--color-primary); margin-top: 2rem; }
+  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1); }
+  a { color: var(--color-primary); }
+</style>

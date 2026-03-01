@@ -1,0 +1,11 @@
+{
+	"enabled": true,
+	"headline": "Titolo principale",
+	"subheadline": "Sottotitolo descrittivo",
+	"image": "/assets/hero.jpg",
+	"image_alt": "Descrizione immagine hero",
+	"cta": {
+		"label": "Scopri di più",
+		"url": "#contatti"
+	}
+}

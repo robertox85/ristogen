@@ -31,6 +31,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: develop
 
       - name: Create content structure
         run: |
