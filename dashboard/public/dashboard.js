@@ -452,6 +452,13 @@ function showNextSteps(slug, siteUrl) {
   document.getElementById("ns-repo").textContent  = slug;
   document.getElementById("ns-admin-url").textContent = adminUrl;
 
+  // Link diretto alla pagina del progetto su Netlify
+  const netlifyLink = document.getElementById("ns-netlify-link");
+  if (netlifyLink) {
+    netlifyLink.href        = `https://app.netlify.com/projects/${slug}/`;
+    netlifyLink.textContent = `app.netlify.com/projects/${slug}/`;
+  }
+
   const siteLink = document.getElementById("ns-site-url");
   const cmsLink  = document.getElementById("ns-cms-url");
   if (siteUrl) { siteLink.href = siteUrl; siteLink.textContent = siteUrl; }

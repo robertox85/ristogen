@@ -21,7 +21,7 @@
 				Ristogen
 				<span class="logo-pill">Beta</span>
 			</div>
-				<div id="user-info"></div>
+			<div id="user-info"></div>
 		</header>
 
 		<!-- Schermata di login (visibile finché non autenticato) -->
@@ -31,7 +31,9 @@
 					<span>🍽</span> Ristogen
 					<span class="logo-pill">Beta</span>
 				</div>
-				<p class="login-desc">Accedi per gestire le landing dei tuoi clienti.</p>
+				<p class="login-desc">
+					Accedi per gestire le landing dei tuoi clienti.
+				</p>
 				<button id="btn-login" class="btn-primary">
 					<span>🔑</span> Accedi
 				</button>
@@ -40,454 +42,610 @@
 
 		<!-- Contenuto principale (nascosto finché non autenticato) -->
 		<div id="main-content">
-
-		<div class="split-layout">
-			<!-- Colonna sinistra: form + deploy -->
-			<div class="split-left">
-				<!-- Form: nuova landing -->
-				<div class="card">
-					<div class="card-header">
-						<div class="card-header-icon">❆</div>
-						<div>
-							<h2>Nuova landing ristorante</h2>
-							<p>
-								Compila il form per avviare il deploy automatico
-							</p>
-						</div>
-					</div>
-					<div class="card-body">
-						<form
-							id="onboarding-form"
-							enctype="multipart/form-data"
-						>
-							<div class="field">
-								<label for="slug">
-									Slug cliente
-									<span class="helper"
-										>Identificatore unico — es. <code
-											>burger-prati</code
-										></span
-									>
-								</label>
-								<input
-									id="slug"
-									name="client_slug"
-									placeholder="burger-prati"
-									required
-									autocomplete="off"
-									spellcheck="false"
-									pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
-									title="Solo lettere minuscole, numeri e trattini"
-								/>
-								<div id="slug-hint"></div>
-							</div>
-							<div class="field-row">
-								<div class="field">
-								<label>Template</label>
-								<div class="tpicker" id="tpicker-main">
-									<button type="button" class="tpicker-btn" aria-haspopup="listbox" aria-expanded="false">
-										<img class="tpicker-thumb" src="/templates/template-01.png" alt="" />
-										<span class="tpicker-label">Template 01 — Dark</span>
-										<svg class="tpicker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-									</button>
-									<ul class="tpicker-list" role="listbox">
-										<li class="tpicker-item selected" data-value="template-01" data-label="Template 01 — Dark" role="option">
-											<img class="tpicker-item-thumb" src="/templates/template-01.png" alt="" />
-											<div class="tpicker-item-text"><strong>Template 01</strong><em>Dark — ristorante moderno</em></div>
-											<div class="tpicker-item-preview">
-												<img src="/templates/template-01.png" alt="Preview Template 01" />
-												<p>Template 01 — Dark</p>
-											</div>
-										</li>
-										<li class="tpicker-item" data-value="template-02" data-label="Template 02 — Light" role="option">
-											<img class="tpicker-item-thumb" src="/templates/template-02.png" alt="" />
-											<div class="tpicker-item-text"><strong>Template 02</strong><em>Light — elegante e chiaro</em></div>
-											<div class="tpicker-item-preview">
-												<img src="/templates/template-02.png" alt="Preview Template 02" />
-												<p>Template 02 — Light</p>
-											</div>
-										</li>
-									</ul>
-									<input type="hidden" id="template" name="template" value="template-01" />
-								</div>
-								</div>
-								<div class="field">
-									<label for="lang">Lingua principale</label>
-									<select id="lang" name="default_lang">
-										<option value="it">🇮🇹 Italiano</option>
-										<option value="en">🇬🇧 English</option>
-									</select>
-								</div>
-							</div>
-							<div class="field">
-								<label for="domain">
-									Dominio personalizzato
-									<span class="optional">(opzionale)</span>
-								</label>
-								<input
-									id="domain"
-									name="custom_domain"
-									placeholder="www.ristoranteprati.it"
-								/>
-							</div>
-							<div class="field">
-								<label for="pdf">
-									Menù PDF
-									<span class="optional">(opzionale)</span>
-									<span class="helper"
-										>Estrazione automatica dei contenuti via
-										Claude AI</span
-									>
-								</label>
-								<input
-									id="pdf"
-									name="menu_pdf"
-									type="file"
-									accept=".pdf"
-								/>
-							</div>
-							<button
-								type="submit"
-								id="submit-btn"
-								class="btn-primary"
-							>
-								<span id="submit-icon">✦</span>
-								<span id="submit-text">Crea cliente</span>
-							</button>
-						</form>
-						<div id="status" role="alert"></div>
-					</div>
-				</div>
-
-				<!-- GitHub Action: stato deploy (sinistra, visibile dopo submit) -->
-				<div class="card" id="action-box">
-					<div class="card-header">
-						<div class="card-header-icon">⚙</div>
-						<div>
-							<h2>Deploy in corso</h2>
-							<p>Stato della GitHub Action</p>
-						</div>
-					</div>
-					<div id="action-header" class="action-status-bar">
-						<span id="action-icon"></span>
-						<span id="action-label">In attesa…</span>
-						<a
-							id="action-link"
-							href="#"
-							target="_blank"
-							rel="noopener">Apri su GitHub ↗</a
-						>
-					</div>
-					<div class="action-steps-wrap">
-						<ul id="action-steps"></ul>
-					</div>
-					<div id="action-errors">
-						<h4>⚠ Dettaglio errore</h4>
-						<pre id="action-errors-text"></pre>
-					</div>
-				</div>
-			</div><!-- /.split-left -->
-
-			<!-- Colonna destra: prossimi passi + landing create -->
-			<div class="split-right">
-				<!-- Prossimi passi (visibile dopo creazione) -->
-				<div class="card" id="next-steps-box">
-					<div class="next-steps-header">
-						<div class="next-steps-title">
-							<div class="card-header-icon">🚀</div>
+			<div class="split-layout">
+				<!-- Colonna sinistra: form + deploy -->
+				<div class="split-left">
+					<!-- Form: nuova landing -->
+					<div class="card">
+						<div class="card-header">
+							<div class="card-header-icon">❆</div>
 							<div>
-								<h2>Prossimi passi</h2>
+								<h2>Nuova landing ristorante</h2>
 								<p>
-									Completa la configurazione della landing <strong
-										id="ns-slug"></strong>
+									Compila il form per avviare il deploy
+									automatico
 								</p>
 							</div>
 						</div>
-						<button
-							class="btn-dismiss"
-							id="ns-dismiss"
-							title="Chiudi">✕</button
-						>
-					</div>
-					<ul class="steps-list">
-						<li class="step-item" data-step="1">
-							<span class="step-num">1</span>
-							<div class="step-content">
-								<strong>Collega la repo su Netlify</strong>
-								<p>
-									Vai su <a
-										href="https://app.netlify.com"
-										target="_blank"
-										rel="noopener">app.netlify.com</a
-									, apri la landing appena creata → <em
-										>Site configuration → Build &amp; deploy
-										→ Link repository</em
-									>. Seleziona la repo <code id="ns-repo"
-									></code> appena generata su GitHub.
-								</p>
-							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
+						<div class="card-body">
+							<form
+								id="onboarding-form"
+								enctype="multipart/form-data"
 							>
-						</li>
-						<li class="step-item" data-step="2">
-							<span class="step-num">2</span>
-							<div class="step-content">
-								<strong
-										>Abilita Netlify Identity sulla nuova landing</strong
-								>
-								<p>
-									Dal pannello della landing su Netlify: <em
-										>Integrations → Identity → Enable
-										Identity</em
-									>. Imposta la registrazione su <em
-										>Invite only</em
-									>.
-								</p>
-							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
-							>
-						</li>
-						<li class="step-item" data-step="3">
-							<span class="step-num">3</span>
-							<div class="step-content">
-								<strong
-									>Registra un utente admin per il CMS</strong
-								>
-								<p>
-									Sempre in <em>Identity</em>, clicca <em
-										>Invite users</em
-									> e invia l'invito all'email del cliente. L'utente
-									potrà accedere a <code id="ns-admin-url"
-									></code>.
-								</p>
-							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
-							>
-						</li>
-						<li class="step-item" data-step="4">
-							<span class="step-num">4</span>
-							<div class="step-content">
-								<strong
-									>Configura il dominio personalizzato</strong
-								>
-								<p>
-									Se hai inserito un dominio personalizzato,
-									vai su
-									<em
-										>Domain management → Add custom domain</em
-									> e aggiorna i DNS del cliente con i valori forniti
-									da Netlify.
-								</p>
-							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
-							>
-						</li>
-						<li class="step-item" data-step="5">
-							<span class="step-num">5</span>
-							<div class="step-content">
-								<strong>Verifica la landing pubblicata</strong>
-								<p>
-									Apri <a
-										id="ns-site-url"
-										href="#"
-										target="_blank"
-												rel="noopener">l'URL della landing</a
-									>
-									e controlla che contenuti e menu siano visualizzati
-									correttamente. Poi accedi al <a
-										id="ns-cms-url"
-										href="#"
-										target="_blank"
-										rel="noopener">pannello CMS</a
-									>
-									con le credenziali appena create.
-								</p>
-							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
-							>
-						</li>
-					</ul>
-					<div class="next-steps-footer">
-						<span>💡</span> Seleziona ✓ su ogni step una volta completato.
-					</div>
-				</div>
-
-				<!-- Tabella landing create -->
-				<div class="card" id="clients-section">
-					<div class="section-header">
-						<h2>Landing create</h2>
-						<div class="section-header-actions">
-							<span class="badge" id="clients-count"></span>
-							<button
-								class="btn-refresh"
-								id="btn-refresh-clients"
-								title="Aggiorna lista"
-							>
-								<span class="refresh-icon">↻</span> Aggiorna
-							</button>
-						</div>
-					</div>
-					<div class="clients-wrap">
-						<table id="clients-table">
-							<thead>
-								<tr>
-									<th>Slug</th>
-									<th>URL</th>
-									<th>CMS Admin</th>
-									<th>Azioni</th>
-								</tr>
-							</thead>
-							<tbody id="clients-tbody">
-								<tr>
-									<td colspan="4">
-										<div class="empty-state">
-											<svg
-												width="40"
-												height="40"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.5"
+								<div class="field">
+									<label for="slug">
+										Slug cliente
+										<span class="helper"
+											>Identificatore unico — es. <code
+												>burger-prati</code
+											></span
+										>
+									</label>
+									<input
+										id="slug"
+										name="client_slug"
+										placeholder="burger-prati"
+										required
+										autocomplete="off"
+										spellcheck="false"
+										pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
+										title="Solo lettere minuscole, numeri e trattini"
+									/>
+									<div id="slug-hint"></div>
+								</div>
+								<div class="field-row">
+									<div class="field">
+										<label>Template</label>
+										<div class="tpicker" id="tpicker-main">
+											<button
+												type="button"
+												class="tpicker-btn"
+												aria-haspopup="listbox"
+												aria-expanded="false"
 											>
-												<circle cx="12" cy="12" r="10"
-												></circle>
-												<path d="M8 12h8M12 8v8"></path>
-											</svg>
-											<p>Caricamento…</p>
+												<img
+													class="tpicker-thumb"
+													src="/templates/template-01.png"
+													alt=""
+												/>
+												<span class="tpicker-label"
+													>Template 01 — Dark</span
+												>
+												<svg
+													class="tpicker-chevron"
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2.5"
+													><path d="M6 9l6 6 6-6"
+													></path></svg
+												>
+											</button>
+											<ul
+												class="tpicker-list"
+												role="listbox"
+											>
+												<li
+													class="tpicker-item selected"
+													data-value="template-01"
+													data-label="Template 01 — Dark"
+													role="option"
+												>
+													<img
+														class="tpicker-item-thumb"
+														src="/templates/template-01.png"
+														alt=""
+													/>
+													<div
+														class="tpicker-item-text"
+													>
+														<strong
+															>Template 01</strong
+														><em
+															>Dark — ristorante
+															moderno</em>
+													</div>
+													<div
+														class="tpicker-item-preview"
+													>
+														<img
+															src="/templates/template-01.png"
+															alt="Preview Template 01"
+														/>
+														<p>
+															Template 01 — Dark
+														</p>
+													</div>
+												</li>
+												<li
+													class="tpicker-item"
+													data-value="template-02"
+													data-label="Template 02 — Light"
+													role="option"
+												>
+													<img
+														class="tpicker-item-thumb"
+														src="/templates/template-02.png"
+														alt=""
+													/>
+													<div
+														class="tpicker-item-text"
+													>
+														<strong
+															>Template 02</strong
+														><em
+															>Light — elegante e
+															chiaro</em>
+													</div>
+													<div
+														class="tpicker-item-preview"
+													>
+														<img
+															src="/templates/template-02.png"
+															alt="Preview Template 02"
+														/>
+														<p>
+															Template 02 — Light
+														</p>
+													</div>
+												</li>
+											</ul>
+											<input
+												type="hidden"
+												id="template"
+												name="template"
+												value="template-01"
+											/>
 										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div><!-- /.split-right -->
-		</div><!-- /.split-layout -->
-
-		<!-- Drawer: modifica cliente -->
-		<div id="drawer-backdrop" class="drawer-backdrop"></div>
-		<aside
-			id="edit-drawer"
-			class="edit-drawer"
-			role="dialog"
-			aria-modal="true"
-			aria-labelledby="drawer-title"
-		>
-			<div class="drawer-header">
-				<div>
-					<h2 id="drawer-title">Modifica landing</h2>
-					<p id="drawer-subtitle" class="drawer-subtitle"></p>
-				</div>
-				<button id="drawer-close" class="btn-dismiss" title="Chiudi"
-					>✕</button
-				>
-			</div>
-			<div class="drawer-body">
-				<!-- Info read-only -->
-				<div class="drawer-info-grid">
-					<div class="drawer-info-item">
-							<span class="drawer-info-label">URL landing</span>
-						<a
-							id="di-site-url"
-							href="#"
-							target="_blank"
-							rel="noopener"
-							class="drawer-info-value">—</a
-						>
-					</div>
-					<div class="drawer-info-item">
-						<span class="drawer-info-label">CMS Admin</span>
-						<a
-							id="di-cms-url"
-							href="#"
-							target="_blank"
-							rel="noopener"
-							class="drawer-info-value">—</a
-						>
-					</div>
-				</div>
-
-				<hr class="drawer-divider" />
-
-				<!-- Form modifica -->
-				<form id="edit-form">
-					<input type="hidden" id="edit-slug" name="slug" />
-
-					<div class="field">
-						<label>Template</label>
-						<div class="tpicker tpicker--preview-left" id="tpicker-edit">
-							<button type="button" class="tpicker-btn" aria-haspopup="listbox" aria-expanded="false">
-								<img class="tpicker-thumb" src="/templates/template-01.png" alt="" />
-								<span class="tpicker-label">Template 01 — Dark</span>
-								<svg class="tpicker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-							</button>
-							<ul class="tpicker-list" role="listbox">
-								<li class="tpicker-item selected" data-value="template-01" data-label="Template 01 — Dark" role="option">
-									<img class="tpicker-item-thumb" src="/templates/template-01.png" alt="" />
-									<div class="tpicker-item-text"><strong>Template 01</strong><em>Dark — ristorante moderno</em></div>
-									<div class="tpicker-item-preview">
-										<img src="/templates/template-01.png" alt="Preview Template 01" />
-										<p>Template 01 — Dark</p>
 									</div>
-								</li>
-								<li class="tpicker-item" data-value="template-02" data-label="Template 02 — Light" role="option">
-									<img class="tpicker-item-thumb" src="/templates/template-02.png" alt="" />
-									<div class="tpicker-item-text"><strong>Template 02</strong><em>Light — elegante e chiaro</em></div>
-									<div class="tpicker-item-preview">
-										<img src="/templates/template-02.png" alt="Preview Template 02" />
-										<p>Template 02 — Light</p>
+									<div class="field">
+										<label for="lang"
+											>Lingua principale</label
+										>
+										<select id="lang" name="default_lang">
+											<option value="it"
+												>🇮🇹 Italiano</option
+											>
+											<option value="en"
+												>🇬🇧 English</option
+											>
+										</select>
 									</div>
-								</li>
-							</ul>
-							<input type="hidden" id="edit-template" name="template" value="template-01" />
+								</div>
+								<div class="field">
+									<label for="domain">
+										Dominio personalizzato
+										<span class="optional">(opzionale)</span
+										>
+									</label>
+									<input
+										id="domain"
+										name="custom_domain"
+										placeholder="www.ristoranteprati.it"
+									/>
+								</div>
+								<div class="field">
+									<label for="pdf">
+										Menù PDF
+										<span class="optional">(opzionale)</span
+										>
+										<span class="helper"
+											>Estrazione automatica dei contenuti
+											via Claude AI</span
+										>
+									</label>
+									<input
+										id="pdf"
+										name="menu_pdf"
+										type="file"
+										accept=".pdf"
+									/>
+								</div>
+								<button
+									type="submit"
+									id="submit-btn"
+									class="btn-primary"
+								>
+									<span id="submit-icon">✦</span>
+									<span id="submit-text">Crea cliente</span>
+								</button>
+							</form>
+							<div id="status" role="alert"></div>
 						</div>
 					</div>
 
-					<div class="field">
-						<label for="edit-lang">Lingua principale</label>
-						<select id="edit-lang" name="default_lang">
-							<option value="it">🇮🇹 Italiano</option>
-							<option value="en">🇬🇧 English</option>
-						</select>
+					<!-- GitHub Action: stato deploy (sinistra, visibile dopo submit) -->
+					<div class="card" id="action-box">
+						<div class="card-header">
+							<div class="card-header-icon">⚙</div>
+							<div>
+								<h2>Deploy in corso</h2>
+								<p>Stato della GitHub Action</p>
+							</div>
+						</div>
+						<div id="action-header" class="action-status-bar">
+							<span id="action-icon"></span>
+							<span id="action-label">In attesa…</span>
+							<a
+								id="action-link"
+								href="#"
+								target="_blank"
+								rel="noopener">Apri su GitHub ↗</a
+							>
+						</div>
+						<div class="action-steps-wrap">
+							<ul id="action-steps"></ul>
+						</div>
+						<div id="action-errors">
+							<h4>⚠ Dettaglio errore</h4>
+							<pre id="action-errors-text"></pre>
+						</div>
+					</div>
+				</div><!-- /.split-left -->
+
+				<!-- Colonna destra: prossimi passi + landing create -->
+				<div class="split-right">
+					<!-- Prossimi passi (visibile dopo creazione) -->
+					<div class="card" id="next-steps-box">
+						<div class="next-steps-header">
+							<div class="next-steps-title">
+								<div class="card-header-icon">🚀</div>
+								<div>
+									<h2>Prossimi passi</h2>
+									<p>
+										Completa la configurazione della landing <strong
+											id="ns-slug"></strong>
+									</p>
+								</div>
+							</div>
+							<button
+								class="btn-dismiss"
+								id="ns-dismiss"
+								title="Chiudi">✕</button
+							>
+						</div>
+						<ul class="steps-list">
+							<li class="step-item" data-step="1">
+								<span class="step-num">1</span>
+								<div class="step-content">
+									<strong>Collega la repo su Netlify</strong>
+									<p>
+										Vai su <a
+											id="ns-netlify-link"
+											href="https://app.netlify.com"
+											target="_blank"
+											rel="noopener">app.netlify.com</a
+										>, apri la landing appena creata &rarr; <em
+											>Site configuration &rarr; Build
+											&amp; deploy &rarr; Link repository</em
+										>. Seleziona la repo <code id="ns-repo"
+										></code> appena generata su GitHub.
+									</p>
+								</div>
+								<button
+									class="step-check"
+									title="Segna come fatto">✓</button
+								>
+							</li>
+							<li class="step-item" data-step="2">
+								<span class="step-num">2</span>
+								<div class="step-content">
+									<strong
+										>Abilita Netlify Identity sulla nuova
+										landing</strong
+									>
+									<p>
+										Dal pannello della landing su Netlify: <em
+											>Integrations → Identity → Enable
+											Identity</em
+										>. Imposta la registrazione su <em
+											>Invite only</em
+										>.
+									</p>
+								</div>
+								<button
+									class="step-check"
+									title="Segna come fatto">✓</button
+								>
+							</li>
+							<li class="step-item" data-step="3">
+								<span class="step-num">3</span>
+								<div class="step-content">
+									<strong
+										>Registra un utente admin per il CMS</strong
+									>
+									<p>
+										Sempre in <em>Identity</em>, clicca <em
+											>Invite users</em
+										> e invia l'invito all'email del cliente.
+										L'utente potrà accedere a <code
+											id="ns-admin-url"></code>.
+									</p>
+								</div>
+								<button
+									class="step-check"
+									title="Segna come fatto">✓</button
+								>
+							</li>
+							<li class="step-item" data-step="4">
+								<span class="step-num">4</span>
+								<div class="step-content">
+									<strong
+										>Configura il dominio personalizzato</strong
+									>
+									<p>
+										Se hai inserito un dominio
+										personalizzato, vai su
+										<em
+											>Domain management → Add custom
+											domain</em
+										> e aggiorna i DNS del cliente con i valori
+										forniti da Netlify.
+									</p>
+								</div>
+								<button
+									class="step-check"
+									title="Segna come fatto">✓</button
+								>
+							</li>
+							<li class="step-item" data-step="5">
+								<span class="step-num">5</span>
+								<div class="step-content">
+									<strong
+										>Verifica la landing pubblicata</strong
+									>
+									<p>
+										Apri <a
+											id="ns-site-url"
+											href="#"
+											target="_blank"
+											rel="noopener"
+											>l'URL della landing</a
+										>
+										e controlla che contenuti e menu siano visualizzati
+										correttamente. Poi accedi al <a
+											id="ns-cms-url"
+											href="#"
+											target="_blank"
+											rel="noopener">pannello CMS</a
+										>
+										con le credenziali appena create.
+									</p>
+								</div>
+								<button
+									class="step-check"
+									title="Segna come fatto">✓</button
+								>
+							</li>
+						</ul>
+						<div class="next-steps-footer">
+							<span>💡</span> Seleziona ✓ su ogni step una volta completato.
+						</div>
 					</div>
 
-					<div class="field">
-						<label for="edit-domain">
-							Dominio personalizzato
-							<span class="optional">(opzionale)</span>
-						</label>
-						<input
-							id="edit-domain"
-							name="custom_domain"
-							placeholder="www.ristoranteprati.it"
-							autocomplete="off"
-						/>
+					<!-- Tabella landing create -->
+					<div class="card" id="clients-section">
+						<div class="section-header">
+							<h2>Landing create</h2>
+							<div class="section-header-actions">
+								<span class="badge" id="clients-count"></span>
+								<button
+									class="btn-refresh"
+									id="btn-refresh-clients"
+									title="Aggiorna lista"
+								>
+									<span class="refresh-icon">↻</span> Aggiorna
+								</button>
+							</div>
+						</div>
+						<div class="clients-wrap">
+							<table id="clients-table">
+								<thead>
+									<tr>
+										<th>Slug</th>
+										<th>URL</th>
+										<th>CMS Admin</th>
+										<th>Azioni</th>
+									</tr>
+								</thead>
+								<tbody id="clients-tbody">
+									<tr>
+										<td colspan="4">
+											<div class="empty-state">
+												<svg
+													width="40"
+													height="40"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="1.5"
+												>
+													<circle
+														cx="12"
+														cy="12"
+														r="10"></circle>
+													<path d="M8 12h8M12 8v8"
+													></path>
+												</svg>
+												<p>Caricamento…</p>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
 					</div>
+				</div><!-- /.split-right -->
+			</div><!-- /.split-layout -->
 
-					<div id="edit-rebuild-note" class="rebuild-note">
-						⚠ Cambiare template o lingua avvierà un rebuild della landing
-						(~2 min).
+			<!-- Drawer: modifica cliente -->
+			<div id="drawer-backdrop" class="drawer-backdrop"></div>
+			<aside
+				id="edit-drawer"
+				class="edit-drawer"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="drawer-title"
+			>
+				<div class="drawer-header">
+					<div>
+						<h2 id="drawer-title">Modifica landing</h2>
+						<p id="drawer-subtitle" class="drawer-subtitle"></p>
 					</div>
-
-					<button
-						type="submit"
-						id="edit-submit-btn"
-						class="btn-primary"
+					<button id="drawer-close" class="btn-dismiss" title="Chiudi"
+						>✕</button
 					>
-						<span id="edit-submit-icon">💾</span>
-						<span id="edit-submit-text">Salva modifiche</span>
-					</button>
-				</form>
+				</div>
+				<div class="drawer-body">
+					<!-- Info read-only -->
+					<div class="drawer-info-grid">
+						<div class="drawer-info-item">
+							<span class="drawer-info-label">URL landing</span>
+							<a
+								id="di-site-url"
+								href="#"
+								target="_blank"
+								rel="noopener"
+								class="drawer-info-value">—</a
+							>
+						</div>
+						<div class="drawer-info-item">
+							<span class="drawer-info-label">CMS Admin</span>
+							<a
+								id="di-cms-url"
+								href="#"
+								target="_blank"
+								rel="noopener"
+								class="drawer-info-value">—</a
+							>
+						</div>
+					</div>
 
-				<div id="edit-status" role="alert"></div>
-			</div>
-		</aside>
+					<hr class="drawer-divider" />
 
+					<!-- Form modifica -->
+					<form id="edit-form">
+						<input type="hidden" id="edit-slug" name="slug" />
+
+						<div class="field">
+							<label>Template</label>
+							<div
+								class="tpicker tpicker--preview-left"
+								id="tpicker-edit"
+							>
+								<button
+									type="button"
+									class="tpicker-btn"
+									aria-haspopup="listbox"
+									aria-expanded="false"
+								>
+									<img
+										class="tpicker-thumb"
+										src="/templates/template-01.png"
+										alt=""
+									/>
+									<span class="tpicker-label"
+										>Template 01 — Dark</span
+									>
+									<svg
+										class="tpicker-chevron"
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2.5"
+										><path d="M6 9l6 6 6-6"></path></svg
+									>
+								</button>
+								<ul class="tpicker-list" role="listbox">
+									<li
+										class="tpicker-item selected"
+										data-value="template-01"
+										data-label="Template 01 — Dark"
+										role="option"
+									>
+										<img
+											class="tpicker-item-thumb"
+											src="/templates/template-01.png"
+											alt=""
+										/>
+										<div class="tpicker-item-text">
+											<strong>Template 01</strong><em
+												>Dark — ristorante moderno</em>
+										</div>
+										<div class="tpicker-item-preview">
+											<img
+												src="/templates/template-01.png"
+												alt="Preview Template 01"
+											/>
+											<p>Template 01 — Dark</p>
+										</div>
+									</li>
+									<li
+										class="tpicker-item"
+										data-value="template-02"
+										data-label="Template 02 — Light"
+										role="option"
+									>
+										<img
+											class="tpicker-item-thumb"
+											src="/templates/template-02.png"
+											alt=""
+										/>
+										<div class="tpicker-item-text">
+											<strong>Template 02</strong><em
+												>Light — elegante e chiaro</em>
+										</div>
+										<div class="tpicker-item-preview">
+											<img
+												src="/templates/template-02.png"
+												alt="Preview Template 02"
+											/>
+											<p>Template 02 — Light</p>
+										</div>
+									</li>
+								</ul>
+								<input
+									type="hidden"
+									id="edit-template"
+									name="template"
+									value="template-01"
+								/>
+							</div>
+						</div>
+
+						<div class="field">
+							<label for="edit-lang">Lingua principale</label>
+							<select id="edit-lang" name="default_lang">
+								<option value="it">🇮🇹 Italiano</option>
+								<option value="en">🇬🇧 English</option>
+							</select>
+						</div>
+
+						<div class="field">
+							<label for="edit-domain">
+								Dominio personalizzato
+								<span class="optional">(opzionale)</span>
+							</label>
+							<input
+								id="edit-domain"
+								name="custom_domain"
+								placeholder="www.ristoranteprati.it"
+								autocomplete="off"
+							/>
+						</div>
+
+						<div id="edit-rebuild-note" class="rebuild-note">
+							⚠ Cambiare template o lingua avvierà un rebuild
+							della landing (~2 min).
+						</div>
+
+						<button
+							type="submit"
+							id="edit-submit-btn"
+							class="btn-primary"
+						>
+							<span id="edit-submit-icon">💾</span>
+							<span id="edit-submit-text">Salva modifiche</span>
+						</button>
+					</form>
+
+					<div id="edit-status" role="alert"></div>
+				</div>
+			</aside>
 		</div><!-- /#main-content -->
 
 		<div id="toast-container" aria-live="polite"></div>
