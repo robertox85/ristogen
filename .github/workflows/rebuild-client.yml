@@ -21,7 +21,7 @@ on:
 jobs:
   rebuild:
     runs-on: ubuntu-latest
-    environment: NETLIFY_TOKEN
+    
     permissions:
       contents: read
     steps:
