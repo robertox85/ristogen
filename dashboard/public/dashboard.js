@@ -6,6 +6,9 @@
 // ── Stato globale ─────────────────────────────────────────────
 let _authToken    = null;  // JWT corrente
 let _loadStarted  = false; // true non appena iniziamo a caricare la lista clienti
+let _allClients   = [];    // copia dell'array originale da server (usata per sort)
+let _sortKey      = null;  // 'slug' | 'template' | 'lang' | null
+let _sortAsc      = true;
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -168,7 +171,7 @@ function resumePendingRun(authToken) {
     clearPendingRun();
     return;
   }
-  showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, '');
+  showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, 'info');
 	// Ripristina se era già visibile
   let _nsData;
   try { _nsData = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
@@ -260,6 +263,59 @@ function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
   `;
 }
 
+// ── Tabella clienti — rendering ──────────────────────────────
+function clientRow(c) {
+  const url      = c.site_url || "";
+  const tpl      = c.template || 'template-01';
+  const lang     = c.default_lang || 'it';
+  const tplLabel = (TEMPLATES.find(t => t.value === tpl) || TEMPLATES[0]).label;
+  const langFlag = LANG_FLAGS[lang] || lang;
+  const rs    = getRunStatus(c.slug);
+  const badge = renderDeployBadge(rs);
+  return `<tr data-slug="${c.slug}" data-site-url="${url}">
+    <td><span class="client-name">${c.client_name ? escHtml(c.client_name) : ''}</span><span class="slug-chip">${c.slug}</span>${badge ? `<br>${badge}` : ''}</td>
+    <td><span class="tpl-badge">${tplLabel}</span></td>
+    <td>${langFlag}</td>
+    <td>${url
+      ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a><button class="btn-copy" data-copy="${url}" data-copy-label="URL" title="Copia URL" aria-label="Copia URL sito">&#x2398;</button><a href="${url.replace(/\/$/, '') + '/admin/'}" target="_blank" rel="noopener" class="cms-link">CMS \u2197</a><button class="btn-copy" data-copy="${url.replace(/\/$/, '') + '/admin/'}" data-copy-label="CMS" title="Copia URL CMS" aria-label="Copia URL CMS">&#x2398;</button>`
+      : '<span style="color:var(--text-light)">\u2014</span>'}</td>
+    <td>
+      <div class="table-actions">
+        <button class="btn-steps" data-slug="${c.slug}" data-site-url="${url}" title="Prossimi passi" aria-label="Prossimi passi: ${c.slug}">\ud83d\ude80</button>
+        <button class="btn-edit" data-slug="${c.slug}" aria-label="Modifica ${c.slug}">Modifica</button>
+        <button class="btn-delete" data-slug="${c.slug}" aria-label="Elimina ${c.slug}">Elimina</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function renderClientRows(arr) {
+  const tbody = document.getElementById("clients-tbody");
+  if (!tbody) return;
+  // Applica ordinamento
+  let sorted = arr.slice();
+  if (_sortKey) {
+    sorted.sort((a, b) => {
+      const va = _sortKey === 'slug'     ? (a.slug || '')
+               : _sortKey === 'template' ? (a.template || 'template-01')
+               : _sortKey === 'lang'     ? (a.default_lang || 'it')
+               : '';
+      const vb = _sortKey === 'slug'     ? (b.slug || '')
+               : _sortKey === 'template' ? (b.template || 'template-01')
+               : _sortKey === 'lang'     ? (b.default_lang || 'it')
+               : '';
+      return _sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+  }
+  // Aggiorna aria-sort sugli header
+  document.querySelectorAll('#clients-table th[data-sort]').forEach(th => {
+    const k = th.dataset.sort;
+    if (k === _sortKey) th.setAttribute('aria-sort', _sortAsc ? 'ascending' : 'descending');
+    else th.removeAttribute('aria-sort');
+  });
+  tbody.innerHTML = sorted.map(clientRow).join('');
+}
+
 // ── Tabella clienti ───────────────────────────────────────────
 async function loadClients(token) {
   if (token) _authToken = token;
@@ -303,30 +359,8 @@ async function loadClients(token) {
     }
 
     updateCountBadge(clients.length);
-    tbody.innerHTML = clients.map(c => {
-      const url      = c.site_url || "";
-      const tpl      = c.template || 'template-01';
-      const lang     = c.default_lang || 'it';
-      const tplLabel = (TEMPLATES.find(t => t.value === tpl) || TEMPLATES[0]).label;
-      const langFlag = LANG_FLAGS[lang] || lang;
-		const rs = getRunStatus(c.slug);
-		const badge = renderDeployBadge(rs);
-      return `<tr data-slug="${c.slug}" data-site-url="${url}">
-        <td><span class="client-name">${c.client_name ? escHtml(c.client_name) : ''}</span><span class="slug-chip">${c.slug}</span>${badge ? `<br>${badge}` : ''}</td>
-        <td><span class="tpl-badge">${tplLabel}</span></td>
-        <td>${langFlag}</td>
-        <td>${url
-		  ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a><button class="btn-copy" data-copy="${url}" data-copy-label="URL" title="Copia URL">&#x2398;</button><a href="${url.replace(/\/$/, '') + '/admin/'}" target="_blank" rel="noopener" class="cms-link">CMS \u2197</a><button class="btn-copy" data-copy="${url.replace(/\/$/, '') + '/admin/'}" data-copy-label="CMS" title="Copia URL CMS">&#x2398;</button>`
-          : '<span style="color:var(--text-light)">\u2014</span>'}</td>
-        <td>
-        <div class="table-actions">
-          <button class="btn-steps" data-slug="${c.slug}" data-site-url="${url}" title="Prossimi passi">\ud83d\ude80</button>
-          <button class="btn-edit" data-slug="${c.slug}">Modifica</button>
-          <button class="btn-delete" data-slug="${c.slug}">Elimina</button>
-        </div>
-      </td>
-      </tr>`;
-    }).join('');
+    _allClients = clients;
+    renderClientRows(_allClients);
 
   } catch (e) {
     tbody.innerHTML = emptyRow("Errore caricamento: " + e.message);
@@ -450,6 +484,25 @@ document.getElementById("slug").addEventListener("input", function () {
   clearTimeout(slugTimer);
 
   if (!val) { hint.className = ""; hint.textContent = ""; return; }
+
+	const SLUG_RESERVED = ['admin', 'api', 'www', 'mail', 'ftp', 'blog', 'app', 'dashboard', 'static', 'assets', 'public', 'media', 'images', 'login', 'logout', 'signup', 'auth'];
+	if (SLUG_RESERVED.includes(val)) {
+		hint.className = "error";
+		hint.textContent = "✗ Slug riservato — scegli un nome diverso";
+		return;
+	}
+
+	if (val.length < 3) {
+		hint.className = "error";
+		hint.textContent = "✗ Minimo 3 caratteri";
+		return;
+	}
+
+	if (val.length > 50) {
+		hint.className = "error";
+		hint.textContent = "✗ Massimo 50 caratteri";
+		return;
+	}
 
   if (!/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
     hint.className = "error";
@@ -604,16 +657,42 @@ document.getElementById("ns-dismiss").addEventListener("click", () => {
 });
 
 // ── Edit Drawer ──────────────────────────────────────────────
+let _drawerFocusTrap = null;
+
 function openDrawer() {
 	_drawerDirty = false;
-	document.getElementById('edit-drawer').classList.add('open');
+	const drawer = document.getElementById('edit-drawer');
+	drawer.classList.add('open');
 	document.getElementById('drawer-backdrop').classList.add('open');
 	document.body.style.overflow = 'hidden';
+
+	// Focus trap
+	requestAnimationFrame(() => {
+		const focusable = Array.from(drawer.querySelectorAll(
+			'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+		)).filter(el => !el.closest('[hidden]'));
+		if (focusable.length) focusable[0].focus();
+
+		if (_drawerFocusTrap) drawer.removeEventListener('keydown', _drawerFocusTrap);
+		_drawerFocusTrap = function (e) {
+			if (e.key !== 'Tab' || focusable.length === 0) return;
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (e.shiftKey) {
+				if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+			} else {
+				if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+			}
+		};
+		drawer.addEventListener('keydown', _drawerFocusTrap);
+	});
 }
 function closeDrawer() {
 	if (_drawerDirty && !confirm('Hai modifiche non salvate nel drawer. Chiudere senza salvare?')) return;
 	_drawerDirty = false;
-	document.getElementById('edit-drawer').classList.remove('open');
+	const drawer = document.getElementById('edit-drawer');
+	if (_drawerFocusTrap) { drawer.removeEventListener('keydown', _drawerFocusTrap); _drawerFocusTrap = null; }
+	drawer.classList.remove('open');
 	document.getElementById('drawer-backdrop').classList.remove('open');
 	document.body.style.overflow = '';
 }
@@ -848,6 +927,7 @@ function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
 	  header.className = "terminal-status-line " + key;
     icon.innerHTML      = ICONS[key] ?? "❓";
     label.textContent   = LABELS[key] ?? key;
+	  document.title = (LABELS[key] ?? key) + ' — Ristogen';
     link.href           = data.url;
 
     if (data.jobs && data.jobs.length > 0) {
@@ -874,6 +954,7 @@ function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
 
     if (data.status === "completed") {
       clearPendingRun();
+		document.title = 'Ristogen — Dashboard';
 		cancelBtn.style.display = 'none';
       const ok = data.conclusion === "success";
       showToast(ok ? "✅ Landing pubblicata!" : "❌ Deploy fallito", ok ? "success" : "error");
@@ -1001,6 +1082,20 @@ function initTemplatePickers() {
 function initTableDelegation() {
   const tbody = document.getElementById('clients-tbody');
   if (!tbody) return;
+
+  // Ordinamento colonne
+  const thead = document.querySelector('#clients-table thead');
+  if (thead) {
+    thead.addEventListener('click', function (e) {
+      const th = e.target.closest('th[data-sort]');
+      if (!th || !_allClients.length) return;
+      const key = th.dataset.sort;
+      if (_sortKey === key) _sortAsc = !_sortAsc;
+      else { _sortKey = key; _sortAsc = true; }
+      renderClientRows(_allClients);
+    });
+  }
+
   tbody.addEventListener('click', async function (e) {
     const btn = e.target.closest('button');
     if (!btn) return;
