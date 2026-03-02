@@ -1,7 +1,7 @@
 {
-	"enabled": false,
-	"title": "Chi siamo",
-	"text": "",
-	"image": "/assets/about.jpg",
-	"image_alt": ""
+  "enabled": true,
+  "title": "Chi siamo",
+  "text": "Ciao",
+  "image": "/assets/about.jpg",
+  "image_alt": ""
 }
