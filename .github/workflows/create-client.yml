@@ -234,7 +234,7 @@ jobs:
             > "clients/$SLUG/netlify.json"
           git config user.name 'Ristogen Bot'
           git config user.email 'bot@ristogen.it'
-          git add .
+          git add "clients/$SLUG/"
           git commit -m "feat: add client ${{ inputs.client_slug }}"
           git pull --rebase origin master
           git push origin HEAD:master

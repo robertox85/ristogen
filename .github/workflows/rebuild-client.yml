@@ -89,6 +89,9 @@ jobs:
         run: |
           BUILD_DIR="build-${{ inputs.client_slug }}"
 
+          # Rimuovi la directory precedente (potrebbe essere tracciata nel repo)
+          rm -rf "$BUILD_DIR"
+
           cp -r ${{ inputs.template }} "$BUILD_DIR"
           cp clients/${{ inputs.client_slug }}/decap-config.yml \
             "$BUILD_DIR/public/admin/config.yml"
