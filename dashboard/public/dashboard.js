@@ -455,8 +455,8 @@ function showNextSteps(slug, siteUrl) {
   // Link diretto alla pagina del progetto su Netlify
   const netlifyLink = document.getElementById("ns-netlify-link");
   if (netlifyLink) {
-    netlifyLink.href        = `https://app.netlify.com/projects/${slug}/`;
-    netlifyLink.textContent = `app.netlify.com/projects/${slug}/`;
+    netlifyLink.href        = `https://app.netlify.com/projects/ristogen-${slug}/`;
+    netlifyLink.textContent = `app.netlify.com/projects/ristogen-${slug}/`;
   }
 
   const siteLink = document.getElementById("ns-site-url");
