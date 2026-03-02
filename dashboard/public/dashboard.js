@@ -743,7 +743,7 @@ function startPolling(runId, authToken, slug, siteUrl) {
 			cancelBtn.disabled = true;
 			cancelBtn.textContent = '…';
 			try {
-				const r = await fetch('/api/cancel-run?run_id=' + runId, {
+				const r = await fetch('/api/cancel-run?run_id=' + runId + (slug ? '&slug=' + encodeURIComponent(slug) : ''), {
 					method: 'POST',
 					headers: { Authorization: 'Bearer ' + authToken }
 				});
