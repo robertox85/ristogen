@@ -16,6 +16,7 @@ function savePendingRun(runId, slug, siteUrl) {
       run_id: runId, slug, site_url: siteUrl, started_at: Date.now()
     }));
   } catch { /* storage non disponibile */ }
+	saveRunStatus(slug, runId, 'queued', null);
 }
 
 function clearPendingRun() {
@@ -50,6 +51,98 @@ function clearNextStepsState() {
 
 function clearStepsForSlug(slug) {
 	try { localStorage.removeItem(NS_STEPS_PREFIX + slug); } catch { }
+}
+
+// ── Persistenza stato deploy per-slug ─────────────────────────
+const RUN_STATUS_PREFIX = 'ristogen_run_';
+
+function saveRunStatus(slug, runId, status, conclusion) {
+	try {
+		localStorage.setItem(RUN_STATUS_PREFIX + slug, JSON.stringify({
+			run_id: runId, status, conclusion: conclusion || null, updated_at: Date.now()
+		}));
+	} catch { }
+}
+
+function getRunStatus(slug) {
+	try { return JSON.parse(localStorage.getItem(RUN_STATUS_PREFIX + slug) || 'null'); } catch { return null; }
+}
+
+function clearRunStatus(slug) {
+	try { localStorage.removeItem(RUN_STATUS_PREFIX + slug); } catch { }
+}
+
+// ── Persistenza log terminale (sopravvive al refresh) ─────────────
+const TERMINAL_LOG_KEY = 'ristogen_terminal_log';
+const TERMINAL_LOG_TTL = 24 * 60 * 60 * 1000; // 24 ore
+
+function saveTerminalLog(data) {
+  try { localStorage.setItem(TERMINAL_LOG_KEY, JSON.stringify({ ...data, saved_at: Date.now() })); } catch {}
+}
+function clearTerminalLog() {
+  try { localStorage.removeItem(TERMINAL_LOG_KEY); } catch {}
+}
+
+function restoreTerminalLog() {
+  let d;
+  try { d = JSON.parse(localStorage.getItem(TERMINAL_LOG_KEY) || 'null'); } catch {}
+  if (!d) return;
+  if (Date.now() - (d.saved_at || 0) > TERMINAL_LOG_TTL) { clearTerminalLog(); return; }
+
+  const box        = document.getElementById('action-box');
+  const header     = document.getElementById('action-header');
+  const icon       = document.getElementById('action-icon');
+  const label      = document.getElementById('action-label');
+  const link       = document.getElementById('action-link');
+  const stepsList  = document.getElementById('action-steps');
+  const errorsBox  = document.getElementById('action-errors');
+  const errorsText = document.getElementById('action-errors-text');
+  const cancelBtn  = document.getElementById('btn-cancel-run');
+
+  const ICONS  = { queued: '⏳', in_progress: '<span class="spin">⚙</span>', success: '✅', failure: '❌', cancelled: '⚠️', timed_out: '⏱️' };
+  const LABELS = { queued: 'In coda…', in_progress: 'Deploy in esecuzione…', success: 'Deploy completato con successo', failure: 'Deploy fallito', cancelled: 'Annullato', timed_out: 'Timeout' };
+  const STEP_CLASS = { success: 'step-success', failure: 'step-failure', skipped: 'step-skipped', in_progress: 'step-in_progress' };
+
+  header.className  = 'terminal-status-line ' + d.status_key;
+  icon.innerHTML    = ICONS[d.status_key] ?? '❓';
+  label.textContent = LABELS[d.status_key] ?? d.status_key;
+  if (d.gh_url) link.href = d.gh_url;
+  if (cancelBtn) cancelBtn.style.display = 'none';
+
+  stepsList.innerHTML = (d.steps || []).map(s =>
+    `<li class="${STEP_CLASS[s.state] || ''}">${s.name}</li>`
+  ).join('');
+
+  if (d.errors && d.errors.length) {
+    errorsBox.className   = 'terminal-errors visible';
+    errorsText.textContent = d.errors.join('\n\n');
+  } else {
+    errorsBox.className = 'terminal-errors';
+  }
+
+  // Nota storico
+  const note = document.createElement('div');
+  note.className   = 'terminal-log-note';
+  note.textContent = `↑ ultimo deploy: ${d.slug} — ${new Date(d.saved_at).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
+  box.querySelector('.terminal-body').appendChild(note);
+
+  box.classList.add('visible');
+}
+	const age = Date.now() - (rs.updated_at || 0);
+	// Nascondi i successi dopo 1 ora (il pannello prossimi passi li copre)
+	if (rs.conclusion === 'success' && age > 60 * 60 * 1000) return '';
+	const MAP = {
+		queued: { cls: 'running', icon: '⏳', text: 'In coda' },
+		in_progress: { cls: 'running', icon: '⚙️', text: 'Deploy in corso' },
+		success: { cls: 'success', icon: '✓', text: 'Pubblicato' },
+		failure: { cls: 'failure', icon: '✗', text: 'Fallito' },
+		cancelled: { cls: 'cancelled', icon: '■', text: 'Annullato' },
+		timed_out: { cls: 'failure', icon: '⏱', text: 'Timeout' },
+	};
+	const key = rs.status === 'completed' ? (rs.conclusion || 'failure') : rs.status;
+	const m = MAP[key];
+	if (!m) return '';
+	return `<span class="deploy-badge deploy-badge--${m.cls}" data-run="${rs.run_id}">${m.icon} ${m.text}</span>`;
 }
 
 function restoreNextSteps() {
@@ -198,12 +291,14 @@ async function loadClients(token) {
       const lang     = c.default_lang || 'it';
       const tplLabel = (TEMPLATES.find(t => t.value === tpl) || TEMPLATES[0]).label;
       const langFlag = LANG_FLAGS[lang] || lang;
+		const rs = getRunStatus(c.slug);
+		const badge = renderDeployBadge(rs);
       return `<tr data-slug="${c.slug}" data-site-url="${url}">
-        <td><span class="slug-chip">${c.slug}</span></td>
+        <td><span class="slug-chip">${c.slug}</span>${badge ? `<br>${badge}` : ''}</td>
         <td><span class="tpl-badge">${tplLabel}</span></td>
         <td>${langFlag}</td>
         <td>${url
-          ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a>`
+		  ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a><button class="btn-copy" data-copy="${url}" data-copy-label="URL" title="Copia URL">&#x2398;</button><a href="${url.replace(/\/$/, '') + '/admin/'}" target="_blank" rel="noopener" class="cms-link">CMS \u2197</a><button class="btn-copy" data-copy="${url.replace(/\/$/, '') + '/admin/'}" data-copy-label="CMS" title="Copia URL CMS">&#x2398;</button>`
           : '<span style="color:var(--text-light)">\u2014</span>'}</td>
         <td>
         <div class="table-actions">
@@ -248,7 +343,10 @@ function tryLoadClients() {
         _authToken = tok;
         loadClients(tok);
         resumePendingRun(tok);
-        if (!localStorage.getItem(PENDING_KEY)) restoreNextSteps();
+        if (!localStorage.getItem(PENDING_KEY)) {
+          restoreNextSteps();
+          restoreTerminalLog();
+        }
       }
     })
     .catch(() => {
@@ -256,7 +354,10 @@ function tryLoadClients() {
         _authToken = tokenNow;
         loadClients(tokenNow);
         resumePendingRun(tokenNow);
-        if (!localStorage.getItem(PENDING_KEY)) restoreNextSteps();
+        if (!localStorage.getItem(PENDING_KEY)) {
+          restoreNextSteps();
+          restoreTerminalLog();
+        }
       }
     });
 }
@@ -622,6 +723,7 @@ function startPolling(runId, authToken, slug, siteUrl) {
 
   box.classList.add("visible");
   box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  clearTerminalLog(); // il nuovo render() sovrascriverà con i dati aggiornati
 
 	// ─ Cancel handler ──────────────────────────────────────
 	let cancelListener = null;
@@ -677,6 +779,21 @@ function startPolling(runId, authToken, slug, siteUrl) {
       ? (data.conclusion ?? "failure")
       : data.status;
 
+	  // Aggiorna persistenza e badge in tabella
+	  saveRunStatus(slug, runId, data.status, data.conclusion || null);
+	  const slugRow = document.querySelector(`tr[data-slug="${slug}"]`);
+	  if (slugRow) {
+		  const existing = slugRow.querySelector('.deploy-badge');
+		  const newBadge = renderDeployBadge(getRunStatus(slug));
+		  if (existing) {
+			  if (newBadge) existing.outerHTML = newBadge;
+			  else existing.remove();
+		  } else if (newBadge) {
+			  const chipCell = slugRow.querySelector('td:first-child');
+			  if (chipCell) chipCell.insertAdjacentHTML('beforeend', '<br>' + newBadge);
+		  }
+	  }
+
 	  // Mostra/nascondi pulsante annulla
 	  const cancellable = data.status === 'queued' || data.status === 'in_progress';
 	  cancelBtn.style.display = cancellable ? '' : 'none';
@@ -698,6 +815,16 @@ function startPolling(runId, authToken, slug, siteUrl) {
       const allErrors = data.jobs.flatMap(j => j.errors ?? []).filter(Boolean);
 		errorsBox.className = "terminal-errors" + (allErrors.length ? " visible" : "");
       errorsText.textContent = allErrors.join("\n\n");
+
+      // Salva snapshot log
+      saveTerminalLog({
+        slug,
+        run_id: runId,
+        gh_url: link.href,
+        status_key: key,
+        steps: steps.map(s => ({ name: s.name, state: s.conclusion ?? s.status ?? '' })),
+        errors: allErrors
+      });
     }
 
     if (data.status === "completed") {
@@ -818,6 +945,17 @@ function initTableDelegation() {
 
     if (btn.classList.contains('btn-steps')) {
       showNextSteps(slug, btn.dataset.siteUrl || '');
+	} else if (btn.classList.contains('btn-copy')) {
+		const text = btn.dataset.copy || '';
+		const label = btn.dataset.copyLabel || 'testo';
+		if (!text) return;
+		navigator.clipboard.writeText(text).then(() => {
+			const orig = btn.innerHTML;
+			btn.innerHTML = '&#x2713;';
+			btn.classList.add('btn-copy--ok');
+			setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('btn-copy--ok'); }, 1500);
+			showToast(`${label} copiato`, 'success');
+		}).catch(() => showToast('Copia non riuscita', 'error'));
     } else if (btn.classList.contains('btn-edit')) {
       loadEditDrawer(slug);
     } else if (btn.classList.contains('btn-delete')) {

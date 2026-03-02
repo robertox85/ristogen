@@ -485,6 +485,15 @@ margin-top: 0.5rem;
 	padding: 0;
 }
 
+.terminal-log-note {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #313244;
+  font-size: 0.72rem;
+  color: #585b70;
+  font-style: italic;
+}
+
 /* ── Next Steps panel ── */
 #next-steps-box { display: none; }
 #next-steps-box.visible { display: block; }
@@ -652,6 +661,33 @@ margin-top: 0.5rem;
 #clients-table tbody tr:last-child td { border-bottom: none; }
 #clients-table a { color: var(--primary); text-decoration: none; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.25rem; }
 #clients-table a:hover { text-decoration: underline; }
+#clients-table .cms-link {
+	margin-left: 0.6rem;
+}
+
+.btn-copy {
+	background: none;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	cursor: pointer;
+	color: var(--text-light);
+	font-size: 0.78rem;
+	padding: 0.1rem 0.35rem;
+	margin-left: 0.3rem;
+	line-height: 1;
+	transition: all var(--transition);
+	vertical-align: middle;
+}
+
+.btn-copy:hover {
+	border-color: var(--primary);
+	color: var(--primary);
+}
+
+.btn-copy--ok {
+	border-color: var(--success);
+	color: var(--success);
+}
 
 .slug-chip {
   display: inline-flex; align-items: center; gap: 0.4rem;
@@ -659,6 +695,37 @@ margin-top: 0.5rem;
   padding: 0.2rem 0.6rem; border-radius: 5px;
   font-size: 0.8rem; font-weight: 600;
   font-family: "JetBrains Mono", monospace;
+}
+.deploy-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.68rem;
+	font-weight: 600;
+	padding: 0.1rem 0.45rem;
+	border-radius: 4px;
+	white-space: nowrap;
+	margin-top: 0.2rem;
+}
+
+.deploy-badge--running {
+	background: #eff6ff;
+	color: #2563eb;
+}
+
+.deploy-badge--success {
+	background: var(--success-bg);
+	color: var(--success);
+}
+
+.deploy-badge--failure {
+	background: var(--error-bg);
+	color: var(--error);
+}
+
+.deploy-badge--cancelled {
+	background: #f3f4f6;
+	color: var(--text-muted);
 }
 .btn-delete {
   background: transparent; color: var(--text-light);
