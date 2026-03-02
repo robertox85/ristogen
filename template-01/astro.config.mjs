@@ -1,14 +1,30 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import { loadEnv } from 'vite';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Carica .env manualmente solo se esiste
+const envPath = join(process.cwd(), '.env');
+if (existsSync(envPath)) {
+	const lines = readFileSync(envPath, 'utf-8').split('\n');
+	for (const line of lines) {
+		const [key, ...rest] = line.split('=');
+		if (key && rest.length && !process.env[key]) {
+			process.env[key] = rest.join('=').trim();
+		}
+	}
+}
 
 /** @type {string} */
 const nodeEnv = process.env.NODE_ENV ?? 'development';
 const isDev = nodeEnv === 'development';
 
 const clientSlug = process.env.CLIENT_SLUG || 'burger-demo';
-const defaultLang = process.env.DEFAULT_LANG || 'it';
+const defaultLang = /** @type {'it'|'en'} */ (process.env.DEFAULT_LANG || 'it');
 
 // L'adapter Netlify viene caricato solo in produzione (build).
 // In dev la sua emulation intercetta le richieste statiche e blocca config.yml.

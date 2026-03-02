@@ -5,7 +5,7 @@
   "scripts": {
 	"dev": "node scripts/generate-decap-config.mjs && astro dev --port 4321",
 	"build": "node scripts/generate-decap-config.mjs && astro build",
-    "preview": "astro preview",
+	"preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {

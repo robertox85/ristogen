@@ -1,20 +1,30 @@
 #!/usr/bin/env node
-/**
- * Genera public/admin/config.yml a partire dal template config.template.yml,
- * sostituendo __CLIENT_SLUG__ con la variabile d'ambiente CLIENT_SLUG
- * (default: burger-demo).
- *
- * Eseguito automaticamente prima di ogni `astro build` e `astro dev`.
- */
-
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// Carica .env dalla directory di lavoro corrente (process.cwd())
+// che è sempre la root del template, indipendentemente da dove
+// si trova fisicamente lo script
+const envPath = join(process.cwd(), '.env');
+if (existsSync(envPath)) {
+	const lines = readFileSync(envPath, 'utf-8').split('\n');
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed.startsWith('#')) continue;
+		const [key, ...rest] = trimmed.split('=');
+		if (key && rest.length && !process.env[key]) {
+			process.env[key] = rest.join('=').trim();
+		}
+	}
+}
+
 const clientSlug = process.env.CLIENT_SLUG || 'burger-demo';
 
+// I path dei file usano __dirname — lo script sa dove sono i file
+// relativi a se stesso, indipendentemente da cwd
 const templatePath = join(__dirname, '../public/admin/config.template.yml');
 const outputPath = join(__dirname, '../public/admin/config.yml');
 

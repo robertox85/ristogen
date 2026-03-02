@@ -61,5 +61,10 @@ export function getContent(lang: 'it' | 'en' = 'it'): ClientContent {
 	};
 
 	// Validazione Zod — blocca il build se qualcosa non torna
-	return ClientContentSchema.parse(raw);
+	const result = ClientContentSchema.safeParse(raw);
+	if (!result.success) {
+		console.error('ZOD ERRORS:', JSON.stringify(result.error.errors, null, 2));
+		throw new Error('Validazione fallita');
+	}
+	return result.data;
 }

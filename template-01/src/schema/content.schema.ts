@@ -114,8 +114,8 @@ export const ContattiSchema = z.object({
 	orari: z.string(),
 	google_maps_url: z.string().url().optional(),
 	social: z.object({
-		instagram: z.string().url().optional(),
-		facebook: z.string().url().optional()
+		instagram: z.union([z.string().url(), z.literal('')]).optional(),
+		facebook: z.union([z.string().url(), z.literal('')]).optional()
 	}).optional()
 });
 
