@@ -613,3 +613,125 @@ input[type="file"] { padding: 0.45rem 0.75rem; cursor: pointer; font-size: 0.85r
 .toast.error   { background: #991b1b; }
 @keyframes toastIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 @keyframes toastOut { from { opacity:1; } to { opacity:0; pointer-events:none; } }
+
+/* ── Template Picker ── */
+.tpicker {
+  position: relative;
+  user-select: none;
+}
+.tpicker-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  text-align: left;
+}
+.tpicker-btn:hover,
+.tpicker.open .tpicker-btn {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.tpicker-thumb {
+  width: 36px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tpicker-label { flex: 1; font-weight: 500; }
+.tpicker-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+.tpicker.open .tpicker-chevron { transform: rotate(180deg); }
+
+/* Dropdown list */
+.tpicker-list {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  padding: 0.25rem;
+  list-style: none;
+  margin: 0;
+}
+.tpicker.open .tpicker-list { display: block; }
+
+/* Each option */
+.tpicker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: calc(var(--radius-sm) - 2px);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition);
+}
+.tpicker-item:hover  { background: var(--surface); }
+.tpicker-item.selected { background: var(--primary-light); }
+.tpicker-item-thumb {
+  width: 48px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tpicker-item-text { display: flex; flex-direction: column; gap: 1px; }
+.tpicker-item-text strong { font-size: 0.82rem; font-weight: 600; }
+.tpicker-item-text em     { font-size: 0.74rem; font-style: normal; color: var(--text-muted); }
+
+/* Preview floating card (appare all'hover sull'opzione) */
+.tpicker-item-preview {
+  display: none;
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 260px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  overflow: hidden;
+  z-index: 200;
+  pointer-events: none;
+  animation: fadeIn .15s ease;
+}
+.tpicker-item:hover .tpicker-item-preview { display: block; }
+.tpicker-item-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.tpicker-item-preview p {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+/* Preview a sinistra per il drawer */
+.tpicker--preview-left .tpicker-item-preview {
+  left: auto;
+  right: calc(100% + 10px);
+}

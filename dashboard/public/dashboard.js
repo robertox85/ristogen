@@ -22,6 +22,38 @@ function clearPendingRun() {
   try { localStorage.removeItem(PENDING_KEY); } catch {}
 }
 
+// ── Persistenza "Prossimi passi" (sopravvive al refresh) ──────
+const NS_KEY = 'ristogen_next_steps';
+
+function saveNextStepsState() {
+  const box = document.getElementById('next-steps-box');
+  if (!box || !box.classList.contains('visible')) return;
+  const slug    = document.getElementById('ns-slug')?.textContent || '';
+  const siteUrl = document.getElementById('ns-site-url')?.href    || '';
+  const steps   = Array.from(document.querySelectorAll('.step-item'))
+                       .map(li => li.classList.contains('done'));
+  try { localStorage.setItem(NS_KEY, JSON.stringify({ slug, site_url: siteUrl, steps })); } catch {}
+}
+
+function clearNextStepsState() {
+  try { localStorage.removeItem(NS_KEY); } catch {}
+}
+
+function restoreNextSteps() {
+  let d;
+  try { d = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
+  if (!d?.slug) return;
+  showNextSteps(d.slug, d.site_url || '');
+  if (d.steps) {
+    document.querySelectorAll('.step-item').forEach((li, i) => {
+      if (d.steps[i]) {
+        li.classList.add('done');
+        li.querySelector('.step-num').textContent = '✓';
+      }
+    });
+  }
+}
+
 function resumePendingRun(authToken) {
   let data;
   try { data = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch {}
@@ -33,6 +65,14 @@ function resumePendingRun(authToken) {
   }
   showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, '');
   showNextSteps(data.slug, data.site_url || '');
+  // Ripristina checkmark dei passi già completati
+  let _nsData;
+  try { _nsData = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
+  if (_nsData?.slug === data.slug && _nsData?.steps) {
+    document.querySelectorAll('.step-item').forEach((li, i) => {
+      if (_nsData.steps[i]) { li.classList.add('done'); li.querySelector('.step-num').textContent = '✓'; }
+    });
+  }
   startPolling(data.run_id, authToken);
 }
 
@@ -193,11 +233,21 @@ function tryLoadClients() {
   renderUserInfo(user);
   window.netlifyIdentity.refresh()
     .then(jwt => {
-      if (jwt) { _authToken = jwt; loadClients(jwt); resumePendingRun(jwt); }
+      if (jwt) {
+        _authToken = jwt;
+        loadClients(jwt);
+        resumePendingRun(jwt);
+        if (!localStorage.getItem(PENDING_KEY)) restoreNextSteps();
+      }
     })
     .catch(() => {
       const t = user.token && user.token.access_token;
-      if (t) { _authToken = t; loadClients(t); resumePendingRun(t); }
+      if (t) {
+        _authToken = t;
+        loadClients(t);
+        resumePendingRun(t);
+        if (!localStorage.getItem(PENDING_KEY)) restoreNextSteps();
+      }
     });
 }
 
@@ -387,6 +437,7 @@ function showNextSteps(slug, siteUrl) {
 
   box.classList.add("visible");
   box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  saveNextStepsState();
 }
 
 document.querySelectorAll(".step-check").forEach(btn => {
@@ -394,12 +445,14 @@ document.querySelectorAll(".step-check").forEach(btn => {
     const li   = this.closest(".step-item");
     const done = li.classList.toggle("done");
     li.querySelector(".step-num").textContent = done ? "✓" : li.dataset.step;
+    saveNextStepsState();
   });
 });
 
-document.getElementById("ns-dismiss").addEventListener("click", () =>
-  document.getElementById("next-steps-box").classList.remove("visible")
-);
+document.getElementById("ns-dismiss").addEventListener("click", () => {
+  document.getElementById("next-steps-box").classList.remove("visible");
+  clearNextStepsState();
+});
 
 // ── Edit Drawer ──────────────────────────────────────────────
 function openDrawer() {
@@ -451,7 +504,7 @@ async function loadEditDrawer(slug) {
 		else { cmsEl.textContent = '—'; cmsEl.className = 'drawer-info-value plain'; }
 
 		// Popola form
-		document.getElementById('edit-template').value = data.template || 'template-01';
+		setTemplatePicker('tpicker-edit', data.template || 'template-01');
 		document.getElementById('edit-lang').value = data.default_lang || 'it';
 		document.getElementById('edit-domain').value = data.custom_domain || '';
 
@@ -619,10 +672,74 @@ function startPolling(runId, authToken) {
   }, 4000);
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────
+// ── Template Picker personalizzato ────────────────────────────
+function setTemplatePicker(pickerId, value) {
+  const picker = document.getElementById(pickerId);
+  if (!picker) return;
+  const input  = picker.querySelector('input[type="hidden"]');
+  const item   = picker.querySelector(`.tpicker-item[data-value="${value}"]`);
+  if (!item) return;
+  if (input) {
+    input.value = value;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  const label   = item.dataset.label || '';
+  const thumbSrc = item.querySelector('.tpicker-item-thumb')?.src || '';
+  const trigger = picker.querySelector('.tpicker-btn');
+  if (trigger) {
+    trigger.querySelector('.tpicker-label').textContent = label;
+    const t = trigger.querySelector('.tpicker-thumb');
+    if (t && thumbSrc) t.src = thumbSrc;
+  }
+  picker.querySelectorAll('.tpicker-item').forEach(i => i.classList.toggle('selected', i === item));
+}
+
+function initTemplatePickers() {
+  document.querySelectorAll('.tpicker').forEach(picker => {
+    const trigger = picker.querySelector('.tpicker-btn');
+    const list    = picker.querySelector('.tpicker-list');
+    const input   = picker.querySelector('input[type="hidden"]');
+    if (!trigger || !list) return;
+
+    // Apri/chiudi al click sul trigger
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = picker.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    // Selezione opzione
+    list.querySelectorAll('.tpicker-item').forEach(item => {
+      item.addEventListener('click', () => {
+        setTemplatePicker(picker.id, item.dataset.value);
+        picker.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Chiudi cliccando fuori
+    document.addEventListener('click', e => {
+      if (!picker.contains(e.target)) {
+        picker.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Stato iniziale
+    const initVal = input?.value || list.querySelector('.tpicker-item')?.dataset.value;
+    if (initVal) {
+      list.querySelectorAll('.tpicker-item').forEach(i =>
+        i.classList.toggle('selected', i.dataset.value === initVal)
+      );
+    }
+  });
+}
+
+// ── Bootstrap ─────────────────────────────────────────────
 // Aspetta che DOM e Identity widget siano pronti
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initIdentity);
+  document.addEventListener("DOMContentLoaded", () => { initIdentity(); initTemplatePickers(); });
 } else {
   initIdentity();
+  initTemplatePickers();
 }
