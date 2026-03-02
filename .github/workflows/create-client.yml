@@ -92,8 +92,8 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
           NETLIFY_ACCOUNT_ID: ${{ secrets.NETLIFY_ACCOUNT_ID }}
           NETLIFY_INSTALLATION_ID: ${{ secrets.NETLIFY_INSTALLATION_ID }}
-          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
-          GITHUB_REPO_ID: ${{ secrets.GITHUB_REPO_ID }}
+          GITHUB_REPO: ${{ secrets.GH_REPO }}
+          GITHUB_REPO_ID: ${{ secrets.GH_REPO_ID }}
         run: |
           # Crea sito con repo collegato in una sola chiamata
           BODY=$(curl -sf -X POST "https://api.netlify.com/api/v1/sites" \
@@ -170,7 +170,7 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
           GH_PAT: ${{ secrets.GH_PAT }}
-          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+          GITHUB_REPO: ${{ secrets.GH_REPO }}
         run: |
           if [ -z "$GH_PAT" ]; then
             echo "::error::GH_PAT non configurato"
