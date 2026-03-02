@@ -1,4 +1,5 @@
 .env
 doc/
 
-build-test
+# Directory temporanee di build generate dai workflow GitHub Actions
+build-*/
