@@ -43,7 +43,7 @@ function restoreNextSteps() {
   let d;
   try { d = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
   if (!d?.slug) return;
-  showNextSteps(d.slug, d.site_url || '');
+  showNextSteps(d.slug, d.site_url || '', false); // non azzerare i check
   if (d.steps) {
     document.querySelectorAll('.step-item').forEach((li, i) => {
       if (d.steps[i]) {
@@ -64,16 +64,19 @@ function resumePendingRun(authToken) {
     return;
   }
   showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, '');
-  showNextSteps(data.slug, data.site_url || '');
-  // Ripristina checkmark dei passi già completati
+  // Non mostrare il pannello a ripresa: lo user lo riaprirà dalla tabella
+  // Ripristina se era già visibile (localStorage next-steps)
   let _nsData;
   try { _nsData = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
-  if (_nsData?.slug === data.slug && _nsData?.steps) {
-    document.querySelectorAll('.step-item').forEach((li, i) => {
-      if (_nsData.steps[i]) { li.classList.add('done'); li.querySelector('.step-num').textContent = '✓'; }
-    });
+  if (_nsData?.slug === data.slug) {
+    showNextSteps(data.slug, data.site_url || '');
+    if (_nsData?.steps) {
+      document.querySelectorAll('.step-item').forEach((li, i) => {
+        if (_nsData.steps[i]) { li.classList.add('done'); li.querySelector('.step-num').textContent = '\u2713'; }
+      });
+    }
   }
-  startPolling(data.run_id, authToken);
+  startPolling(data.run_id, authToken, data.slug, data.site_url || '');
 }
 
 // ── Login / App screen ───────────────────────────────────────
@@ -167,22 +170,30 @@ async function loadClients(token) {
     tbody.innerHTML = clients.map(c => {
       const url      = c.site_url || "";
       const adminUrl = url ? url.replace(/\/$/, "") + "/admin/" : "";
-      return `<tr data-slug="${c.slug}">
+      return `<tr data-slug="${c.slug}" data-site-url="${url}">
         <td><span class="slug-chip">${c.slug}</span></td>
         <td>${url
-          ? `<a href="${url}" target="_blank" rel="noopener">${url} ↗</a>`
-          : '<span style="color:var(--text-light)">—</span>'}</td>
+          ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a>`
+          : '<span style="color:var(--text-light)">\u2014</span>'}</td>
         <td>${adminUrl
-          ? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS ↗</a>`
-          : '<span style="color:var(--text-light)">—</span>'}</td>
+          ? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS \u2197</a>`
+          : '<span style="color:var(--text-light)">\u2014</span>'}</td>
         <td>
         <div class="table-actions">
+          <button class="btn-steps" data-slug="${c.slug}" data-site-url="${url}" title="Prossimi passi">\ud83d\ude80</button>
           <button class="btn-edit" data-slug="${c.slug}">Modifica</button>
           <button class="btn-delete" data-slug="${c.slug}">Elimina</button>
         </div>
       </td>
       </tr>`;
     }).join('');
+
+	  // Gestori prossimi passi
+	  tbody.querySelectorAll('.btn-steps').forEach(btn => {
+		  btn.addEventListener('click', function () {
+			  showNextSteps(this.dataset.slug, this.dataset.siteUrl || '');
+		  });
+	  });
 
 	  // Gestori modifica
 	  tbody.querySelectorAll('.btn-edit').forEach(btn => {
@@ -404,16 +415,16 @@ document.getElementById("onboarding-form").addEventListener("submit", async func
 
     if (res.ok) {
       const newSlug = formData.get("client_slug");
+      const siteUrl = json.site_url || "";
       status.className = "success";
-      status.innerHTML = `<span>✓</span> <span>Sito <strong>${newSlug}</strong> creato — monitoraggio deploy in corso</span>`;
+      status.innerHTML = `<span>\u2713</span> <span>Sito <strong>${newSlug}</strong> creato \u2014 monitoraggio deploy in corso</span>`;
       showToast(`Sito "${newSlug}" creato!`, "success");
-      showNextSteps(newSlug, json.site_url || "");
       this.reset();
       document.getElementById("slug-hint").textContent = "";
       slugValid = false;
       if (json.run_id) {
-        savePendingRun(json.run_id, newSlug, json.site_url || "");
-        startPolling(json.run_id, tok);
+        savePendingRun(json.run_id, newSlug, siteUrl);
+        startPolling(json.run_id, tok, newSlug, siteUrl);
       }
       setTimeout(() => loadClients(), 10000);
     } else {
@@ -584,8 +595,9 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 			status.className = 'success';
 			status.innerHTML = '<span>✓</span> <span>Modifiche salvate — rebuild avviato</span>';
 			showToast(`Rebuild avviato per "${slug}"`, 'success');
-			savePendingRun(json.run_id, slug, document.getElementById('di-site-url').href);
-			startPolling(json.run_id, tok);
+			const rebuildSiteUrl = document.getElementById('di-site-url').href;
+			savePendingRun(json.run_id, slug, rebuildSiteUrl);
+			startPolling(json.run_id, tok, slug, rebuildSiteUrl);
 			setTimeout(closeDrawer, 1500);
 		} else {
 			status.className = 'success';
@@ -609,7 +621,7 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 });
 
 // ── GitHub Actions polling ────────────────────────────────────
-function startPolling(runId, authToken) {
+function startPolling(runId, authToken, slug, siteUrl) {
   const box       = document.getElementById("action-box");
   const header    = document.getElementById("action-header");
   const icon      = document.getElementById("action-icon");
@@ -671,7 +683,11 @@ function startPolling(runId, authToken) {
       clearPendingRun();
       const ok = data.conclusion === "success";
       showToast(ok ? "✅ Deploy completato!" : "❌ Deploy fallito", ok ? "success" : "error");
-      if (ok) setTimeout(() => loadClients(), 3000);
+      if (ok) {
+        // Mostra prossimi passi solo a deploy riuscito, con step azzerati
+        showNextSteps(slug || '', siteUrl || '', true);
+        setTimeout(() => loadClients(), 3000);
+      }
     }
   }
 
