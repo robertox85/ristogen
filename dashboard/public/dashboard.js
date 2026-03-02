@@ -850,17 +850,31 @@ function startPolling(runId, authToken, slug, siteUrl) {
     }
   }
 
-  const interval = setInterval(async () => {
+  // ── Backoff polling: 3s (0-60s) → 5s (60-180s) → 10s (180s+) ───────────
+  const pollStart = Date.now();
+  let _pollTimer = null;
+
+  function scheduleNext() {
+    const elapsed = Date.now() - pollStart;
+    const delay = elapsed < 60_000 ? 3_000
+                : elapsed < 180_000 ? 5_000
+                : 10_000;
+    _pollTimer = setTimeout(tick, delay);
+  }
+
+  async function tick() {
     try {
       const r = await fetch("/api/action-status?run_id=" + runId, {
         headers: { Authorization: "Bearer " + authToken },
       });
-      if (!r.ok) return;
+      if (!r.ok) { scheduleNext(); return; }
       const data = await r.json();
       render(data);
-      if (data.status === "completed") clearInterval(interval);
-    } catch { /* ignora errori transitori */ }
-  }, 4000);
+      if (data.status !== "completed") scheduleNext();
+    } catch { scheduleNext(); /* ignora errori transitori */ }
+  }
+
+  scheduleNext();
 }
 
 // ── Template Picker personalizzato ────────────────────────────
