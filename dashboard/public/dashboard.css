@@ -580,6 +580,52 @@ input[type="file"] { padding: 0.45rem 0.75rem; cursor: pointer; font-size: 0.85r
 #edit-status {
 	margin-top: 0;
 }
+/* ── Login screen ── */
+#main-content { display: none; }
+
+#login-screen {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+.login-logo {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.login-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 260px;
+}
+.login-card .btn-primary {
+  width: 100%;
+  justify-content: center;
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+}
+
 /* ── Empty & Skeleton ── */
 .empty-state { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .empty-state svg { opacity: 0.25; margin-bottom: 0.75rem; }
