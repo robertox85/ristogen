@@ -6,7 +6,7 @@ import { loadEnv } from 'vite';
 /** @type {string} */
 const nodeEnv = process.env.NODE_ENV ?? 'development';
 const isDev = nodeEnv === 'development';
-// const env = loadEnv(nodeEnv, process.cwd(), '');
+const env = loadEnv(nodeEnv, process.cwd(), '');
 // const clientSlug = env.CLIENT_SLUG || 'burger-demo';
 // const defaultLang = /** @type {'it'|'en'} */ (env.DEFAULT_LANG || 'it');
 const clientSlug = process.env.CLIENT_SLUG || 'burger-demo';
