@@ -695,7 +695,8 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 			showToast(`Rebuild avviato per "${slug}"`, 'success');
 			const rebuildSiteUrl = document.getElementById('di-site-url').href;
 			savePendingRun(json.run_id, slug, rebuildSiteUrl);
-			startPolling(json.run_id, tok, slug, rebuildSiteUrl);
+			// Passa i valori PRE-modifica: se l'utente annulla, verranno ripristinati
+			startPolling(json.run_id, tok, slug, rebuildSiteUrl, { template: origTemplate, default_lang: origLang });
 			setTimeout(closeDrawer, 1500);
 		} else {
 			status.className = 'success';
@@ -719,7 +720,7 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 });
 
 // ── GitHub Actions polling ────────────────────────────────────
-function startPolling(runId, authToken, slug, siteUrl) {
+function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
 	const box = document.getElementById("action-box");
 	const header = document.getElementById("action-header");
 	const icon = document.getElementById("action-icon");
@@ -750,6 +751,20 @@ function startPolling(runId, authToken, slug, siteUrl) {
 				const j = await r.json();
 				if (!r.ok) throw new Error(j.error || r.statusText);
 				showToast('⏹ Deploy annullato', 'error');
+
+				// Ripristina template/lingua precedenti in netlify.json e nel drawer
+				if (prevSettings && slug) {
+					try {
+						await fetch('/api/clients', {
+							method: 'PATCH',
+							headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+							body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang })
+						});
+					} catch { /* best-effort */ }
+					// Riapre il drawer con i valori ripristinati
+					openDrawer();
+					loadEditDrawer(slug);
+				}
 			} catch (err) {
 				showToast('Errore annullamento: ' + err.message, 'error');
 				cancelBtn.disabled = false;
