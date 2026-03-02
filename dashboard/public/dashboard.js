@@ -610,17 +610,44 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 
 // ── GitHub Actions polling ────────────────────────────────────
 function startPolling(runId, authToken, slug, siteUrl) {
-  const box       = document.getElementById("action-box");
-  const header    = document.getElementById("action-header");
-  const icon      = document.getElementById("action-icon");
-  const label     = document.getElementById("action-label");
-  const link      = document.getElementById("action-link");
-  const stepsList = document.getElementById("action-steps");
-  const errorsBox = document.getElementById("action-errors");
+	const box = document.getElementById("action-box");
+	const header = document.getElementById("action-header");
+	const icon = document.getElementById("action-icon");
+	const label = document.getElementById("action-label");
+	const link = document.getElementById("action-link");
+	const stepsList = document.getElementById("action-steps");
+	const errorsBox = document.getElementById("action-errors");
   const errorsText = document.getElementById("action-errors-text");
+	const cancelBtn = document.getElementById("btn-cancel-run");
 
   box.classList.add("visible");
   box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+	// ─ Cancel handler ──────────────────────────────────────
+	let cancelListener = null;
+	function attachCancel() {
+		if (cancelListener) cancelBtn.removeEventListener('click', cancelListener);
+		cancelListener = async function () {
+			if (!confirm('Annullare il deploy in corso?')) return;
+			cancelBtn.disabled = true;
+			cancelBtn.textContent = '…';
+			try {
+				const r = await fetch('/api/cancel-run?run_id=' + runId, {
+					method: 'POST',
+					headers: { Authorization: 'Bearer ' + authToken }
+				});
+				const j = await r.json();
+				if (!r.ok) throw new Error(j.error || r.statusText);
+				showToast('⏹ Deploy annullato', 'error');
+			} catch (err) {
+				showToast('Errore annullamento: ' + err.message, 'error');
+				cancelBtn.disabled = false;
+				cancelBtn.textContent = '✕ Annulla';
+			}
+		};
+		cancelBtn.addEventListener('click', cancelListener);
+	}
+	attachCancel();
 
   const ICONS = {
     queued:     "⏳",
@@ -650,6 +677,12 @@ function startPolling(runId, authToken, slug, siteUrl) {
       ? (data.conclusion ?? "failure")
       : data.status;
 
+	  // Mostra/nascondi pulsante annulla
+	  const cancellable = data.status === 'queued' || data.status === 'in_progress';
+	  cancelBtn.style.display = cancellable ? '' : 'none';
+	  cancelBtn.disabled = false;
+	  cancelBtn.textContent = '\u2715 Annulla';
+
 	  header.className = "terminal-status-line " + key;
     icon.innerHTML      = ICONS[key] ?? "❓";
     label.textContent   = LABELS[key] ?? key;
@@ -669,6 +702,7 @@ function startPolling(runId, authToken, slug, siteUrl) {
 
     if (data.status === "completed") {
       clearPendingRun();
+		cancelBtn.style.display = 'none';
       const ok = data.conclusion === "success";
       showToast(ok ? "✅ Landing pubblicata!" : "❌ Deploy fallito", ok ? "success" : "error");
       if (ok) {

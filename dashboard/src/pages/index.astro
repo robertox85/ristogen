@@ -86,7 +86,8 @@
 								<div class="field-row">
 									<div class="field">
 										<label>Template</label>
-										<div class="tpicker" id="tpicker-main"></div>
+										<div class="tpicker" id="tpicker-main">
+										</div>
 									</div>
 									<div class="field">
 										<label for="lang"
@@ -106,7 +107,8 @@
 									<div class="field">
 										<label for="domain">
 											Dominio personalizzato
-											<span class="optional">(opzionale)</span
+											<span class="optional"
+												>(opzionale)</span
 											>
 										</label>
 										<input
@@ -118,7 +120,9 @@
 									<div class="field">
 										<label for="client-email">
 											Email cliente
-											<span class="optional">(opzionale)</span>
+											<span class="optional"
+												>(opzionale)</span
+											>
 											<span class="helper"
 												>Invito automatico al CMS</span
 											>
@@ -173,6 +177,12 @@
 								<span class="dot dot-green"></span>
 							</div>
 							<span class="terminal-title">deploy — ristogen</span
+							>
+							<button
+								id="btn-cancel-run"
+								class="terminal-cancel-btn"
+								title="Annulla deploy"
+								style="display:none">✕ Annulla</button
 							>
 							<a
 								id="action-link"
@@ -313,8 +323,24 @@
 							<h2>Landing create</h2>
 							<div class="section-header-actions">
 								<div class="search-box">
-									<svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-									<input id="clients-search" type="text" placeholder="Filtra per slug…" autocomplete="off" />
+									<svg
+										class="search-icon"
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										><circle cx="11" cy="11" r="8"
+										></circle><path d="m21 21-4.35-4.35"
+										></path></svg
+									>
+									<input
+										id="clients-search"
+										type="text"
+										placeholder="Filtra per slug…"
+										autocomplete="off"
+									/>
 								</div>
 								<span class="badge" id="clients-count"></span>
 								<button
@@ -418,50 +444,57 @@
 
 						<div class="field">
 							<label>Template</label>
-								<div class="tpicker tpicker--preview-left" id="tpicker-edit"></div>
-						<div class="field">
-							<label for="edit-lang">Lingua principale</label>
-							<select id="edit-lang" name="default_lang">
-								<option value="it">🇮🇹 Italiano</option>
-								<option value="en">🇬🇧 English</option>
-							</select>
+							<div
+								class="tpicker tpicker--preview-left"
+								id="tpicker-edit"
+							>
+							</div>
+							<div class="field">
+								<label for="edit-lang">Lingua principale</label>
+								<select id="edit-lang" name="default_lang">
+									<option value="it">🇮🇹 Italiano</option>
+									<option value="en">🇬🇧 English</option>
+								</select>
+							</div>
+
+							<div class="field">
+								<label for="edit-domain">
+									Dominio personalizzato
+									<span class="optional">(opzionale)</span>
+								</label>
+								<input
+									id="edit-domain"
+									name="custom_domain"
+									placeholder="www.ristoranteprati.it"
+									autocomplete="off"
+								/>
+							</div>
+
+							<div id="edit-rebuild-note" class="rebuild-note">
+								⚠ Cambiare template o lingua avvierà un rebuild
+								della landing (~2 min).
+							</div>
+
+							<button
+								type="submit"
+								id="edit-submit-btn"
+								class="btn-primary"
+							>
+								<span id="edit-submit-icon">💾</span>
+								<span id="edit-submit-text"
+									>Salva modifiche</span
+								>
+							</button>
 						</div>
 
-						<div class="field">
-							<label for="edit-domain">
-								Dominio personalizzato
-								<span class="optional">(opzionale)</span>
-							</label>
-							<input
-								id="edit-domain"
-								name="custom_domain"
-								placeholder="www.ristoranteprati.it"
-								autocomplete="off"
-							/>
-						</div>
-
-						<div id="edit-rebuild-note" class="rebuild-note">
-							⚠ Cambiare template o lingua avvierà un rebuild
-							della landing (~2 min).
-						</div>
-
-						<button
-							type="submit"
-							id="edit-submit-btn"
-							class="btn-primary"
-						>
-							<span id="edit-submit-icon">💾</span>
-							<span id="edit-submit-text">Salva modifiche</span>
-						</button>
+						<div id="edit-status" role="alert"></div>
 					</form>
-
-					<div id="edit-status" role="alert"></div>
 				</div>
-			</aside>
-		</div><!-- /#main-content -->
+			</aside><!-- /#main-content -->
 
-		<div id="toast-container" aria-live="polite"></div>
+			<div id="toast-container" aria-live="polite"></div>
 
-		<script is:inline src="/dashboard.js"></script>
+			<script is:inline src="/dashboard.js"></script>
+		</div>
 	</body>
 </html>
