@@ -42,146 +42,7 @@
 
 		<!-- Contenuto principale (nascosto finché non autenticato) -->
 		<div id="main-content">
-			<div class="split-layout">
-				<!-- Colonna sinistra: form + deploy -->
-				<div class="split-left">
-					<!-- Form: nuova landing -->
-					<div class="card">
-						<div class="card-header">
-							<div class="card-header-icon">❆</div>
-							<div>
-								<h2>Nuova landing ristorante</h2>
-								<p>
-									Compila il form per avviare il deploy
-									automatico
-								</p>
-							</div>
-						</div>
-						<div class="card-body">
-							<form
-								id="onboarding-form"
-								enctype="multipart/form-data"
-							>
-								<div class="field">
-									<label for="client-name">
-										Nome ristorante
-									</label>
-									<input
-										id="client-name"
-										name="client_name"
-										type="text"
-										placeholder="Burger Prati"
-										required
-										autocomplete="off"
-									/>
-								</div>
-
-								<div class="field">
-									<label for="slug">
-										Slug cliente
-										<span class="helper"
-											>Identificatore unico — es. <code
-												>burger-prati</code
-											></span
-										>
-									</label>
-									<input
-										id="slug"
-										name="client_slug"
-										placeholder="burger-prati"
-										required
-										autocomplete="off"
-										spellcheck="false"
-										pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
-										title="Solo lettere minuscole, numeri e trattini"
-									/>
-									<div id="slug-hint"></div>
-								</div>
-								<div class="field-row">
-									<div class="field">
-										<label>Template</label>
-										<div class="tpicker" id="tpicker-main">
-										</div>
-									</div>
-									<div class="field">
-										<label for="lang"
-											>Lingua principale</label
-										>
-										<select id="lang" name="default_lang">
-											<option value="it"
-												>🇮🇹 Italiano</option
-											>
-											<option value="en"
-												>🇬🇧 English</option
-											>
-										</select>
-									</div>
-								</div>
-								<div class="field-row">
-									<div class="field">
-										<label for="domain">
-											Dominio personalizzato
-											<span class="optional"
-												>(opzionale)</span
-											>
-										</label>
-										<input
-											id="domain"
-											name="custom_domain"
-											placeholder="www.ristoranteprati.it"
-										/>
-									</div>
-									<div class="field">
-										<label for="client-email">
-											Email cliente
-											<span class="optional"
-												>(opzionale)</span
-											>
-											<span class="helper"
-												>Invito automatico al CMS</span
-											>
-										</label>
-										<input
-											id="client-email"
-											name="client_email"
-											type="email"
-											placeholder="mario@ristorante.it"
-										/>
-									</div>
-								</div>
-								<div class="field">
-									<label for="pdf">
-										Menù PDF
-										<span class="optional">(opzionale)</span
-										>
-										<span class="helper"
-											>Estrazione automatica dei contenuti
-											via Claude AI</span
-										>
-									</label>
-									<input
-										id="pdf"
-										name="menu_pdf"
-										type="file"
-										accept=".pdf"
-									/>
-								</div>
-								<button
-									type="submit"
-									id="submit-btn"
-									class="btn-primary"
-								>
-									<span id="submit-icon">✦</span>
-									<span id="submit-text">Crea cliente</span>
-								</button>
-							</form>
-							<div id="status" role="alert"></div>
-						</div>
-					</div>
-				</div><!-- /.split-left -->
-
-				<!-- Colonna destra: prossimi passi + landing create -->
-				<div class="split-right">
+			<div class="dashboard-main">
 					<!-- Console deploy (terminale) -->
 					<div class="terminal-console" id="action-box">
 						<div class="terminal-titlebar">
@@ -364,6 +225,13 @@
 								>
 									<span class="refresh-icon">↻</span> Aggiorna
 								</button>
+								<button
+									class="btn-primary btn-sm"
+									id="btn-new-client"
+									title="Crea nuova landing"
+								>
+									+ Nuova landing
+								</button>
 							</div>
 						</div>
 						<div class="clients-wrap">
@@ -404,8 +272,7 @@
 							</table>
 						</div>
 					</div>
-				</div><!-- /.split-right -->
-			</div><!-- /.split-layout -->
+			</div><!-- /.dashboard-main -->
 
 			<!-- Drawer: modifica cliente -->
 			<div id="drawer-backdrop" class="drawer-backdrop"></div>
@@ -515,7 +382,70 @@
 						<div id="edit-status" role="alert"></div>
 					</form>
 				</div>
-			</aside><!-- /#main-content -->
+			</aside><!-- /#edit-drawer -->
+
+			<!-- Drawer: crea cliente -->
+			<div id="create-backdrop" class="drawer-backdrop"></div>
+			<aside
+				id="create-drawer"
+				class="edit-drawer"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="create-drawer-title"
+			>
+				<div class="drawer-header">
+					<div>
+						<h2 id="create-drawer-title">Nuova landing ristorante</h2>
+						<p class="drawer-subtitle">Compila il form per avviare il deploy automatico</p>
+					</div>
+					<button id="create-drawer-close" class="btn-dismiss" title="Chiudi">✕</button>
+				</div>
+				<div class="drawer-body">
+					<form id="onboarding-form" enctype="multipart/form-data">
+						<div class="field">
+							<label for="client-name">Nome ristorante</label>
+							<input id="client-name" name="client_name" type="text" placeholder="Burger Prati" required autocomplete="off" />
+						</div>
+						<div class="field">
+							<label for="slug">Slug cliente <span class="helper">Identificatore unico — es. <code>burger-prati</code></span></label>
+							<input id="slug" name="client_slug" placeholder="burger-prati" required autocomplete="off" spellcheck="false" pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*" title="Solo lettere minuscole, numeri e trattini" />
+							<div id="slug-hint"></div>
+						</div>
+						<div class="field-row">
+							<div class="field">
+								<label>Template</label>
+								<div class="tpicker" id="tpicker-main"></div>
+							</div>
+							<div class="field">
+								<label for="lang">Lingua principale</label>
+								<select id="lang" name="default_lang">
+									<option value="it">🇮🇹 Italiano</option>
+									<option value="en">🇬🇧 English</option>
+								</select>
+							</div>
+						</div>
+						<div class="field-row">
+							<div class="field">
+								<label for="domain">Dominio personalizzato <span class="optional">(opzionale)</span></label>
+								<input id="domain" name="custom_domain" placeholder="www.ristoranteprati.it" />
+							</div>
+							<div class="field">
+								<label for="client-email">Email cliente <span class="optional">(opzionale)</span> <span class="helper">Invito automatico al CMS</span></label>
+								<input id="client-email" name="client_email" type="email" placeholder="mario@ristorante.it" />
+							</div>
+						</div>
+						<div class="field">
+							<label for="pdf">Menù PDF <span class="optional">(opzionale)</span> <span class="helper">Estrazione automatica dei contenuti via Claude AI</span></label>
+							<input id="pdf" name="menu_pdf" type="file" accept=".pdf" />
+						</div>
+						<button type="submit" id="submit-btn" class="btn-primary">
+							<span id="submit-icon">✦</span>
+							<span id="submit-text">Crea cliente</span>
+						</button>
+					</form>
+					<div id="status" role="alert"></div>
+				</div>
+			</aside><!-- /#create-drawer -->
 
 			<div id="toast-container" aria-live="polite"></div>
 

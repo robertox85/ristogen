@@ -219,7 +219,7 @@ function updateCountBadge(n) {
 const TABLE_COLS = 5;
 function emptyRow(msg, withCta = false) {
   const cta = withCta
-    ? `<button type="button" class="btn-empty-cta" onclick="document.getElementById('onboarding-form').scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('client-name').focus(),400)">+ Crea il primo cliente</button>`
+    ? `<button type="button" class="btn-empty-cta" onclick="openCreateDrawer()">+ Crea il primo cliente</button>`
     : '';
   return `<tr><td colspan="${TABLE_COLS}">
     <div class="empty-state">
@@ -605,6 +605,8 @@ document.getElementById("onboarding-form").addEventListener("submit", async func
       setTemplatePicker('tpicker-main', 'template-01'); // resetta il picker visivo
       document.getElementById("slug-hint").textContent = "";
       slugValid = false;
+      _createDirty = false;
+      closeCreateDrawer();
       if (json.run_id) {
         savePendingRun(json.run_id, newSlug, siteUrl);
         startPolling(json.run_id, tok, newSlug, siteUrl);
@@ -720,7 +722,61 @@ function closeDrawer() {
 
 document.getElementById('drawer-close').addEventListener('click', closeDrawer);
 document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+document.addEventListener('keydown', e => {
+	if (e.key === 'Escape') {
+		if (document.getElementById('create-drawer').classList.contains('open')) closeCreateDrawer();
+		else closeDrawer();
+	}
+});
+
+// ── Create Drawer ────────────────────────────────────────────
+let _createDirty = false;
+let _createFocusTrap = null;
+
+function openCreateDrawer() {
+	_createDirty = false;
+	const drawer = document.getElementById('create-drawer');
+	drawer.classList.add('open');
+	document.getElementById('create-backdrop').classList.add('open');
+	document.body.style.overflow = 'hidden';
+
+	requestAnimationFrame(() => {
+		const focusable = Array.from(drawer.querySelectorAll(
+			'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+		)).filter(el => !el.closest('[hidden]'));
+		if (focusable.length) focusable[0].focus();
+
+		if (_createFocusTrap) drawer.removeEventListener('keydown', _createFocusTrap);
+		_createFocusTrap = function (e) {
+			if (e.key !== 'Tab' || focusable.length === 0) return;
+			const first = focusable[0];
+			const last  = focusable[focusable.length - 1];
+			if (e.shiftKey) {
+				if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+			} else {
+				if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+			}
+		};
+		drawer.addEventListener('keydown', _createFocusTrap);
+	});
+}
+function closeCreateDrawer() {
+	if (_createDirty && !confirm('Hai modifiche non salvate nel form. Chiudere senza salvare?')) return;
+	_createDirty = false;
+	const drawer = document.getElementById('create-drawer');
+	if (_createFocusTrap) { drawer.removeEventListener('keydown', _createFocusTrap); _createFocusTrap = null; }
+	drawer.classList.remove('open');
+	document.getElementById('create-backdrop').classList.remove('open');
+	document.body.style.overflow = '';
+}
+
+document.getElementById('create-drawer-close').addEventListener('click', closeCreateDrawer);
+document.getElementById('create-backdrop').addEventListener('click', closeCreateDrawer);
+document.getElementById('btn-new-client').addEventListener('click', openCreateDrawer);
+
+// Traccia modifiche nel form creazione
+document.getElementById('onboarding-form').addEventListener('input', () => { _createDirty = true; });
+document.getElementById('onboarding-form').addEventListener('change', () => { _createDirty = true; });
 
 async function loadEditDrawer(slug) {
 	// Reset

@@ -89,24 +89,14 @@ body {
 }
 #user-info button:hover { border-color: var(--text-muted); color: var(--text); }
 
-/* ── Split layout ── */
-.split-layout {
+/* ── Dashboard main layout ── */
+.dashboard-main {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem 1.25rem;
-  display: grid;
-  grid-template-columns: 400px 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-.split-left,
-.split-right {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-@media (max-width: 900px) {
-  .split-layout { grid-template-columns: 1fr; }
 }
 
 /* ── Cards ── */
@@ -215,6 +205,15 @@ input[type="file"] { padding: 0.45rem 0.75rem; cursor: pointer; font-size: 0.85r
 .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); }
 .btn-primary:active:not(:disabled) { transform: translateY(0); }
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-sm {
+  width: auto;
+  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+#create-drawer { width: 460px; }
 
 /* ── Status banner ── */
 #status {
@@ -1157,9 +1156,9 @@ margin-top: 0.5rem;
   .btn-edit, .btn-delete { font-size: 0.72rem; padding: 0.3rem 0.5rem; }
 
   .edit-drawer { width: 100% !important; max-width: 100% !important; }
+  #create-drawer { width: 100% !important; }
 
-  .onboarding-card { padding: 1.2rem 1rem; }
-  .form-grid { grid-template-columns: 1fr; }
+  .dashboard-main { padding: 1rem 0.75rem; }
 }
 
 @media (max-width: 400px) {
