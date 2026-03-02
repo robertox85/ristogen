@@ -242,8 +242,11 @@ jobs:
           git config user.email 'bot@ristogen.it'
           git add "clients/$SLUG/"
           git commit -m "feat: add client ${{ inputs.client_slug }}"
-          git pull --rebase origin master
-          git push origin HEAD:master
+          for i in 1 2 3; do
+            git pull --rebase origin master && git push origin HEAD:master && break
+            echo "⚠ Push tentativo $i fallito, riprovo tra ${i}s…"
+            sleep $i
+          done
 
       - name: Set custom domain
         if: ${{ inputs.custom_domain != '' }}

@@ -27,6 +27,9 @@ jobs:
           git config user.email 'bot@ristogen.it'
           git rm -r "clients/$SLUG"
           git commit -m "chore: elimina client $SLUG"
-          git pull --rebase origin master
-          git push origin HEAD:master
+          for i in 1 2 3; do
+            git pull --rebase origin master && git push origin HEAD:master && break
+            echo "⚠ Push tentativo $i fallito, riprovo tra ${i}s…"
+            sleep $i
+          done
           echo "✅ clients/$SLUG rimosso"

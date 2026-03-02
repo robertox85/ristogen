@@ -123,6 +123,9 @@ jobs:
           git add "clients/$SLUG/decap-config.yml"
           git diff --staged --quiet && echo "Nessuna modifica da committare" && exit 0
           git commit -m "config: rebuild $SLUG with ${{ inputs.template }}"
-          git pull --rebase origin master
-          git push origin HEAD:master
+          for i in 1 2 3; do
+            git pull --rebase origin master && git push origin HEAD:master && break
+            echo "⚠ Push tentativo $i fallito, riprovo tra ${i}s…"
+            sleep $i
+          done
           echo "✅ Redeploy completato"
