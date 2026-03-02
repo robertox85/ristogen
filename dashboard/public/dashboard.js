@@ -10,6 +10,9 @@ let _allClients   = [];    // copia dell'array originale da server (usata per so
 let _sortKey      = null;  // 'slug' | 'template' | 'lang' | null
 let _sortAsc      = true;
 
+// Landing protette: il tasto Elimina viene disabilitato
+const PROTECTED_SLUGS = ['burger-demo'];
+
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -285,7 +288,7 @@ function clientRow(c) {
       <div class="table-actions">
         <button class="btn-steps" data-slug="${c.slug}" data-site-url="${url}" title="Prossimi passi" aria-label="Prossimi passi: ${c.slug}">\ud83d\ude80</button>
         <button class="btn-edit" data-slug="${c.slug}" aria-label="Modifica ${c.slug}">Modifica</button>
-        <button class="btn-delete" data-slug="${c.slug}" aria-label="Elimina ${c.slug}">Elimina</button>
+        <button class="btn-delete" data-slug="${c.slug}" aria-label="Elimina ${c.slug}"${PROTECTED_SLUGS.includes(c.slug) ? ' disabled title="Questa landing è protetta e non può essere eliminata"' : ''}>Elimina</button>
       </div>
     </td>
   </tr>`;
@@ -1196,6 +1199,7 @@ function initTableDelegation() {
     } else if (btn.classList.contains('btn-edit')) {
       loadEditDrawer(slug);
     } else if (btn.classList.contains('btn-delete')) {
+      if (PROTECTED_SLUGS.includes(slug)) { showToast('Questa landing è protetta e non può essere eliminata', 'error'); return; }
       if (!confirm(`Eliminare "${slug}" da Netlify e dal repo?`)) return;
       btn.disabled = true;
       btn.textContent = '…';
