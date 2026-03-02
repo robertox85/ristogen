@@ -37,32 +37,21 @@ jobs:
       - name: Create content structure
         run: |
           SLUG=${{ inputs.client_slug }}
-          BASE=clients/$SLUG/content
-          mkdir -p $BASE/it/menu $BASE/it/articles $BASE/en/menu $BASE/en/articles $BASE/images
-
-          cat > $BASE/theme.json <<EOF
-          {"template":"${{ inputs.template }}","colors":{"primary":"#111827","secondary":"#2563EB","background":"#ffffff","text":"#111827"},"fonts":{"heading":"Playfair Display","body":"Inter"}}
-          EOF
-
-          cat > $BASE/it/site.json <<EOF
-          {"name":"","lang":"it","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"it_IT","og_site_name":"","twitter_card":"summary_large_image","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
-          EOF
-
-          cat > $BASE/en/site.json <<EOF
-          {"name":"","lang":"en","meta":{"title":"","description":"","og_image":"/images/og.jpg","og_type":"restaurant.restaurant","og_locale":"en_US","og_site_name":"","twitter_card":"summary_large_image","canonical":""},"schema_org":{"type":"Restaurant","name":"","address":{"streetAddress":"","addressLocality":"","postalCode":"","addressRegion":"","addressCountry":"IT"},"telephone":"","servesCuisine":"","priceRange":"€€","openingHours":[]},"seo":{"llms_txt":true,"robots":"index, follow"},"analytics":{"ga4":"","clarity":""}}
-          EOF
-
-          echo '{"enabled":true,"headline":"","subheadline":"","image":"/images/hero.jpg","image_alt":"","cta":{"label":"","url":"#contatti"}}' > $BASE/it/hero.json
-          echo '{"enabled":true,"headline":"","subheadline":"","image":"/images/hero.jpg","image_alt":"","cta":{"label":"","url":"#contatti"}}' > $BASE/en/hero.json
-          echo '{"enabled":true,"title":"Chi siamo","text":"","image":"","image_alt":""}' > $BASE/it/about.json
-          echo '{"enabled":true,"title":"About us","text":"","image":"","image_alt":""}' > $BASE/en/about.json
-          echo '{"enabled":true,"indirizzo":"","telefono":"","orari":"","google_maps_url":"","social":{"instagram":"","facebook":""}}' > $BASE/it/contatti.json
-          echo '{"enabled":true,"indirizzo":"","telefono":"","orari":"","google_maps_url":"","social":{"instagram":"","facebook":""}}' > $BASE/en/contatti.json
-          echo '{"enabled":false,"images":[]}' > $BASE/it/gallery.json
-          echo '{"enabled":false,"images":[]}' > $BASE/en/gallery.json
-          echo '{"name":"Menu","items":[]}' > $BASE/en/menu/default.json
-          echo '{"name":"Menu","items":[]}' > $BASE/it/menu/default.json
-          touch $BASE/images/.gitkeep
+          # Clona burger-demo come base
+          cp -r clients/burger-demo "clients/$SLUG"
+          
+          # Rimuovi netlify.json se esiste (è specifico di burger-demo)
+          rm -f "clients/$SLUG/netlify.json"
+          
+          # Aggiorna il campo lang nei site.json
+          # (i contenuti li compilerà il cliente via Decap)
+          jq '.name = "" | .meta.title = "" | .meta.description = "" | .meta.canonical = ""' \
+            "clients/$SLUG/content/it/site.json" > /tmp/site_it.json && \
+            mv /tmp/site_it.json "clients/$SLUG/content/it/site.json"
+          
+          jq '.name = "" | .meta.title = "" | .meta.description = "" | .meta.canonical = ""' \
+            "clients/$SLUG/content/en/site.json" > /tmp/site_en.json && \
+            mv /tmp/site_en.json "clients/$SLUG/content/en/site.json"
 
       - name: Create IT menu files from JSON
         if: ${{ inputs.menu_json != '' }}
@@ -164,7 +153,9 @@ jobs:
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"disable_signup": true}')
-          [ "$INVITE_HTTP" != "200" ] && echo "::warning::Invite-only non impostato (HTTP $INVITE_HTTP)" || echo "Invite-only attivo"
+          [ "$INVITE_HTTP" != "200" ] && [ "$INVITE_HTTP" != "204" ] && \
+            echo "::warning::Invite-only non impostato (HTTP $INVITE_HTTP)" || \
+            echo "Invite-only attivo"
 
       - name: Configure Git Gateway
         env:
