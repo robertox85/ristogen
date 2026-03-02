@@ -27,3 +27,6 @@ pnpm-debug.log*
 .netlify/
 
 !public/
+
+# Generato a build time da config.template.yml
+public/admin/config.yml
