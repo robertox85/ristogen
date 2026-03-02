@@ -542,16 +542,6 @@ async function loadEditDrawer(slug) {
 	}
 }
 
-// Mostra nota rebuild quando template o lang cambiano
-['edit-template', 'edit-lang'].forEach(id => {
-	document.getElementById(id).addEventListener('change', function () {
-		const form = document.getElementById('edit-form');
-		const changed = form.querySelector('#edit-template').value !== form.dataset.origTemplate
-			|| form.querySelector('#edit-lang').value !== form.dataset.origLang;
-		document.getElementById('edit-rebuild-note').classList.toggle('visible', changed);
-	});
-});
-
 document.getElementById('edit-form').addEventListener('submit', async function (e) {
 	e.preventDefault();
 	const btn = document.getElementById('edit-submit-btn');
@@ -729,6 +719,19 @@ function initTemplatePickers() {
   // Render dynamic picker HTML
   renderTemplatePicker('tpicker-main', 'template', 'template', 'template-01');
   renderTemplatePicker('tpicker-edit', 'template', 'edit-template', 'template-01');
+
+	// Mostra nota rebuild quando template o lang cambiano (deve stare qui perché
+	// #edit-template viene creato da renderTemplatePicker appena sopra)
+	['edit-template', 'edit-lang'].forEach(id => {
+		const el = document.getElementById(id);
+		if (!el) return;
+		el.addEventListener('change', function () {
+			const form = document.getElementById('edit-form');
+			const changed = form.querySelector('#edit-template').value !== form.dataset.origTemplate
+				|| form.querySelector('#edit-lang').value !== form.dataset.origLang;
+			document.getElementById('edit-rebuild-note').classList.toggle('visible', changed);
+		});
+	});
 
   document.querySelectorAll('.tpicker').forEach(picker => {
     const trigger = picker.querySelector('.tpicker-btn');
