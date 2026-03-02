@@ -242,21 +242,24 @@ function tryLoadClients() {
   if (!user) return;
   _loadStarted = true;
   renderUserInfo(user);
+
+  // Tenta prima un refresh; se già fresco usa il token attuale
+  const tokenNow = user.token && user.token.access_token;
   window.netlifyIdentity.refresh()
     .then(jwt => {
-      if (jwt) {
-        _authToken = jwt;
-        loadClients(jwt);
-        resumePendingRun(jwt);
+      const tok = jwt || tokenNow;
+      if (tok) {
+        _authToken = tok;
+        loadClients(tok);
+        resumePendingRun(tok);
         if (!localStorage.getItem(PENDING_KEY)) restoreNextSteps();
       }
     })
     .catch(() => {
-      const t = user.token && user.token.access_token;
-      if (t) {
-        _authToken = t;
-        loadClients(t);
-        resumePendingRun(t);
+      if (tokenNow) {
+        _authToken = tokenNow;
+        loadClients(tokenNow);
+        resumePendingRun(tokenNow);
         if (!localStorage.getItem(PENDING_KEY)) restoreNextSteps();
       }
     });
@@ -274,13 +277,21 @@ function initIdentity() {
       tryLoadClients();
     } else {
       showLoginScreen();
-      window.netlifyIdentity.on("login", () => document.location.reload());
     }
+  });
+
+  // Login: carica direttamente senza reload
+  window.netlifyIdentity.on("login", user => {
+    window.netlifyIdentity.close();
+    _loadStarted = false; // resetta per permettere un caricamento fresco
+    tryLoadClients();
   });
 
   window.netlifyIdentity.on("logout", () => {
     renderUserInfo(null);
-    document.location.reload();
+    showLoginScreen();
+    _loadStarted = false;
+    _authToken = null;
   });
 
   // Fallback sincrono: se Identity è già pronto al momento dell'esecuzione
