@@ -108,7 +108,7 @@ function showToast(msg, type = "") {
 // ── Badge contatore ───────────────────────────────────────────
 function updateCountBadge(n) {
   const b = document.getElementById("clients-count");
-  if (b) b.textContent = n > 0 ? n + " siti" : "";
+  if (b) b.textContent = n > 0 ? n + " landing" : "";
 }
 
 // ── Empty-state row ───────────────────────────────────────────
@@ -161,7 +161,7 @@ async function loadClients(token) {
     const { clients } = await r.json();
 
     if (!clients || clients.length === 0) {
-      tbody.innerHTML = emptyRow("Nessun sito ancora creato");
+      tbody.innerHTML = emptyRow("Nessuna landing ancora creata");
       updateCountBadge(0);
       return;
     }
@@ -220,8 +220,8 @@ async function loadClients(token) {
           const remaining = document.querySelectorAll("#clients-tbody tr[data-slug]").length;
           updateCountBadge(remaining);
           if (!remaining) document.getElementById("clients-tbody").innerHTML =
-            emptyRow("Nessun sito ancora creato");
-          showToast(`Sito "${slug}" eliminato`, "success");
+            emptyRow("Nessuna landing ancora creata");
+          showToast(`Landing "${slug}" eliminata`, "success");
         } catch (e) {
           showToast("Errore eliminazione: " + e.message, "error");
           this.disabled = false;
@@ -417,8 +417,8 @@ document.getElementById("onboarding-form").addEventListener("submit", async func
       const newSlug = formData.get("client_slug");
       const siteUrl = json.site_url || "";
       status.className = "success";
-      status.innerHTML = `<span>\u2713</span> <span>Sito <strong>${newSlug}</strong> creato \u2014 monitoraggio deploy in corso</span>`;
-      showToast(`Sito "${newSlug}" creato!`, "success");
+      status.innerHTML = `<span>\u2713</span> <span>Landing <strong>${newSlug}</strong> creata \u2014 monitoraggio deploy in corso</span>`;
+      showToast(`Landing "${newSlug}" creata!`, "success");
       this.reset();
       document.getElementById("slug-hint").textContent = "";
       slugValid = false;
@@ -682,7 +682,7 @@ function startPolling(runId, authToken, slug, siteUrl) {
     if (data.status === "completed") {
       clearPendingRun();
       const ok = data.conclusion === "success";
-      showToast(ok ? "✅ Deploy completato!" : "❌ Deploy fallito", ok ? "success" : "error");
+      showToast(ok ? "✅ Landing pubblicata!" : "❌ Deploy fallito", ok ? "success" : "error");
       if (ok) {
         // Mostra prossimi passi solo a deploy riuscito, con step azzerati
         showNextSteps(slug || '', siteUrl || '', true);

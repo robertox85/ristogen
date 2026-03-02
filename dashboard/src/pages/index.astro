@@ -31,7 +31,7 @@
 					<span>🍽</span> Ristogen
 					<span class="logo-pill">Beta</span>
 				</div>
-				<p class="login-desc">Accedi per gestire i siti dei tuoi clienti.</p>
+				<p class="login-desc">Accedi per gestire le landing dei tuoi clienti.</p>
 				<button id="btn-login" class="btn-primary">
 					<span>🔑</span> Accedi
 				</button>
@@ -44,12 +44,12 @@
 		<div class="split-layout">
 			<!-- Colonna sinistra: form + deploy -->
 			<div class="split-left">
-				<!-- Form: nuovo sito -->
+				<!-- Form: nuova landing -->
 				<div class="card">
 					<div class="card-header">
-						<div class="card-header-icon">✦</div>
+						<div class="card-header-icon">❆</div>
 						<div>
-							<h2>Nuovo sito ristorante</h2>
+							<h2>Nuova landing ristorante</h2>
 							<p>
 								Compila il form per avviare il deploy automatico
 							</p>
@@ -188,7 +188,7 @@
 				</div>
 			</div><!-- /.split-left -->
 
-			<!-- Colonna destra: prossimi passi + siti creati -->
+			<!-- Colonna destra: prossimi passi + landing create -->
 			<div class="split-right">
 				<!-- Prossimi passi (visibile dopo creazione) -->
 				<div class="card" id="next-steps-box">
@@ -198,7 +198,7 @@
 							<div>
 								<h2>Prossimi passi</h2>
 								<p>
-									Completa la configurazione del sito <strong
+									Completa la configurazione della landing <strong
 										id="ns-slug"></strong>
 								</p>
 							</div>
@@ -219,7 +219,7 @@
 										href="https://app.netlify.com"
 										target="_blank"
 										rel="noopener">app.netlify.com</a
-									>, apri il sito appena creato → <em
+									, apri la landing appena creata → <em
 										>Site configuration → Build &amp; deploy
 										→ Link repository</em
 									>. Seleziona la repo <code id="ns-repo"
@@ -234,10 +234,10 @@
 							<span class="step-num">2</span>
 							<div class="step-content">
 								<strong
-									>Abilita Netlify Identity sul nuovo sito</strong
+										>Abilita Netlify Identity sulla nuova landing</strong
 								>
 								<p>
-									Dal pannello del sito su Netlify: <em
+									Dal pannello della landing su Netlify: <em
 										>Integrations → Identity → Enable
 										Identity</em
 									>. Imposta la registrazione su <em
@@ -289,13 +289,13 @@
 						<li class="step-item" data-step="5">
 							<span class="step-num">5</span>
 							<div class="step-content">
-								<strong>Verifica il sito pubblicato</strong>
+								<strong>Verifica la landing pubblicata</strong>
 								<p>
 									Apri <a
 										id="ns-site-url"
 										href="#"
 										target="_blank"
-										rel="noopener">l'URL del sito</a
+												rel="noopener">l'URL della landing</a
 									>
 									e controlla che contenuti e menu siano visualizzati
 									correttamente. Poi accedi al <a
@@ -317,10 +317,10 @@
 					</div>
 				</div>
 
-				<!-- Tabella siti creati -->
+				<!-- Tabella landing create -->
 				<div class="card" id="clients-section">
 					<div class="section-header">
-						<h2>Siti creati</h2>
+						<h2>Landing create</h2>
 						<div class="section-header-actions">
 							<span class="badge" id="clients-count"></span>
 							<button
@@ -380,7 +380,7 @@
 		>
 			<div class="drawer-header">
 				<div>
-					<h2 id="drawer-title">Modifica sito</h2>
+					<h2 id="drawer-title">Modifica landing</h2>
 					<p id="drawer-subtitle" class="drawer-subtitle"></p>
 				</div>
 				<button id="drawer-close" class="btn-dismiss" title="Chiudi"
@@ -391,7 +391,7 @@
 				<!-- Info read-only -->
 				<div class="drawer-info-grid">
 					<div class="drawer-info-item">
-						<span class="drawer-info-label">URL sito</span>
+							<span class="drawer-info-label">URL landing</span>
 						<a
 							id="di-site-url"
 							href="#"
@@ -470,7 +470,7 @@
 					</div>
 
 					<div id="edit-rebuild-note" class="rebuild-note">
-						⚠ Cambiare template o lingua avvierà un rebuild del sito
+						⚠ Cambiare template o lingua avvierà un rebuild della landing
 						(~2 min).
 					</div>
 
