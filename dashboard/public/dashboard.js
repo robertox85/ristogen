@@ -7,6 +7,35 @@
 let _authToken    = null;  // JWT corrente
 let _loadStarted  = false; // true non appena iniziamo a caricare la lista clienti
 
+// ── Persistenza deploy in corso (sopravvive al refresh) ───────
+const PENDING_KEY = 'ristogen_pending_run';
+
+function savePendingRun(runId, slug, siteUrl) {
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify({
+      run_id: runId, slug, site_url: siteUrl, started_at: Date.now()
+    }));
+  } catch { /* storage non disponibile */ }
+}
+
+function clearPendingRun() {
+  try { localStorage.removeItem(PENDING_KEY); } catch {}
+}
+
+function resumePendingRun(authToken) {
+  let data;
+  try { data = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch {}
+  if (!data || !data.run_id) return;
+  // Scarta se più vecchio di 2 ore
+  if (Date.now() - (data.started_at || 0) > 2 * 60 * 60 * 1000) {
+    clearPendingRun();
+    return;
+  }
+  showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, '');
+  showNextSteps(data.slug, data.site_url || '');
+  startPolling(data.run_id, authToken);
+}
+
 // ── Helpers: token corrente ───────────────────────────────────
 function currentToken() {
   if (_authToken) return _authToken;
@@ -151,10 +180,12 @@ function tryLoadClients() {
   _loadStarted = true;
   renderUserInfo(user);
   window.netlifyIdentity.refresh()
-    .then(jwt => { if (jwt) { _authToken = jwt; loadClients(jwt); } })
+    .then(jwt => {
+      if (jwt) { _authToken = jwt; loadClients(jwt); resumePendingRun(jwt); }
+    })
     .catch(() => {
       const t = user.token && user.token.access_token;
-      if (t) { _authToken = t; loadClients(t); }
+      if (t) { _authToken = t; loadClients(t); resumePendingRun(t); }
     });
 }
 
@@ -302,7 +333,10 @@ document.getElementById("onboarding-form").addEventListener("submit", async func
       this.reset();
       document.getElementById("slug-hint").textContent = "";
       slugValid = false;
-      if (json.run_id) startPolling(json.run_id, tok);
+      if (json.run_id) {
+        savePendingRun(json.run_id, newSlug, json.site_url || "");
+        startPolling(json.run_id, tok);
+      }
       setTimeout(() => loadClients(), 10000);
     } else {
       status.className = "error";
@@ -415,6 +449,7 @@ function startPolling(runId, authToken) {
     }
 
     if (data.status === "completed") {
+      clearPendingRun();
       const ok = data.conclusion === "success";
       showToast(ok ? "✅ Deploy completato!" : "❌ Deploy fallito", ok ? "success" : "error");
       if (ok) setTimeout(() => loadClients(), 3000);
