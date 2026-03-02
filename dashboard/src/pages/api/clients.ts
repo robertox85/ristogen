@@ -15,6 +15,25 @@ function authCheck(request: Request): string | null {
 	return h?.startsWith('Bearer ') ? h.slice(7) : null;
 }
 
+// ── Cache in-memory ───────────────────────────────────────────────────────────
+const CACHE_TTL = 30_000; // 30 secondi
+const LIST_KEY  = '__list';
+
+interface CacheEntry { data: unknown; ts: number }
+const _cache = new Map<string, CacheEntry>();
+
+function cacheGet<T>(key: string): T | null {
+	const e = _cache.get(key);
+	if (!e) return null;
+	if (Date.now() - e.ts > CACHE_TTL) { _cache.delete(key); return null; }
+	return e.data as T;
+}
+function cacheSet(key: string, data: unknown) { _cache.set(key, { data, ts: Date.now() }); }
+function invalidateCache(slug: string) {
+	_cache.delete(slug);
+	_cache.delete(LIST_KEY);
+}
+
 // ── GET /api/clients ─────────────────────────────────────────────────────────
 // ?slug=xxx → dettagli completi di un singolo client (template, lang, dominio)
 // (nessun param) → lista leggera di tutti i client
@@ -34,6 +53,10 @@ export const GET: APIRoute = async ({ request, url }) => {
 	const singleSlug = url.searchParams.get('slug');
 	if (singleSlug) {
 		if (!/^[a-z0-9-]+$/.test(singleSlug)) return jsonResp({ error: 'Slug non valido' }, 400);
+
+		// Cache hit?
+		const cached = cacheGet<Record<string, unknown>>(singleSlug);
+		if (cached) return jsonResp(cached);
 
 		// netlify.json
 		let netlifyMeta: Record<string, string> = {};
@@ -80,7 +103,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 			} catch { /* ignora */ }
 		}
 
-		return jsonResp({
+		const singleResult = {
 			slug: singleSlug,
 			client_name: netlifyMeta.client_name || '',
 			site_id: siteId,
@@ -88,10 +111,15 @@ export const GET: APIRoute = async ({ request, url }) => {
 			template,
 			default_lang: netlifyMeta.default_lang || 'it',
 			custom_domain
-		});
+		};
+		cacheSet(singleSlug, singleResult);
+		return jsonResp(singleResult);
 	}
 
 	// ── Lista tutti i client ──────────────────────────────────────────────────
+	const cachedList = cacheGet<{ clients: unknown[] }>(LIST_KEY);
+	if (cachedList) return jsonResp(cachedList);
+
 	const dirRes = await fetch(
 		`https://api.github.com/repos/${REPO}/contents/clients?ref=${BRANCH}`,
 		{ headers: ghHeaders }
@@ -128,7 +156,9 @@ export const GET: APIRoute = async ({ request, url }) => {
 		})
 	);
 
-	return jsonResp({ clients });
+	const listResult = { clients };
+	cacheSet(LIST_KEY, listResult);
+	return jsonResp(listResult);
 };
 
 // ── PATCH /api/clients — aggiorna template, lingua e/o dominio ────────────────
@@ -248,6 +278,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 		} catch { /* ignora */ }
 	}
 
+	invalidateCache(slug);
 	return jsonResp({ ok: true, run_id: runId, needs_rebuild: !!needsRebuild });
 };
 
@@ -308,5 +339,6 @@ export const DELETE: APIRoute = async ({ request, url }) => {
 		return jsonResp({ error: 'Errore dispatch workflow: ' + err }, 502);
 	}
 
+	invalidateCache(slug);
 	return jsonResp({ ok: true, slug, netlify_deleted: !!siteId });
 };
