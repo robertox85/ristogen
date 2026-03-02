@@ -116,6 +116,7 @@ function restoreTerminalLog() {
   if (d.gh_url) link.href = d.gh_url;
   if (cancelBtn) cancelBtn.style.display = 'none';
 
+  const terminalBodyRestore = box.querySelector('.terminal-body');
   stepsList.innerHTML = (d.steps || []).map(s =>
     `<li class="${STEP_CLASS[s.state] || ''}">${s.name}</li>`
   ).join('');
@@ -132,6 +133,7 @@ function restoreTerminalLog() {
   note.className   = 'terminal-log-note';
   note.textContent = `↑ ultimo deploy: ${d.slug} — ${new Date(d.saved_at).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
   box.querySelector('.terminal-body').appendChild(note);
+  if (terminalBodyRestore) terminalBodyRestore.scrollTop = terminalBodyRestore.scrollHeight;
 
   box.classList.add('visible');
 }
@@ -846,6 +848,7 @@ function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
 	const label = document.getElementById("action-label");
 	const link = document.getElementById("action-link");
 	const stepsList = document.getElementById("action-steps");
+	const terminalBody = box.querySelector('.terminal-body');
 	const errorsBox = document.getElementById("action-errors");
   const errorsText = document.getElementById("action-errors-text");
 	const cancelBtn = document.getElementById("btn-cancel-run");
@@ -955,6 +958,7 @@ function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
         const state = s.conclusion ?? s.status ?? "";
 		  return `<li class="${STEP_CLASS[state] || ""}">${s.name}</li>`;
       }).join("");
+      if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
 
       const allErrors = data.jobs.flatMap(j => j.errors ?? []).filter(Boolean);
 		errorsBox.className = "terminal-errors" + (allErrors.length ? " visible" : "");
