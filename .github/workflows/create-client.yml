@@ -5,6 +5,9 @@ on:
       client_slug:
         description: 'Slug cliente (es. burger-prati)'
         required: true
+      client_email:
+        description: 'Email del cliente per invito Identity'
+        required: false
       template:
         description: 'Template da usare'
         required: true
@@ -146,6 +149,7 @@ jobs:
           IDENTITY_ID=$(echo "$IDENTITY_BODY" | jq -r '.id')
           [ -z "$IDENTITY_ID" ] || [ "$IDENTITY_ID" = "null" ] && { echo "::error::Identity non abilitata: $IDENTITY_BODY"; exit 1; }
           echo "Identity abilitata (id=$IDENTITY_ID)"
+          echo "IDENTITY_ID=$IDENTITY_ID" >> $GITHUB_ENV
 
           # Invite-only
           INVITE_HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
@@ -156,6 +160,22 @@ jobs:
           [ "$INVITE_HTTP" != "200" ] && [ "$INVITE_HTTP" != "204" ] && \
             echo "::warning::Invite-only non impostato (HTTP $INVITE_HTTP)" || \
             echo "Invite-only attivo"
+
+      - name: Invite users
+        if: ${{ inputs.client_email != '' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          ADMIN_EMAIL: ${{ secrets.NETLIFY_ADMIN_EMAIL }}
+        run: |
+          INVITES="[{\"email\": \"$ADMIN_EMAIL\"}, {\"email\": \"${{ inputs.client_email }}\"}]"
+          INVITE_HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/identity/$IDENTITY_ID/users/invite" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"invites\": $INVITES}")
+          [ "$INVITE_HTTP" != "200" ] && [ "$INVITE_HTTP" != "201" ] && \
+            echo "::warning::Invito non inviato (HTTP $INVITE_HTTP)" || \
+            echo "Inviti inviati a $ADMIN_EMAIL e ${{ inputs.client_email }}"
 
       - name: Configure Git Gateway
         env:
