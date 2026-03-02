@@ -86,111 +86,7 @@
 								<div class="field-row">
 									<div class="field">
 										<label>Template</label>
-										<div class="tpicker" id="tpicker-main">
-											<button
-												type="button"
-												class="tpicker-btn"
-												aria-haspopup="listbox"
-												aria-expanded="false"
-											>
-												<img
-													class="tpicker-thumb"
-													src="/templates/template-01.png"
-													alt=""
-												/>
-												<span class="tpicker-label"
-													>Template 01 — Dark</span
-												>
-												<svg
-													class="tpicker-chevron"
-													width="14"
-													height="14"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="2.5"
-													><path d="M6 9l6 6 6-6"
-													></path></svg
-												>
-											</button>
-											<ul
-												class="tpicker-list"
-												role="listbox"
-											>
-												<li
-													class="tpicker-item selected"
-													data-value="template-01"
-													data-label="Template 01 — Dark"
-													role="option"
-												>
-													<img
-														class="tpicker-item-thumb"
-														src="/templates/template-01.png"
-														alt=""
-													/>
-													<div
-														class="tpicker-item-text"
-													>
-														<strong
-															>Template 01</strong
-														><em
-															>Dark — ristorante
-															moderno</em
-														>
-													</div>
-													<div
-														class="tpicker-item-preview"
-													>
-														<img
-															src="/templates/template-01.png"
-															alt="Preview Template 01"
-														/>
-														<p>
-															Template 01 — Dark
-														</p>
-													</div>
-												</li>
-												<li
-													class="tpicker-item"
-													data-value="template-02"
-													data-label="Template 02 — Light"
-													role="option"
-												>
-													<img
-														class="tpicker-item-thumb"
-														src="/templates/template-02.png"
-														alt=""
-													/>
-													<div
-														class="tpicker-item-text"
-													>
-														<strong
-															>Template 02</strong
-														><em
-															>Light — elegante e
-															chiaro</em
-														>
-													</div>
-													<div
-														class="tpicker-item-preview"
-													>
-														<img
-															src="/templates/template-02.png"
-															alt="Preview Template 02"
-														/>
-														<p>
-															Template 02 — Light
-														</p>
-													</div>
-												</li>
-											</ul>
-											<input
-												type="hidden"
-												id="template"
-												name="template"
-												value="template-01"
-											/>
-										</div>
+										<div class="tpicker" id="tpicker-main"></div>
 									</div>
 									<div class="field">
 										<label for="lang"
@@ -206,17 +102,34 @@
 										</select>
 									</div>
 								</div>
-								<div class="field">
-									<label for="domain">
-										Dominio personalizzato
-										<span class="optional">(opzionale)</span
-										>
-									</label>
-									<input
-										id="domain"
-										name="custom_domain"
-										placeholder="www.ristoranteprati.it"
-									/>
+								<div class="field-row">
+									<div class="field">
+										<label for="domain">
+											Dominio personalizzato
+											<span class="optional">(opzionale)</span
+											>
+										</label>
+										<input
+											id="domain"
+											name="custom_domain"
+											placeholder="www.ristoranteprati.it"
+										/>
+									</div>
+									<div class="field">
+										<label for="client-email">
+											Email cliente
+											<span class="optional">(opzionale)</span>
+											<span class="helper"
+												>Invito automatico al CMS</span
+											>
+										</label>
+										<input
+											id="client-email"
+											name="client_email"
+											type="email"
+											placeholder="mario@ristorante.it"
+										/>
+									</div>
 								</div>
 								<div class="field">
 									<label for="pdf">
@@ -399,6 +312,10 @@
 						<div class="section-header">
 							<h2>Landing create</h2>
 							<div class="section-header-actions">
+								<div class="search-box">
+									<svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+									<input id="clients-search" type="text" placeholder="Filtra per slug…" autocomplete="off" />
+								</div>
 								<span class="badge" id="clients-count"></span>
 								<button
 									class="btn-refresh"
@@ -414,14 +331,15 @@
 								<thead>
 									<tr>
 										<th>Slug</th>
+										<th>Template</th>
+										<th>Lingua</th>
 										<th>URL</th>
-										<th>CMS Admin</th>
 										<th>Azioni</th>
 									</tr>
 								</thead>
 								<tbody id="clients-tbody">
 									<tr>
-										<td colspan="4">
+										<td colspan="5">
 											<div class="empty-state">
 												<svg
 													width="40"
@@ -500,94 +418,7 @@
 
 						<div class="field">
 							<label>Template</label>
-							<div
-								class="tpicker tpicker--preview-left"
-								id="tpicker-edit"
-							>
-								<button
-									type="button"
-									class="tpicker-btn"
-									aria-haspopup="listbox"
-									aria-expanded="false"
-								>
-									<img
-										class="tpicker-thumb"
-										src="/templates/template-01.png"
-										alt=""
-									/>
-									<span class="tpicker-label"
-										>Template 01 — Dark</span
-									>
-									<svg
-										class="tpicker-chevron"
-										width="14"
-										height="14"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										><path d="M6 9l6 6 6-6"></path></svg
-									>
-								</button>
-								<ul class="tpicker-list" role="listbox">
-									<li
-										class="tpicker-item selected"
-										data-value="template-01"
-										data-label="Template 01 — Dark"
-										role="option"
-									>
-										<img
-											class="tpicker-item-thumb"
-											src="/templates/template-01.png"
-											alt=""
-										/>
-										<div class="tpicker-item-text">
-											<strong>Template 01</strong><em
-												>Dark — ristorante moderno</em
-											>
-										</div>
-										<div class="tpicker-item-preview">
-											<img
-												src="/templates/template-01.png"
-												alt="Preview Template 01"
-											/>
-											<p>Template 01 — Dark</p>
-										</div>
-									</li>
-									<li
-										class="tpicker-item"
-										data-value="template-02"
-										data-label="Template 02 — Light"
-										role="option"
-									>
-										<img
-											class="tpicker-item-thumb"
-											src="/templates/template-02.png"
-											alt=""
-										/>
-										<div class="tpicker-item-text">
-											<strong>Template 02</strong><em
-												>Light — elegante e chiaro</em
-											>
-										</div>
-										<div class="tpicker-item-preview">
-											<img
-												src="/templates/template-02.png"
-												alt="Preview Template 02"
-											/>
-											<p>Template 02 — Light</p>
-										</div>
-									</li>
-								</ul>
-								<input
-									type="hidden"
-									id="edit-template"
-									name="template"
-									value="template-01"
-								/>
-							</div>
-						</div>
-
+								<div class="tpicker tpicker--preview-left" id="tpicker-edit"></div>
 						<div class="field">
 							<label for="edit-lang">Lingua principale</label>
 							<select id="edit-lang" name="default_lang">

@@ -110,16 +110,18 @@ export const GET: APIRoute = async ({ request, url }) => {
 					`https://api.github.com/repos/${REPO}/contents/clients/${d.name}/netlify.json?ref=${BRANCH}`,
 					{ headers: ghHeaders }
 				);
-				if (!nRes.ok) return { slug: d.name, site_id: null, site_url: null };
+				if (!nRes.ok) return { slug: d.name, site_id: null, site_url: null, template: null, default_lang: null };
 				const nData = await nRes.json() as { content: string };
 				const json = JSON.parse(atob(nData.content.replace(/\n/g, '')));
 				return {
 					slug: d.name,
 					site_id: json.site_id ?? null,
-					site_url: json.site_url ?? null
+					site_url: json.site_url ?? null,
+					template: json.template ?? null,
+					default_lang: json.default_lang ?? null
 				};
 			} catch {
-				return { slug: d.name, site_id: null, site_url: null };
+				return { slug: d.name, site_id: null, site_url: null, template: null, default_lang: null };
 			}
 		})
 	);

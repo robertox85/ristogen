@@ -111,8 +111,9 @@ function updateCountBadge(n) {
 }
 
 // ── Empty-state row ───────────────────────────────────────────
+const TABLE_COLS = 5;
 function emptyRow(msg) {
-  return `<tr><td colspan="4">
+  return `<tr><td colspan="${TABLE_COLS}">
     <div class="empty-state">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="1.5">
@@ -122,6 +123,37 @@ function emptyRow(msg) {
       <p>${msg}</p>
     </div>
   </td></tr>`;
+}
+
+// ── Template Picker — data & renderer ─────────────────────────
+const TEMPLATES = [
+  { value: 'template-01', label: 'Template 01 — Dark', desc: 'Dark — ristorante moderno', thumb: '/templates/template-01.png' },
+  { value: 'template-02', label: 'Template 02 — Light', desc: 'Light — elegante e chiaro', thumb: '/templates/template-02.png' }
+];
+const LANG_FLAGS = { it: '🇮🇹', en: '🇬🇧' };
+
+function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
+  const container = document.getElementById(pickerId);
+  if (!container) return;
+  const val = defaultValue || TEMPLATES[0].value;
+  const first = TEMPLATES.find(t => t.value === val) || TEMPLATES[0];
+  container.innerHTML = `
+    <button type="button" class="tpicker-btn" aria-haspopup="listbox" aria-expanded="false">
+      <img class="tpicker-thumb" src="${first.thumb}" alt="" />
+      <span class="tpicker-label">${first.label}</span>
+      <svg class="tpicker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <ul class="tpicker-list" role="listbox">
+      ${TEMPLATES.map(t => `
+        <li class="tpicker-item${t.value === val ? ' selected' : ''}" data-value="${t.value}" data-label="${t.label}" role="option">
+          <img class="tpicker-item-thumb" src="${t.thumb}" alt="" />
+          <div class="tpicker-item-text"><strong>${t.label.split(' — ')[0]}</strong><em>${t.desc}</em></div>
+          <div class="tpicker-item-preview"><img src="${t.thumb}" alt="Preview ${t.label}" /><p>${t.label}</p></div>
+        </li>
+      `).join('')}
+    </ul>
+    <input type="hidden" id="${hiddenId}" name="${hiddenName}" value="${val}" />
+  `;
 }
 
 // ── Tabella clienti ───────────────────────────────────────────
@@ -136,18 +168,12 @@ async function loadClients(token) {
   const tbody = document.getElementById("clients-tbody");
 
   // Skeleton loader
-  tbody.innerHTML = [90, 140, 110, 60]
-    .map(() => '<tr>' + [90, 140, 110, 60]
-      .map(w => `<td><span class="skeleton" style="width:${w}px"></span></td>`)
-      .join('') + '</tr>')
-    .join('');
-
-  // Skeleton row corretto: ogni riga ha 4 colonne con larghezze diverse
   tbody.innerHTML = Array(3).fill(null).map(() =>
     `<tr>
       <td><span class="skeleton" style="width:90px"></span></td>
+      <td><span class="skeleton" style="width:70px"></span></td>
+      <td><span class="skeleton" style="width:40px"></span></td>
       <td><span class="skeleton" style="width:140px"></span></td>
-      <td><span class="skeleton" style="width:110px"></span></td>
       <td><span class="skeleton" style="width:60px"></span></td>
     </tr>`
   ).join('');
@@ -168,14 +194,16 @@ async function loadClients(token) {
     updateCountBadge(clients.length);
     tbody.innerHTML = clients.map(c => {
       const url      = c.site_url || "";
-      const adminUrl = url ? url.replace(/\/$/, "") + "/admin/" : "";
+      const tpl      = c.template || 'template-01';
+      const lang     = c.default_lang || 'it';
+      const tplLabel = (TEMPLATES.find(t => t.value === tpl) || TEMPLATES[0]).label;
+      const langFlag = LANG_FLAGS[lang] || lang;
       return `<tr data-slug="${c.slug}" data-site-url="${url}">
         <td><span class="slug-chip">${c.slug}</span></td>
+        <td><span class="tpl-badge">${tplLabel}</span></td>
+        <td>${langFlag}</td>
         <td>${url
           ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a>`
-          : '<span style="color:var(--text-light)">\u2014</span>'}</td>
-        <td>${adminUrl
-          ? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS \u2197</a>`
           : '<span style="color:var(--text-light)">\u2014</span>'}</td>
         <td>
         <div class="table-actions">
@@ -186,48 +214,6 @@ async function loadClients(token) {
       </td>
       </tr>`;
     }).join('');
-
-	  // Gestori prossimi passi
-	  tbody.querySelectorAll('.btn-steps').forEach(btn => {
-		  btn.addEventListener('click', function () {
-			  showNextSteps(this.dataset.slug, this.dataset.siteUrl || '');
-		  });
-	  });
-
-	  // Gestori modifica
-	  tbody.querySelectorAll('.btn-edit').forEach(btn => {
-		  btn.addEventListener('click', function () {
-			  loadEditDrawer(this.dataset.slug);
-		  });
-	  });
-
-    // Gestori eliminazione
-    tbody.querySelectorAll(".btn-delete").forEach(btn => {
-      btn.addEventListener("click", async function () {
-        const slug = this.dataset.slug;
-        if (!confirm(`Eliminare "${slug}" da Netlify e dal repo?`)) return;
-        this.disabled = true;
-        this.textContent = "…";
-        try {
-          const dr = await fetch("/api/clients?slug=" + encodeURIComponent(slug), {
-            method: "DELETE",
-            headers: { Authorization: "Bearer " + _authToken },
-          });
-          const dj = await dr.json();
-          if (!dr.ok) throw new Error(dj.error || dr.statusText);
-          document.querySelector(`tr[data-slug="${slug}"]`)?.remove();
-          const remaining = document.querySelectorAll("#clients-tbody tr[data-slug]").length;
-          updateCountBadge(remaining);
-          if (!remaining) document.getElementById("clients-tbody").innerHTML =
-            emptyRow("Nessuna landing ancora creata");
-          showToast(`Landing "${slug}" eliminata`, "success");
-        } catch (e) {
-          showToast("Errore eliminazione: " + e.message, "error");
-          this.disabled = false;
-          this.textContent = "Elimina";
-        }
-      });
-    });
 
   } catch (e) {
     tbody.innerHTML = emptyRow("Errore caricamento: " + e.message);
@@ -740,6 +726,10 @@ function setTemplatePicker(pickerId, value) {
 }
 
 function initTemplatePickers() {
+  // Render dynamic picker HTML
+  renderTemplatePicker('tpicker-main', 'template', 'template', 'template-01');
+  renderTemplatePicker('tpicker-edit', 'template', 'edit-template', 'template-01');
+
   document.querySelectorAll('.tpicker').forEach(picker => {
     const trigger = picker.querySelector('.tpicker-btn');
     const list    = picker.querySelector('.tpicker-list');
@@ -779,15 +769,71 @@ function initTemplatePickers() {
     }
   });
 }
+
+// ── Event delegation su tbody ─────────────────────────────────
+function initTableDelegation() {
+  const tbody = document.getElementById('clients-tbody');
+  if (!tbody) return;
+  tbody.addEventListener('click', async function (e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const slug = btn.dataset.slug;
+
+    if (btn.classList.contains('btn-steps')) {
+      showNextSteps(slug, btn.dataset.siteUrl || '');
+    } else if (btn.classList.contains('btn-edit')) {
+      loadEditDrawer(slug);
+    } else if (btn.classList.contains('btn-delete')) {
+      if (!confirm(`Eliminare "${slug}" da Netlify e dal repo?`)) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        const dr = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + _authToken }
+        });
+        const dj = await dr.json();
+        if (!dr.ok) throw new Error(dj.error || dr.statusText);
+        document.querySelector(`tr[data-slug="${slug}"]`)?.remove();
+        const remaining = document.querySelectorAll('#clients-tbody tr[data-slug]').length;
+        updateCountBadge(remaining);
+        if (!remaining) document.getElementById('clients-tbody').innerHTML =
+          emptyRow('Nessuna landing ancora creata');
+        showToast(`Landing "${slug}" eliminata`, 'success');
+      } catch (err) {
+        showToast('Errore eliminazione: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Elimina';
+      }
+    }
+  });
+}
+
+// ── Search / filter ───────────────────────────────────────────
+function initSearchFilter() {
+  const input = document.getElementById('clients-search');
+  if (!input) return;
+  input.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    document.querySelectorAll('#clients-tbody tr[data-slug]').forEach(row => {
+      row.style.display = !q || row.dataset.slug.includes(q) ? '' : 'none';
+    });
+  });
+}
 // ── Pulsante login nella login-screen ────────────────────────
 document.getElementById('btn-login').addEventListener('click', () => {
   window.netlifyIdentity && window.netlifyIdentity.open();
 });
 // ── Bootstrap ─────────────────────────────────────────────
 // Aspetta che DOM e Identity widget siano pronti
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => { initIdentity(); initTemplatePickers(); });
-} else {
-  initIdentity();
+function bootstrap() {
   initTemplatePickers();
+  initTableDelegation();
+  initSearchFilter();
+  initIdentity();
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootstrap);
+} else {
+  bootstrap();
 }
