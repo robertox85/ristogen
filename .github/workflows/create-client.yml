@@ -96,7 +96,7 @@ jobs:
           GITHUB_REPO_ID: ${{ secrets.GH_REPO_ID }}
         run: |
           # Crea sito con repo collegato in una sola chiamata
-          BODY=$(curl -sf -X POST "https://api.netlify.com/api/v1/sites" \
+          BODY=$(curl -s -X POST "https://api.netlify.com/api/v1/sites" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{
@@ -119,6 +119,7 @@ jobs:
           echo "Sito creato: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
           echo "NETLIFY_SITE_URL=$SITE_URL" >> $GITHUB_ENV
+          echo "RESPONSE: $BODY"
 
       - name: Set environment variables
         env:
