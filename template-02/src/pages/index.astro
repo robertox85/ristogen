@@ -1,0 +1,27 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import About from "../components/About.astro";
+import Menu from "../components/Menu.astro";
+import Gallery from "../components/Gallery.astro";
+import Contatti from "../components/Contatti.astro";
+import Footer from "../components/Footer.astro";
+import { getContent } from "../content";
+
+declare const __DEFAULT_LANG__: "it" | "en";
+
+const content = getContent(__DEFAULT_LANG__);
+---
+
+<Base {content}>
+	<Hero
+		sections={content.sections}
+		site={content.site}
+		lang={__DEFAULT_LANG__}
+	/>
+	<About sections={content.sections} />
+	<Gallery sections={content.sections} />
+	<Menu sections={content.sections} lang={__DEFAULT_LANG__} />
+	<Contatti sections={content.sections} />
+	<Footer site={content.site} contatti={content.sections.contatti} />
+</Base>
