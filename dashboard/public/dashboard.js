@@ -125,9 +125,21 @@ async function loadClients(token) {
         <td>${adminUrl
           ? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS ↗</a>`
           : '<span style="color:var(--text-light)">—</span>'}</td>
-        <td><button class="btn-delete" data-slug="${c.slug}">Elimina</button></td>
+        <td>
+        <div class="table-actions">
+          <button class="btn-edit" data-slug="${c.slug}">Modifica</button>
+          <button class="btn-delete" data-slug="${c.slug}">Elimina</button>
+        </div>
+      </td>
       </tr>`;
     }).join('');
+
+	  // Gestori modifica
+	  tbody.querySelectorAll('.btn-edit').forEach(btn => {
+		  btn.addEventListener('click', function () {
+			  loadEditDrawer(this.dataset.slug);
+		  });
+	  });
 
     // Gestori eliminazione
     tbody.querySelectorAll(".btn-delete").forEach(btn => {
@@ -388,6 +400,144 @@ document.querySelectorAll(".step-check").forEach(btn => {
 document.getElementById("ns-dismiss").addEventListener("click", () =>
   document.getElementById("next-steps-box").classList.remove("visible")
 );
+
+// ── Edit Drawer ──────────────────────────────────────────────
+function openDrawer() {
+	document.getElementById('edit-drawer').classList.add('open');
+	document.getElementById('drawer-backdrop').classList.add('open');
+	document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+	document.getElementById('edit-drawer').classList.remove('open');
+	document.getElementById('drawer-backdrop').classList.remove('open');
+	document.body.style.overflow = '';
+}
+
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+async function loadEditDrawer(slug) {
+	// Reset
+	document.getElementById('drawer-subtitle').textContent = slug;
+	document.getElementById('di-site-url').textContent = '…';
+	document.getElementById('di-site-url').href = '#';
+	document.getElementById('di-cms-url').textContent = '…';
+	document.getElementById('di-cms-url').href = '#';
+	document.getElementById('edit-slug').value = slug;
+	document.getElementById('edit-status').className = '';
+	document.getElementById('edit-status').textContent = '';
+	document.getElementById('edit-rebuild-note').classList.remove('visible');
+	openDrawer();
+
+	const tok = currentToken();
+	if (!tok) { showToast('Token non disponibile', 'error'); return; }
+
+	try {
+		const r = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
+			headers: { Authorization: 'Bearer ' + tok }
+		});
+		const data = await r.json();
+		if (!r.ok) throw new Error(data.error || r.statusText);
+
+		// Popola info
+		const siteUrl = data.site_url || '';
+		const adminUrl = siteUrl ? siteUrl.replace(/\/$/, '') + '/admin/' : '';
+		const urlEl = document.getElementById('di-site-url');
+		const cmsEl = document.getElementById('di-cms-url');
+		if (siteUrl) { urlEl.href = siteUrl; urlEl.textContent = siteUrl; }
+		else { urlEl.textContent = '—'; urlEl.className = 'drawer-info-value plain'; }
+		if (adminUrl) { cmsEl.href = adminUrl; cmsEl.textContent = 'Apri CMS ↗'; }
+		else { cmsEl.textContent = '—'; cmsEl.className = 'drawer-info-value plain'; }
+
+		// Popola form
+		document.getElementById('edit-template').value = data.template || 'template-01';
+		document.getElementById('edit-lang').value = data.default_lang || 'it';
+		document.getElementById('edit-domain').value = data.custom_domain || '';
+
+		// Salva valori originali per confronto
+		document.getElementById('edit-form').dataset.origTemplate = data.template || 'template-01';
+		document.getElementById('edit-form').dataset.origLang = data.default_lang || 'it';
+
+	} catch (e) {
+		showToast('Errore caricamento dettagli: ' + e.message, 'error');
+	}
+}
+
+// Mostra nota rebuild quando template o lang cambiano
+['edit-template', 'edit-lang'].forEach(id => {
+	document.getElementById(id).addEventListener('change', function () {
+		const form = document.getElementById('edit-form');
+		const changed = form.querySelector('#edit-template').value !== form.dataset.origTemplate
+			|| form.querySelector('#edit-lang').value !== form.dataset.origLang;
+		document.getElementById('edit-rebuild-note').classList.toggle('visible', changed);
+	});
+});
+
+document.getElementById('edit-form').addEventListener('submit', async function (e) {
+	e.preventDefault();
+	const btn = document.getElementById('edit-submit-btn');
+	const icon = document.getElementById('edit-submit-icon');
+	const text = document.getElementById('edit-submit-text');
+	const status = document.getElementById('edit-status');
+	status.className = ''; status.textContent = '';
+
+	const tok = currentToken();
+	if (!tok) { window.netlifyIdentity && window.netlifyIdentity.open(); return; }
+
+	const slug = document.getElementById('edit-slug').value;
+	const template = document.getElementById('edit-template').value;
+	const default_lang = document.getElementById('edit-lang').value;
+	const custom_domain = document.getElementById('edit-domain').value.trim();
+	const origTemplate = this.dataset.origTemplate;
+	const origLang = this.dataset.origLang;
+
+	// Invia solo i campi effettivamente cambiati
+	const payload = { slug };
+	if (template !== origTemplate) payload.template = template;
+	if (default_lang !== origLang) payload.default_lang = default_lang;
+	payload.custom_domain = custom_domain; // invia sempre (può essere svuotato)
+
+	btn.disabled = true;
+	icon.innerHTML = '<span class="spin">⚙</span>';
+	text.textContent = 'Salvataggio…';
+
+	try {
+		const res = await fetch('/api/clients', {
+			method: 'PATCH',
+			headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		});
+		const json = await res.json();
+		if (!res.ok) throw new Error(json.error || res.statusText);
+
+		if (json.needs_rebuild && json.run_id) {
+			status.className = 'success';
+			status.innerHTML = '<span>✓</span> <span>Modifiche salvate — rebuild avviato</span>';
+			showToast(`Rebuild avviato per "${slug}"`, 'success');
+			savePendingRun(json.run_id, slug, document.getElementById('di-site-url').href);
+			startPolling(json.run_id, tok);
+			setTimeout(closeDrawer, 1500);
+		} else {
+			status.className = 'success';
+			status.innerHTML = '<span>✓</span> <span>Modifiche salvate</span>';
+			showToast('Dominio aggiornato', 'success');
+			setTimeout(closeDrawer, 1200);
+		}
+		// Aggiorna valori originali
+		this.dataset.origTemplate = template;
+		this.dataset.origLang = default_lang;
+		document.getElementById('edit-rebuild-note').classList.remove('visible');
+
+	} catch (err) {
+		status.className = 'error';
+		status.innerHTML = '<span>✗</span> <span>' + err.message + '</span>';
+	} finally {
+		btn.disabled = false;
+		icon.textContent = '💾';
+		text.textContent = 'Salva modifiche';
+	}
+});
 
 // ── GitHub Actions polling ────────────────────────────────────
 function startPolling(runId, authToken) {
