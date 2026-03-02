@@ -477,8 +477,27 @@ let slugTimer   = null;
 let _submitting = false;  // guard doppio-submit
 let _drawerDirty = false; // modifiche non salvate nel drawer
 
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, '-')          // spazi → trattini
+    .replace(/[^a-z0-9-]/g, '')   // rimuove caratteri non validi
+    .replace(/-{2,}/g, '-');       // trattini doppi → singolo
+}
+
 document.getElementById("slug").addEventListener("input", function () {
   const hint = document.getElementById("slug-hint");
+
+  // Trasforma in tempo reale preservando la posizione del cursore
+  const pos        = this.selectionStart;
+  const before     = this.value;
+  const after      = slugify(before);
+  if (after !== before) {
+    const diff    = after.length - before.length;
+    this.value    = after;
+    this.setSelectionRange(Math.max(0, pos + diff), Math.max(0, pos + diff));
+  }
+
   const val  = this.value.trim();
   slugValid  = false;
   clearTimeout(slugTimer);
