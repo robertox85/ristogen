@@ -22,7 +22,10 @@
     <div id="user-info"></div>
   </header>
 
-  <div class="main-content">
+  <div class="split-layout">
+
+    <!-- Colonna sinistra: form + deploy -->
+    <div class="split-left">
 
     <!-- Form: nuovo sito -->
     <div class="card">
@@ -86,7 +89,7 @@
       </div>
     </div>
 
-    <!-- GitHub Action: stato deploy -->
+    <!-- GitHub Action: stato deploy (sinistra, visibile dopo submit) -->
     <div class="card" id="action-box">
       <div class="card-header">
         <div class="card-header-icon">⚙</div>
@@ -108,6 +111,11 @@
         <pre id="action-errors-text"></pre>
       </div>
     </div>
+
+    </div><!-- /.split-left -->
+
+    <!-- Colonna destra: prossimi passi + siti creati -->
+    <div class="split-right">
 
     <!-- Prossimi passi (visibile dopo creazione) -->
     <div class="card" id="next-steps-box">
@@ -216,7 +224,9 @@
       </div>
     </div>
 
-  </div>
+    </div><!-- /.split-right -->
+
+  </div><!-- /.split-layout -->
 
   <div id="toast-container" aria-live="polite"></div>
 
