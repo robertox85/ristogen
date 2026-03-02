@@ -8,380 +8,1156 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Ristogen — Onboarding</title>
+		<title>Ristogen — Dashboard</title>
 		<script
 			src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
 		></script>
 		<style>
+			/* ── Reset & base ── */
 			*,
 			*::before,
 			*::after {
 				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
 			}
+
+			:root {
+				--bg: #f4f5f7;
+				--surface: #ffffff;
+				--border: #e2e5ea;
+				--border-focus: #6366f1;
+				--text: #111827;
+				--text-muted: #6b7280;
+				--text-light: #9ca3af;
+				--primary: #6366f1;
+				--primary-dark: #4f46e5;
+				--primary-light: #eef2ff;
+				--success: #059669;
+				--success-bg: #d1fae5;
+				--success-border: #a7f3d0;
+				--error: #dc2626;
+				--error-bg: #fee2e2;
+				--error-border: #fca5a5;
+				--warning: #d97706;
+				--warning-bg: #fef3c7;
+				--radius: 10px;
+				--radius-sm: 6px;
+				--shadow:
+					0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+				--shadow-md:
+					0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+				--transition: 0.18s ease;
+			}
+
+			html {
+				height: 100%;
+			}
+
 			body {
-				font-family: system-ui, sans-serif;
-				max-width: 600px;
-				margin: 0 auto;
-				padding: 2rem 1rem;
-				background: #f9fafb;
-				color: #111;
+				font-family:
+					-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+					system-ui, sans-serif;
+				background: var(--bg);
+				color: var(--text);
+				min-height: 100%;
+				line-height: 1.5;
 			}
-			h1 {
-				font-size: 1.75rem;
-				margin-bottom: 0.25rem;
-			}
-			p.sub {
-				color: #6b7280;
-				margin-top: 0;
-				margin-bottom: 2rem;
-			}
-			label {
-				display: block;
-				font-weight: 500;
-				margin-bottom: 0.25rem;
-			}
-			input,
-			select {
-				width: 100%;
-				padding: 0.5rem 0.75rem;
-				border: 1px solid #d1d5db;
-				border-radius: 6px;
-				font-size: 1rem;
-				margin-bottom: 1.25rem;
-			}
-			input[type="file"] {
-				padding: 0.4rem;
-			}
-			button[type="submit"] {
-				background: #111827;
-				color: #fff;
-				border: none;
-				padding: 0.75rem 2rem;
-				border-radius: 6px;
-				font-size: 1rem;
-				cursor: pointer;
-				width: 100%;
-				transition: opacity 0.2s;
-			}
-			button[type="submit"]:hover {
-				opacity: 0.85;
-			}
-			button[type="submit"]:disabled {
-				opacity: 0.5;
-				cursor: not-allowed;
-			}
-			#status {
-				margin-top: 1rem;
-				padding: 0.75rem 1rem;
-				border-radius: 6px;
-				display: none;
-			}
-			#status.success {
-				background: #d1fae5;
-				color: #065f46;
-				display: block;
-			}
-			#status.error {
-				background: #fee2e2;
-				color: #991b1b;
-				display: block;
-			}
-			#action-box {
-				display: none;
-				margin-top: 1.5rem;
-				border: 1px solid #e5e7eb;
-				border-radius: 8px;
-				overflow: hidden;
-			}
-			#action-box.visible {
-				display: block;
-			}
-			#action-header {
+
+			/* ── Layout ── */
+			.page-header {
+				background: var(--surface);
+				border-bottom: 1px solid var(--border);
+				padding: 0 1.5rem;
 				display: flex;
 				align-items: center;
-				gap: 0.75rem;
-				padding: 0.75rem 1rem;
-				background: #f3f4f6;
-				font-weight: 600;
-				font-size: 0.95rem;
+				gap: 1rem;
+				height: 56px;
+				position: sticky;
+				top: 0;
+				z-index: 10;
+				box-shadow: var(--shadow);
 			}
-			#action-header a {
-				margin-left: auto;
-				font-size: 0.8rem;
-				font-weight: 400;
-				color: #2563eb;
-			}
-			#action-header.queued {
-				background: #f3f4f6;
-				color: #374151;
-			}
-			#action-header.in_progress {
-				background: #eff6ff;
-				color: #1d4ed8;
-			}
-			#action-header.success {
-				background: #d1fae5;
-				color: #065f46;
-			}
-			#action-header.failure {
-				background: #fee2e2;
-				color: #991b1b;
-			}
-			#action-header.cancelled,
-			#action-header.warning {
-				background: #fef9c3;
-				color: #854d0e;
-			}
-			#action-steps {
-				list-style: none;
-				margin: 0;
-				padding: 0.5rem 1rem;
-			}
-			#action-steps li {
-				padding: 0.35rem 0;
-				font-size: 0.875rem;
-				color: #374151;
-				border-bottom: 1px solid #f3f4f6;
+			.page-header .logo {
+				font-size: 1.1rem;
+				font-weight: 700;
+				letter-spacing: -0.02em;
+				color: var(--text);
 				display: flex;
 				align-items: center;
 				gap: 0.5rem;
 			}
-			#action-steps li:last-child {
+			.page-header .logo-pill {
+				background: var(--primary);
+				color: #fff;
+				font-size: 0.65rem;
+				font-weight: 700;
+				padding: 0.15rem 0.45rem;
+				border-radius: 99px;
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+			}
+			#user-info {
+				margin-left: auto;
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			#user-info button {
+				background: none;
+				border: 1px solid var(--border);
+				border-radius: var(--radius-sm);
+				padding: 0.25rem 0.6rem;
+				font-size: 0.78rem;
+				cursor: pointer;
+				color: var(--text-muted);
+				transition: all var(--transition);
+			}
+			#user-info button:hover {
+				border-color: var(--text-muted);
+				color: var(--text);
+			}
+
+			.main-content {
+				max-width: 860px;
+				margin: 0 auto;
+				padding: 2rem 1.25rem;
+				display: grid;
+				grid-template-columns: 1fr;
+				gap: 1.5rem;
+			}
+
+			/* ── Cards ── */
+			.card {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				box-shadow: var(--shadow);
+				overflow: hidden;
+			}
+			.card-header {
+				padding: 1rem 1.25rem;
+				border-bottom: 1px solid var(--border);
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+			}
+			.card-header-icon {
+				width: 32px;
+				height: 32px;
+				border-radius: 8px;
+				background: var(--primary-light);
+				color: var(--primary);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1rem;
+				flex-shrink: 0;
+			}
+			.card-header h2 {
+				font-size: 0.95rem;
+				font-weight: 600;
+				letter-spacing: -0.01em;
+			}
+			.card-header p {
+				font-size: 0.8rem;
+				color: var(--text-muted);
+				margin-top: 0.1rem;
+			}
+			.card-body {
+				padding: 1.25rem;
+			}
+
+			/* ── Form fields ── */
+			.field {
+				margin-bottom: 1.1rem;
+			}
+			.field:last-child {
+				margin-bottom: 0;
+			}
+
+			.field-row {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1rem;
+			}
+			@media (max-width: 520px) {
+				.field-row {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			label {
+				display: block;
+				font-size: 0.82rem;
+				font-weight: 600;
+				color: var(--text);
+				margin-bottom: 0.35rem;
+				letter-spacing: 0.01em;
+			}
+			label .optional {
+				font-weight: 400;
+				color: var(--text-light);
+				font-size: 0.78rem;
+			}
+			label .helper {
+				font-weight: 400;
+				color: var(--text-muted);
+				font-size: 0.78rem;
+				display: block;
+				margin-top: 0.1rem;
+			}
+
+			input,
+			select {
+				width: 100%;
+				padding: 0.55rem 0.85rem;
+				border: 1.5px solid var(--border);
+				border-radius: var(--radius-sm);
+				font-size: 0.9rem;
+				color: var(--text);
+				background: var(--surface);
+				transition:
+					border-color var(--transition),
+					box-shadow var(--transition);
+				appearance: none;
+				-webkit-appearance: none;
+			}
+			input:focus,
+			select:focus {
+				outline: none;
+				border-color: var(--border-focus);
+				box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+			}
+			input::placeholder {
+				color: var(--text-light);
+			}
+
+			select {
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+				background-repeat: no-repeat;
+				background-position: right 0.75rem center;
+				padding-right: 2.2rem;
+				cursor: pointer;
+			}
+
+			input[type="file"] {
+				padding: 0.45rem 0.75rem;
+				cursor: pointer;
+				font-size: 0.85rem;
+			}
+
+			/* ── Slug hint ── */
+			#slug-hint {
+				font-size: 0.78rem;
+				min-height: 1.4em;
+				padding: 0.25rem 0.5rem;
+				border-radius: 4px;
+				margin-top: 0.35rem;
+				transition: all var(--transition);
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+			}
+			#slug-hint:empty {
+				padding: 0;
+			}
+			#slug-hint.checking {
+				color: var(--text-muted);
+			}
+			#slug-hint.ok {
+				color: var(--success);
+				background: var(--success-bg);
+			}
+			#slug-hint.error {
+				color: var(--error);
+				background: var(--error-bg);
+			}
+
+			/* ── Submit button ── */
+			.btn-primary {
+				background: var(--primary);
+				color: #fff;
+				border: none;
+				padding: 0.7rem 1.5rem;
+				border-radius: var(--radius-sm);
+				font-size: 0.92rem;
+				font-weight: 600;
+				cursor: pointer;
+				width: 100%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 0.5rem;
+				transition:
+					background var(--transition),
+					transform var(--transition),
+					opacity var(--transition);
+				margin-top: 1.25rem;
+				letter-spacing: 0.01em;
+			}
+			.btn-primary:hover:not(:disabled) {
+				background: var(--primary-dark);
+				transform: translateY(-1px);
+			}
+			.btn-primary:active:not(:disabled) {
+				transform: translateY(0);
+			}
+			.btn-primary:disabled {
+				opacity: 0.55;
+				cursor: not-allowed;
+			}
+
+			/* ── Status banner ── */
+			#status {
+				display: none;
+				border-radius: var(--radius-sm);
+				padding: 0.8rem 1rem;
+				font-size: 0.875rem;
+				font-weight: 500;
+				animation: slideDown 0.2s ease;
+			}
+			#status.success {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.5rem;
+				background: var(--success-bg);
+				color: var(--success);
+				border: 1px solid var(--success-border);
+			}
+			#status.error {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.5rem;
+				background: var(--error-bg);
+				color: var(--error);
+				border: 1px solid var(--error-border);
+			}
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-6px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* ── Action box ── */
+			#action-box {
+				display: none;
+				animation: slideDown 0.25s ease;
+			}
+			#action-box.visible {
+				display: block;
+			}
+
+			.action-status-bar {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				padding: 0.85rem 1.25rem;
+				font-weight: 600;
+				font-size: 0.88rem;
+				border-bottom: 1px solid var(--border);
+			}
+			.action-status-bar a {
+				margin-left: auto;
+				font-size: 0.78rem;
+				font-weight: 500;
+				color: var(--primary);
+				text-decoration: none;
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+			}
+			.action-status-bar a:hover {
+				text-decoration: underline;
+			}
+			.action-status-bar.queued {
+				background: #f8fafc;
+				color: var(--text-muted);
+			}
+			.action-status-bar.in_progress {
+				background: #eff6ff;
+				color: #1d4ed8;
+			}
+			.action-status-bar.success {
+				background: var(--success-bg);
+				color: var(--success);
+			}
+			.action-status-bar.failure {
+				background: var(--error-bg);
+				color: var(--error);
+			}
+			.action-status-bar.cancelled,
+			.action-status-bar.timed_out {
+				background: var(--warning-bg);
+				color: var(--warning);
+			}
+
+			/* Steps timeline */
+			.action-steps-wrap {
+				padding: 0.75rem 1.25rem;
+			}
+			#action-steps {
+				list-style: none;
+				position: relative;
+			}
+			#action-steps::before {
+				content: "";
+				position: absolute;
+				left: 9px;
+				top: 6px;
+				bottom: 6px;
+				width: 1.5px;
+				background: var(--border);
+			}
+			#action-steps li {
+				padding: 0.38rem 0 0.38rem 2rem;
+				font-size: 0.825rem;
+				color: var(--text-muted);
+				position: relative;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			#action-steps li .step-dot {
+				position: absolute;
+				left: 3px;
+				width: 13px;
+				height: 13px;
+				border-radius: 50%;
+				background: var(--border);
+				border: 2px solid var(--surface);
+				flex-shrink: 0;
+			}
+			#action-steps li.step-success .step-dot {
+				background: var(--success);
+			}
+			#action-steps li.step-failure .step-dot {
+				background: var(--error);
+			}
+			#action-steps li.step-in_progress .step-dot {
+				background: var(--primary);
+				animation: pulse 1.2s ease infinite;
+			}
+			#action-steps li.step-skipped {
+				opacity: 0.45;
+			}
+			#action-steps li.step-success {
+				color: var(--text);
+			}
+			#action-steps li.step-failure {
+				color: var(--error);
+			}
+			@keyframes pulse {
+				0%,
+				100% {
+					box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5);
+				}
+				50% {
+					box-shadow: 0 0 0 5px rgba(99, 102, 241, 0);
+				}
+			}
+
+			#action-errors {
+				display: none;
+				margin: 0 1.25rem 1rem;
+				border-radius: var(--radius-sm);
+				background: var(--error-bg);
+				border: 1px solid var(--error-border);
+				padding: 0.75rem 1rem;
+			}
+			#action-errors.visible {
+				display: block;
+			}
+			#action-errors h4 {
+				color: var(--error);
+				font-size: 0.8rem;
+				margin-bottom: 0.4rem;
+			}
+			#action-errors pre {
+				font-size: 0.75rem;
+				color: var(--text);
+				white-space: pre-wrap;
+				word-break: break-word;
+				font-family: "JetBrains Mono", "Fira Code", monospace;
+				background: rgba(0, 0, 0, 0.03);
+				border-radius: 4px;
+				padding: 0.5rem;
+			}
+
+			/* ── Clients table ── */
+			.section-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 1rem 1.25rem;
+				border-bottom: 1px solid var(--border);
+			}
+			.section-header h2 {
+				font-size: 0.95rem;
+				font-weight: 600;
+			}
+			.badge {
+				font-size: 0.72rem;
+				font-weight: 600;
+				background: var(--primary-light);
+				color: var(--primary);
+				padding: 0.2rem 0.55rem;
+				border-radius: 99px;
+			}
+			.clients-wrap {
+				overflow-x: auto;
+			}
+
+			#clients-table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 0.855rem;
+				min-width: 480px;
+			}
+			#clients-table th {
+				text-align: left;
+				padding: 0.6rem 1rem;
+				background: #f8f9fb;
+				border-bottom: 1.5px solid var(--border);
+				color: var(--text-muted);
+				font-size: 0.75rem;
+				font-weight: 700;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+			}
+			#clients-table td {
+				padding: 0.75rem 1rem;
+				border-bottom: 1px solid var(--border);
+				vertical-align: middle;
+			}
+			#clients-table tbody tr {
+				transition: background var(--transition);
+			}
+			#clients-table tbody tr:hover {
+				background: #fafbfc;
+			}
+			#clients-table tbody tr:last-child td {
 				border-bottom: none;
 			}
+			#clients-table a {
+				color: var(--primary);
+				text-decoration: none;
+				font-size: 0.82rem;
+				display: inline-flex;
+				align-items: center;
+				gap: 0.25rem;
+			}
+			#clients-table a:hover {
+				text-decoration: underline;
+			}
+
+			.slug-chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				background: #f0f2ff;
+				color: var(--primary-dark);
+				padding: 0.2rem 0.6rem;
+				border-radius: 5px;
+				font-size: 0.8rem;
+				font-weight: 600;
+				font-family: "JetBrains Mono", monospace;
+			}
+
+			.btn-delete {
+				background: transparent;
+				color: var(--text-light);
+				border: 1px solid var(--border);
+				padding: 0.3rem 0.65rem;
+				border-radius: var(--radius-sm);
+				font-size: 0.78rem;
+				cursor: pointer;
+				transition: all var(--transition);
+				white-space: nowrap;
+			}
+			.btn-delete:hover {
+				background: var(--error-bg);
+				color: var(--error);
+				border-color: var(--error-border);
+			}
+			.btn-delete:disabled {
+				opacity: 0.45;
+				cursor: not-allowed;
+			}
+
+			/* Empty & skeleton states */
+			.empty-state {
+				padding: 2.5rem 1rem;
+				text-align: center;
+				color: var(--text-muted);
+			}
+			.empty-state svg {
+				opacity: 0.25;
+				margin-bottom: 0.75rem;
+			}
+			.empty-state p {
+				font-size: 0.875rem;
+			}
+
+			.skeleton {
+				display: inline-block;
+				height: 0.85em;
+				border-radius: 4px;
+				background: linear-gradient(
+					90deg,
+					#e5e7eb 25%,
+					#f3f4f6 50%,
+					#e5e7eb 75%
+				);
+				background-size: 200% 100%;
+				animation: shimmer 1.4s infinite;
+			}
+			@keyframes shimmer {
+				to {
+					background-position: -200% 0;
+				}
+			}
+
+			/* Spin */
 			.spin {
 				display: inline-block;
-				animation: spin 1s linear infinite;
+				animation: spin 0.9s linear infinite;
 			}
 			@keyframes spin {
 				to {
 					transform: rotate(360deg);
 				}
 			}
-			#slug-hint {
-				margin-top: -1rem;
-				margin-bottom: 1rem;
-				font-size: 0.82rem;
-				min-height: 1.2em;
-				padding: 0.25rem 0.5rem;
-				border-radius: 4px;
+
+			/* ── Toast ── */
+			#toast-container {
+				position: fixed;
+				bottom: 1.5rem;
+				right: 1.5rem;
+				z-index: 9999;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+				pointer-events: none;
 			}
-			#slug-hint.checking {
-				color: #6b7280;
+			.toast {
+				pointer-events: auto;
+				background: var(--text);
+				color: #fff;
+				padding: 0.7rem 1.1rem;
+				border-radius: var(--radius-sm);
+				font-size: 0.85rem;
+				box-shadow: var(--shadow-md);
+				animation:
+					toastIn 0.25s ease,
+					toastOut 0.3s ease 3.5s forwards;
+				max-width: 320px;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
 			}
-			#slug-hint.ok {
-				color: #065f46;
-				background: #d1fae5;
+			.toast.success {
+				background: #065f46;
 			}
-			#slug-hint.error {
-				color: #991b1b;
-				background: #fee2e2;
+			.toast.error {
+				background: #991b1b;
 			}
-			#action-errors {
-				display: none;
+			@keyframes toastIn {
+				from {
+					opacity: 0;
+					transform: translateY(8px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
 			}
-			#action-errors.visible {
-				display: block;
-				padding: 0.75rem 1rem;
-				background: #fee2e2;
-				color: #991b1b;
-			}
-			#clients-section {
-				margin-top: 3rem;
-			}
-			#clients-section h2 {
-				font-size: 1.25rem;
-				margin-bottom: 1rem;
-			}
-			#clients-table {
-				width: 100%;
-				border-collapse: collapse;
-				font-size: 0.875rem;
-			}
-			#clients-table th {
-				text-align: left;
-				padding: 0.5rem 0.75rem;
-				background: #f3f4f6;
-				border-bottom: 2px solid #e5e7eb;
-				color: #374151;
-				font-weight: 600;
-			}
-			#clients-table td {
-				padding: 0.5rem 0.75rem;
-				border-bottom: 1px solid #f3f4f6;
-				vertical-align: middle;
-			}
-			#clients-table tr:last-child td {
-				border-bottom: none;
-			}
-			#clients-table a {
-				color: #2563eb;
-				text-decoration: none;
-			}
-			#clients-table a:hover {
-				text-decoration: underline;
-			}
-			.btn-delete {
-				background: #fee2e2;
-				color: #991b1b;
-				border: none;
-				padding: 0.3rem 0.75rem;
-				border-radius: 4px;
-				font-size: 0.8rem;
-				cursor: pointer;
-				transition: background 0.15s;
-			}
-			.btn-delete:hover {
-				background: #fca5a5;
-			}
-			.btn-delete:disabled {
-				opacity: 0.5;
-				cursor: not-allowed;
-			}
-			#clients-empty {
-				color: #6b7280;
-				font-size: 0.875rem;
-				padding: 0.75rem 0;
+			@keyframes toastOut {
+				from {
+					opacity: 1;
+				}
+				to {
+					opacity: 0;
+					pointer-events: none;
+				}
 			}
 		</style>
 	</head>
 	<body>
-		<h1>Ristogen Dashboard</h1>
-		<p class="sub">Crea un nuovo sito ristorante</p>
-
-		<form id="onboarding-form" enctype="multipart/form-data">
-			<label for="slug">Slug cliente *</label>
-			<input
-				id="slug"
-				name="client_slug"
-				placeholder="burger-prati"
-				required
-				pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
-				title="Solo lettere minuscole, numeri e trattini (senza trattino iniziale o finale)"
-			/>
-			<div id="slug-hint"></div>
-
-			<label for="template">Template</label>
-			<select id="template" name="template">
-				<option value="template-01">Template 01 — Dark</option>
-				<option value="template-02">Template 02 — Light</option>
-			</select>
-
-			<label for="lang">Lingua principale</label>
-			<select id="lang" name="default_lang">
-				<option value="it">Italiano</option>
-				<option value="en">English</option>
-			</select>
-
-			<label for="domain">Dominio personalizzato (opzionale)</label>
-			<input
-				id="domain"
-				name="custom_domain"
-				placeholder="www.ristoranteprati.it"
-			/>
-
-			<label for="pdf"
-				>Menù PDF (opzionale — estrazione automatica via Claude)</label
-			>
-			<input id="pdf" name="menu_pdf" type="file" accept=".pdf" />
-
-			<button type="submit" id="submit-btn">Crea cliente</button>
-		</form>
-
-		<div id="status"></div>
-
-		<div id="action-box">
-			<div id="action-header">
-				<span id="action-icon"></span>
-				<span id="action-label">GitHub Action</span>
-				<a id="action-link" href="#" target="_blank" rel="noopener"
-					>Apri su GitHub ↗</a
-				>
+		<!-- Header -->
+		<header class="page-header">
+			<div class="logo">
+				<span>🍽</span>
+				Ristogen
+				<span class="logo-pill">Beta</span>
 			</div>
-			<ul id="action-steps"></ul>
-			<div id="action-errors">
-				<h4>Dettaglio errore</h4><pre id="action-errors-text"></pre>
-			</div>
-		</div>
+			<div id="user-info"></div>
+		</header>
 
-		<section id="clients-section">
-			<h2>Siti creati</h2>
-			<table id="clients-table">
-				<thead>
-					<tr>
-						<th>Slug</th>
-						<th>URL</th>
-						<th>Admin CMS</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody id="clients-tbody">
-					<tr><td colspan="4" id="clients-empty">Caricamento…</td></tr>
-				</tbody>
-			</table>
-		</section>
+		<div class="main-content">
+			<!-- Form card -->
+			<div class="card">
+				<div class="card-header">
+					<div class="card-header-icon">✦</div>
+					<div>
+						<h2>Nuovo sito ristorante</h2>
+						<p>Compila il form per avviare il deploy automatico</p>
+					</div>
+				</div>
+				<div class="card-body">
+					<form id="onboarding-form" enctype="multipart/form-data">
+						<div class="field">
+							<label for="slug">
+								Slug cliente
+								<span class="helper"
+									>Identificatore unico — es. <code
+										>burger-prati</code
+									></span
+								>
+							</label>
+							<input
+								id="slug"
+								name="client_slug"
+								placeholder="burger-prati"
+								required
+								autocomplete="off"
+								spellcheck="false"
+								pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
+								title="Solo lettere minuscole, numeri e trattini"
+							/>
+							<div id="slug-hint"></div>
+						</div>
+
+						<div class="field-row">
+							<div class="field">
+								<label for="template">Template</label>
+								<select id="template" name="template">
+									<option value="template-01"
+										>Template 01 — Dark</option
+									>
+									<option value="template-02"
+										>Template 02 — Light</option
+									>
+								</select>
+							</div>
+							<div class="field">
+								<label for="lang">Lingua principale</label>
+								<select id="lang" name="default_lang">
+									<option value="it">🇮🇹 Italiano</option>
+									<option value="en">🇬🇧 English</option>
+								</select>
+							</div>
+						</div>
+
+						<div class="field">
+							<label for="domain">
+								Dominio personalizzato
+								<span class="optional">(opzionale)</span>
+							</label>
+							<input
+								id="domain"
+								name="custom_domain"
+								placeholder="www.ristoranteprati.it"
+							/>
+						</div>
+
+						<div class="field">
+							<label for="pdf">
+								Menù PDF
+								<span class="optional">(opzionale)</span>
+								<span class="helper"
+									>Estrazione automatica dei contenuti via
+									Claude AI</span
+								>
+							</label>
+							<input
+								id="pdf"
+								name="menu_pdf"
+								type="file"
+								accept=".pdf"
+							/>
+						</div>
+
+						<button
+							type="submit"
+							id="submit-btn"
+							class="btn-primary"
+						>
+							<span id="submit-icon">✦</span>
+							<span id="submit-text">Crea cliente</span>
+						</button>
+					</form>
+
+					<div id="status" role="alert"></div>
+				</div>
+			</div>
+
+			<!-- GitHub Action card -->
+			<div class="card" id="action-box">
+				<div class="card-header">
+					<div class="card-header-icon">⚙</div>
+					<div>
+						<h2>Deploy in corso</h2>
+						<p>Stato della GitHub Action</p>
+					</div>
+				</div>
+				<div id="action-header" class="action-status-bar">
+					<span id="action-icon"></span>
+					<span id="action-label">In attesa…</span>
+					<a id="action-link" href="#" target="_blank" rel="noopener">
+						Apri su GitHub ↗
+					</a>
+				</div>
+				<div class="action-steps-wrap">
+					<ul id="action-steps"></ul>
+				</div>
+				<div id="action-errors">
+					<h4>⚠ Dettaglio errore</h4>
+					<pre id="action-errors-text"></pre>
+				</div>
+			</div>
+
+			<!-- Next Steps panel (appare dopo creazione) -->
+			<div class="card" id="next-steps-box">
+				<div class="next-steps-header">
+					<div class="next-steps-title">
+						<div class="card-header-icon">🚀</div>
+						<div>
+							<h2>Prossimi passi</h2>
+							<p>Completa la configurazione del sito <strong id="ns-slug"></strong></p>
+						</div>
+					</div>
+					<button class="btn-dismiss" id="ns-dismiss" title="Chiudi">✕</button>
+				</div>
+				<ul class="steps-list">
+					<li class="step-item" data-step="1">
+						<span class="step-num">1</span>
+						<div class="step-content">
+							<strong>Collega la repo su Netlify</strong>
+							<p>Vai su <a href="https://app.netlify.com" target="_blank" rel="noopener">app.netlify.com</a>, apri il sito appena creato → <em>Site configuration → Build &amp; deploy → Link repository</em>. Seleziona la repo <code id="ns-repo"></code> appena generata su GitHub.</p>
+						</div>
+						<button class="step-check" title="Segna come fatto">✓</button>
+					</li>
+					<li class="step-item" data-step="2">
+						<span class="step-num">2</span>
+						<div class="step-content">
+							<strong>Abilita Netlify Identity sul nuovo sito</strong>
+							<p>Dal pannello del sito su Netlify: <em>Integrations → Identity → Enable Identity</em>. Imposta la registrazione su <em>Invite only</em>.</p>
+						</div>
+						<button class="step-check" title="Segna come fatto">✓</button>
+					</li>
+					<li class="step-item" data-step="3">
+						<span class="step-num">3</span>
+						<div class="step-content">
+							<strong>Registra un utente admin per il CMS</strong>
+							<p>Sempre in <em>Identity</em>, clicca <em>Invite users</em> e invia l'invito all'email del cliente. L'utente potrà accedere a <code id="ns-admin-url"></code>.</p>
+						</div>
+						<button class="step-check" title="Segna come fatto">✓</button>
+					</li>
+					<li class="step-item" data-step="4">
+						<span class="step-num">4</span>
+						<div class="step-content">
+							<strong>Configura il dominio personalizzato</strong>
+							<p>Se hai inserito un dominio personalizzato, vai su <em>Domain management → Add custom domain</em> e aggiorna i DNS del cliente con i valori forniti da Netlify.</p>
+						</div>
+						<button class="step-check" title="Segna come fatto">✓</button>
+					</li>
+					<li class="step-item" data-step="5">
+						<span class="step-num">5</span>
+						<div class="step-content">
+							<strong>Verifica il sito pubblicato</strong>
+							<p>Apri <a id="ns-site-url" href="#" target="_blank" rel="noopener">l'URL del sito</a> e controlla che contenuti e menu siano visualizzati correttamente. Poi accedi al <a id="ns-cms-url" href="#" target="_blank" rel="noopener">pannello CMS</a> con le credenziali appena create.</p>
+						</div>
+						<button class="step-check" title="Segna come fatto">✓</button>
+					</li>
+				</ul>
+				<div class="next-steps-footer">
+					<span>💡</span> Seleziona ✓ su ogni step una volta completato — lo stato viene salvato nel browser.
+				</div>
+			</div>
+
+			<!-- Clients table card -->
+			<div class="card" id="clients-section">
+				<div class="section-header">
+					<h2>Siti creati</h2>
+					<div class="section-header-actions">
+						<span class="badge" id="clients-count"></span>
+						<button class="btn-refresh" id="btn-refresh-clients" title="Aggiorna lista">
+							<span class="refresh-icon">↻</span> Aggiorna
+						</button>
+					</div>
+				</div>
+				<div class="clients-wrap">
+					<table id="clients-table">
+						<thead>
+							<tr>
+								<th>Slug</th>
+								<th>URL</th>
+								<th>CMS Admin</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody id="clients-tbody">
+							<tr>
+								<td colspan="4">
+									<div class="empty-state">
+										<svg
+											width="40"
+											height="40"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.5"
+											><circle cx="12" cy="12" r="10"
+											></circle><path d="M8 12h8M12 8v8"
+											></path></svg
+										>
+										<p>Caricamento…</p>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div><!-- /.main-content -->
+
+		<!-- Toast container -->
+		<div id="toast-container" aria-live="polite"></div>
 
 		<script is:inline>
-			// --- Tabella clienti ---
-			let _authToken = null; // token globale per riuso
+			// ── Globals ──────────────────────────────────────────────
+			let _authToken = null;
+			let _clientsLoaded = false;
+
+			// ── Toast ─────────────────────────────────────────────────
+			function showToast(msg, type = "") {
+				const el = document.createElement("div");
+				el.className = "toast" + (type ? " " + type : "");
+				el.textContent = msg;
+				document.getElementById("toast-container").appendChild(el);
+				setTimeout(() => el.remove(), 4000);
+			}
+
+			// ── Tabella clienti ────────────────────────────────────────
+			function updateCountBadge(n) {
+				const badge = document.getElementById("clients-count");
+				if (badge) badge.textContent = n > 0 ? n + " siti" : "";
+			}
+
+			function emptyRow(msg) {
+				return `<tr><td colspan="4">
+					<div class="empty-state">
+						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+							<rect x="3" y="3" width="18" height="18" rx="3"/>
+							<path d="M9 12h6M12 9v6"/>
+						</svg>
+						<p>${msg}</p>
+					</div>
+				</td></tr>`;
+			}
 
 			async function loadClients(authToken) {
 				if (authToken) _authToken = authToken;
 				const token = _authToken;
 				if (!token) return;
-				const tbody = document.getElementById('clients-tbody');
+				const tbody = document.getElementById("clients-tbody");
+				// skeleton
+				tbody.innerHTML = Array(3)
+					.fill(
+						`<tr>${["w-24", "w-36", "w-28", "w-16"]
+							.map(
+								(w) =>
+									`<td><span class="skeleton" style="width:${w === "w-24" ? "90px" : w === "w-36" ? "140px" : w === "w-28" ? "110px" : "60px"};"></span></td>`,
+							)
+							.join("")}</tr>`,
+					)
+					.join("");
 				try {
-					const r = await fetch('/api/clients', {
-						headers: { Authorization: 'Bearer ' + token }
+					const r = await fetch("/api/clients", {
+						headers: { Authorization: "Bearer " + token },
 					});
 					if (!r.ok) throw new Error(r.statusText);
 					const { clients } = await r.json();
 					if (!clients || clients.length === 0) {
-						tbody.innerHTML = '<tr><td colspan="4" id="clients-empty">Nessun sito creato</td></tr>';
+						tbody.innerHTML = emptyRow("Nessun sito ancora creato");
+						updateCountBadge(0);
 						return;
 					}
-					tbody.innerHTML = clients.map(c => {
-						const url = c.site_url || '';
-						const adminUrl = url ? url.replace(/\/$/, '') + '/admin/' : '';
-						return `<tr data-slug="${c.slug}">
-							<td><strong>${c.slug}</strong></td>
-							<td>${url ? `<a href="${url}" target="_blank" rel="noopener">${url}</a>` : '—'}</td>
-							<td>${adminUrl ? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS ↗</a>` : '—'}</td>
+					updateCountBadge(clients.length);
+					_clientsLoaded = true;
+					tbody.innerHTML = clients
+						.map((c) => {
+							const url = c.site_url || "";
+							const adminUrl = url
+								? url.replace(/\/$/, "") + "/admin/"
+								: "";
+							return `<tr data-slug="${c.slug}">
+							<td><span class="slug-chip">${c.slug}</span></td>
+							<td>${
+								url
+									? `<a href="${url}" target="_blank" rel="noopener">${url} ↗</a>`
+									: '<span style="color:var(--text-light)">—</span>'
+							}</td>
+							<td>${
+								adminUrl
+									? `<a href="${adminUrl}" target="_blank" rel="noopener">Apri CMS ↗</a>`
+									: '<span style="color:var(--text-light)">—</span>'
+							}</td>
 							<td><button class="btn-delete" data-slug="${c.slug}">Elimina</button></td>
 						</tr>`;
-					}).join('');
+						})
+						.join("");
 
-					tbody.querySelectorAll('.btn-delete').forEach(btn => {
-						btn.addEventListener('click', async function() {
+					tbody.querySelectorAll(".btn-delete").forEach((btn) => {
+						btn.addEventListener("click", async function () {
 							const slug = this.dataset.slug;
-							if (!confirm(`Eliminare "${slug}" da Netlify e dal repo?`)) return;
+							if (
+								!confirm(
+									`Eliminare "${slug}" da Netlify e dal repo?`,
+								)
+							)
+								return;
 							this.disabled = true;
-							this.textContent = 'Eliminando…';
+							this.textContent = "…";
 							try {
-								const dr = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
-									method: 'DELETE',
-										headers: { Authorization: 'Bearer ' + _authToken }
-								});
+								const dr = await fetch(
+									"/api/clients?slug=" +
+										encodeURIComponent(slug),
+									{
+										method: "DELETE",
+										headers: {
+											Authorization:
+												"Bearer " + _authToken,
+										},
+									},
+								);
 								const dj = await dr.json();
-								if (!dr.ok) throw new Error(dj.error || dr.statusText);
-								document.querySelector(`tr[data-slug="${slug}"]`)?.remove();
-								if (!document.querySelector('#clients-tbody tr')) {
-									document.getElementById('clients-tbody').innerHTML =
-										'<tr><td colspan="4" id="clients-empty">Nessun sito creato</td></tr>';
-								}
-							} catch(e) {
-								alert('Errore: ' + e.message);
+								if (!dr.ok)
+									throw new Error(dj.error || dr.statusText);
+								document
+									.querySelector(`tr[data-slug="${slug}"]`)
+									?.remove();
+								const remaining = document.querySelectorAll(
+									"#clients-tbody tr[data-slug]",
+								).length;
+								updateCountBadge(remaining);
+								if (!remaining)
+									document.getElementById(
+										"clients-tbody",
+									).innerHTML = emptyRow(
+										"Nessun sito ancora creato",
+									);
+								showToast(
+									'Sito "' + slug + '" eliminato',
+									"success",
+								);
+							} catch (e) {
+								showToast(
+									"Errore eliminazione: " + e.message,
+									"error",
+								);
 								this.disabled = false;
-								this.textContent = 'Elimina';
+								this.textContent = "Elimina";
 							}
 						});
 					});
-				} catch(e) {
-					tbody.innerHTML = '<tr><td colspan="4" id="clients-empty">Errore caricamento: ' + e.message + '</td></tr>';
+				} catch (e) {
+					tbody.innerHTML = emptyRow(
+						"Errore caricamento: " + e.message,
+					);
+					updateCountBadge(0);
 				}
 			}
 
-			// --- Validazione slug real-time ---
+			// ── Netlify Identity ───────────────────────────────────────
+			function renderUserInfo(user) {
+				const info = document.getElementById("user-info");
+				if (!user) {
+					info.innerHTML = "";
+					return;
+				}
+				const email = user.email || "";
+				info.innerHTML = `<span>${email}</span>
+					<button id="logout-btn">Esci</button>`;
+				document
+					.getElementById("logout-btn")
+					.addEventListener("click", () => {
+						window.netlifyIdentity &&
+							window.netlifyIdentity.logout();
+					});
+			}
+
+			function tryLoadClients() {
+				const user =
+					window.netlifyIdentity &&
+					window.netlifyIdentity.currentUser();
+				if (!user) return;
+				renderUserInfo(user);
+				window.netlifyIdentity
+					.refresh()
+					.then(function (jwt) {
+						if (jwt) loadClients(jwt);
+					})
+					.catch(function () {
+						const t = user.token && user.token.access_token;
+						if (t) loadClients(t);
+					});
+			}
+
+			if (window.netlifyIdentity) {
+				window.netlifyIdentity.on("init", function (user) {
+					if (!user) {
+						window.netlifyIdentity.on("login", function () {
+							document.location.reload();
+						});
+					} else {
+						tryLoadClients();
+					}
+				});
+				window.netlifyIdentity.on("logout", function () {
+					renderUserInfo(null);
+					document.location.reload();
+				});
+				// Fallback: se identity era già pronto, altrimenti retry loop
+				if (window.netlifyIdentity.currentUser()) {
+					tryLoadClients();
+				} else {
+					// Retry ogni 500ms fino a 5s: netlifyIdentity.on("init") è asincrono
+					const MAX = 10;
+					let attempts = 0;
+					const poll = setInterval(() => {
+						attempts++;
+						const u = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+						if (u) {
+							clearInterval(poll);
+							tryLoadClients();
+						} else if (attempts >= MAX) {
+							clearInterval(poll);
+							if (!_clientsLoaded) {
+								const tbody = document.getElementById('clients-tbody');
+								tbody.innerHTML = emptyRow('Accedi per vedere i siti creati');
+							}
+						}
+					}, 500);
+				}
+			}
+
+			// ── Pulsante refresh tabella ─────────────────────────────────
+			document.getElementById('btn-refresh-clients').addEventListener('click', function () {
+				this.classList.add('spinning');
+				const done = () => this.classList.remove('spinning');
+				loadClients().then(done).catch(done);
+			});
+
+			// ── Validazione slug real-time ─────────────────────────────
 			let slugValid = false;
 			let slugTimer = null;
 
@@ -400,7 +1176,8 @@
 					}
 					if (!/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
 						hint.className = "error";
-						hint.textContent = "✗ Formato non valido";
+						hint.textContent =
+							"✗ Formato non valido — solo minuscole, numeri e trattini";
 						return;
 					}
 
@@ -449,46 +1226,18 @@
 					}, 600);
 				});
 
-			// Netlify Identity: carica clienti e gestisce login
-			function tryLoadClients() {
-				const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-				if (!user) return;
-				// refresh() garantisce un token valido anche se access_token è null al momento dell'init
-				window.netlifyIdentity.refresh().then(function(jwt) {
-					if (jwt) loadClients(jwt);
-				}).catch(function() {
-					// fallback: prova con il token già in memoria
-					const t = user.token && user.token.access_token;
-					if (t) loadClients(t);
-				});
-			}
-
-			if (window.netlifyIdentity) {
-				window.netlifyIdentity.on("init", function (user) {
-					if (!user) {
-						window.netlifyIdentity.on("login", function () {
-							document.location.reload();
-						});
-					} else {
-						tryLoadClients();
-					}
-				});
-				// Fallback: se netlifyIdentity era già pronto prima di registrare l'handler
-				if (window.netlifyIdentity.currentUser()) {
-					tryLoadClients();
-				}
-			}
-
+			// ── Form submit ────────────────────────────────────────────
 			document
 				.getElementById("onboarding-form")
 				.addEventListener("submit", async function (e) {
 					e.preventDefault();
 					const btn = document.getElementById("submit-btn");
+					const btnIcon = document.getElementById("submit-icon");
+					const btnText = document.getElementById("submit-text");
 					const status = document.getElementById("status");
 					status.className = "";
 					status.textContent = "";
 
-					// Leggi JWT da Netlify Identity
 					const user =
 						window.netlifyIdentity &&
 						window.netlifyIdentity.currentUser();
@@ -509,7 +1258,8 @@
 					}
 
 					btn.disabled = true;
-					btn.textContent = "Elaborazione in corso…";
+					btnIcon.innerHTML = '<span class="spin">⚙</span>';
+					btnText.textContent = "Creazione in corso…";
 
 					const formData = new FormData(this);
 
@@ -521,29 +1271,68 @@
 						});
 						const json = await res.json();
 						if (res.ok) {
+							const newSlug = formData.get("client_slug");
 							status.className = "success";
-							status.textContent =
-								'✓ Cliente "' +
-								formData.get("client_slug") +
-								'" creato! Monitoraggio Action in corso…';
-							if (json.run_id) {
-								startPolling(json.run_id, token);
-							}
-							// Ricarica tabella dopo ~10s (il workflow impiega qualche secondo)
+							status.innerHTML = `<span>✓</span> <span>Sito <strong>${newSlug}</strong> creato — monitoraggio deploy in corso</span>`;
+							showToast('Sito "' + newSlug + '" creato!', "success");
+							showNextSteps(newSlug, json.site_url || "");
+							this.reset();
+							document.getElementById("slug-hint").textContent = "";
+							slugValid = false;
+							if (json.run_id) startPolling(json.run_id, token);
 							setTimeout(() => loadClients(), 10000);
 						} else {
 							status.className = "error";
-							status.textContent =
-								"✗ Errore: " + (json.error || res.statusText);
+							status.innerHTML = `<span>✗</span> <span>${json.error || res.statusText}</span>`;
 						}
 					} catch (err) {
 						status.className = "error";
-						status.textContent = "✗ Errore di rete: " + err.message;
+						status.innerHTML = `<span>✗</span> <span>Errore di rete: ${err.message}</span>`;
 					} finally {
 						btn.disabled = false;
-						btn.textContent = "Crea cliente";
+						btnIcon.textContent = "✦";
+						btnText.textContent = "Crea cliente";
 					}
 				});
+
+			// ── Next Steps panel ──────────────────────────────────────
+			function showNextSteps(slug, siteUrl) {
+				const box = document.getElementById('next-steps-box');
+				document.getElementById('ns-slug').textContent = slug;
+				document.getElementById('ns-repo').textContent = slug;
+				const adminUrl = siteUrl ? siteUrl.replace(/\/$/, '') + '/admin/' : '/' + slug + '/admin/';
+				document.getElementById('ns-admin-url').textContent = adminUrl;
+				const siteLink = document.getElementById('ns-site-url');
+				const cmsLink  = document.getElementById('ns-cms-url');
+				if (siteUrl) { siteLink.href = siteUrl; siteLink.textContent = siteUrl; }
+				cmsLink.href = adminUrl;
+
+				// ripristina tutti gli step come non completati
+				box.querySelectorAll('.step-item').forEach(li => {
+					li.classList.remove('done');
+					li.querySelector('.step-num').textContent = li.dataset.step;
+				});
+
+				box.classList.add('visible');
+				box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}
+
+			// Check step toggle
+			document.querySelectorAll('.step-check').forEach(btn => {
+				btn.addEventListener('click', function () {
+					const li = this.closest('.step-item');
+					const done = li.classList.toggle('done');
+					const numEl = li.querySelector('.step-num');
+					numEl.textContent = done ? '✓' : li.dataset.step;
+				});
+			});
+
+			// Dismiss button
+			document.getElementById('ns-dismiss').addEventListener('click', () => {
+				document.getElementById('next-steps-box').classList.remove('visible');
+			});
+
+			// ── GitHub Actions polling ─────────────────────────────────
 			function startPolling(runId, authToken) {
 				const box = document.getElementById("action-box");
 				const header = document.getElementById("action-header");
@@ -556,9 +1345,12 @@
 					document.getElementById("action-errors-text");
 				box.classList.add("visible");
 
+				// scroll to it
+				box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
 				const ICONS = {
 					queued: "⏳",
-					in_progress: '<span class="spin">⚙️</span>',
+					in_progress: '<span class="spin">⚙</span>',
 					success: "✅",
 					failure: "❌",
 					cancelled: "⚠️",
@@ -566,17 +1358,17 @@
 				};
 				const LABELS = {
 					queued: "In coda…",
-					in_progress: "In esecuzione…",
-					success: "Completata con successo",
-					failure: "Fallita",
-					cancelled: "Annullata",
+					in_progress: "Deploy in esecuzione…",
+					success: "Deploy completato con successo",
+					failure: "Deploy fallito",
+					cancelled: "Annullato",
 					timed_out: "Timeout",
 				};
-				const STEP_ICONS = {
-					success: "✅",
-					failure: "❌",
-					skipped: "⏭️",
-					in_progress: '<span class="spin">⚙️</span>',
+				const STEP_CLASS = {
+					success: "step-success",
+					failure: "step-failure",
+					skipped: "step-skipped",
+					in_progress: "step-in_progress",
 				};
 
 				function render(data) {
@@ -584,7 +1376,7 @@
 						data.status === "completed"
 							? (data.conclusion ?? "failure")
 							: data.status;
-					header.className = key;
+					header.className = "action-status-bar " + key;
 					icon.innerHTML = ICONS[key] ?? "❓";
 					label.textContent = LABELS[key] ?? key;
 					link.href = data.url;
@@ -593,14 +1385,12 @@
 						const steps = data.jobs[0].steps ?? [];
 						stepsList.innerHTML = steps
 							.map((s) => {
-								const sIcon =
-									STEP_ICONS[s.conclusion ?? s.status] ??
-									"⬜";
-								return "<li>" + sIcon + " " + s.name + "</li>";
+								const state = s.conclusion ?? s.status ?? "";
+								const cls = STEP_CLASS[state] || "";
+								return `<li class="${cls}"><span class="step-dot"></span>${s.name}</li>`;
 							})
 							.join("");
 
-						// Mostra errori dalle annotazioni GitHub
 						const allErrors = data.jobs
 							.flatMap((j) => j.errors ?? [])
 							.filter(Boolean);
@@ -611,6 +1401,16 @@
 							errorsBox.className = "";
 							errorsText.textContent = "";
 						}
+					}
+
+					// toast on terminal states
+					if (data.status === "completed") {
+						const ok = data.conclusion === "success";
+						showToast(
+							ok ? "✅ Deploy completato!" : "❌ Deploy fallito",
+							ok ? "success" : "error",
+						);
+						if (ok) setTimeout(() => loadClients(), 3000);
 					}
 				}
 
