@@ -135,7 +135,8 @@
 															>Template 01</strong
 														><em
 															>Dark — ristorante
-															moderno</em>
+															moderno</em
+														>
 													</div>
 													<div
 														class="tpicker-item-preview"
@@ -167,7 +168,8 @@
 															>Template 02</strong
 														><em
 															>Light — elegante e
-															chiaro</em>
+															chiaro</em
+														>
 													</div>
 													<div
 														class="tpicker-item-preview"
@@ -257,7 +259,8 @@
 								<span class="dot dot-yellow"></span>
 								<span class="dot dot-green"></span>
 							</div>
-							<span class="terminal-title">deploy — ristogen</span>
+							<span class="terminal-title">deploy — ristogen</span
+							>
 							<a
 								id="action-link"
 								href="#"
@@ -267,7 +270,10 @@
 							>
 						</div>
 						<div class="terminal-body">
-							<div id="action-header" class="terminal-status-line">
+							<div
+								id="action-header"
+								class="terminal-status-line"
+							>
 								<span id="action-icon"></span>
 								<span id="action-label">In attesa…</span>
 							</div>
@@ -298,22 +304,36 @@
 								title="Chiudi">✕</button
 							>
 						</div>
+						<div class="ns-auto-summary">
+							<span class="ns-auto-icon">✓</span>
+							<div>
+								<strong
+									>Configurazione automatica completata</strong
+								>
+								<p>
+									Sito Netlify, repo, Identity
+									(invite&#8209;only), Git Gateway e primo
+									deploy sono stati configurati dalla GitHub
+									Action.
+								</p>
+							</div>
+						</div>
 						<ul class="steps-list">
 							<li class="step-item" data-step="1">
 								<span class="step-num">1</span>
 								<div class="step-content">
-									<strong>Collega la repo su Netlify</strong>
+									<strong>Configura i DNS del dominio</strong>
 									<p>
-										Vai su <a
+										Se hai inserito un dominio
+										personalizzato, vai su
+										<a
 											id="ns-netlify-link"
 											href="https://app.netlify.com"
 											target="_blank"
 											rel="noopener">app.netlify.com</a
-										>, apri la landing appena creata &rarr; <em
-											>Site configuration &rarr; Build
-											&amp; deploy &rarr; Link repository</em
-										>. Seleziona la repo <code id="ns-repo"
-										></code> appena generata su GitHub.
+										> &rarr; <em>Domain management</em> e aggiorna
+										i record DNS del cliente con i valori forniti
+										da Netlify.
 									</p>
 								</div>
 								<button
@@ -324,17 +344,14 @@
 							<li class="step-item" data-step="2">
 								<span class="step-num">2</span>
 								<div class="step-content">
-									<strong
-										>Abilita Netlify Identity sulla nuova
-										landing</strong
-									>
+									<strong>Invita il cliente al CMS</strong>
 									<p>
-										Dal pannello della landing su Netlify: <em
-											>Integrations → Identity → Enable
-											Identity</em
-										>. Imposta la registrazione su <em
-											>Invite only</em
-										>.
+										Se non hai fornito l'email durante la
+										creazione, vai su
+										<em>Identity &rarr; Invite users</em> nel
+										pannello Netlify e invia l'invito. L'utente
+										potrà accedere a
+										<code id="ns-admin-url"></code>.
 									</p>
 								</div>
 								<button
@@ -344,46 +361,6 @@
 							</li>
 							<li class="step-item" data-step="3">
 								<span class="step-num">3</span>
-								<div class="step-content">
-									<strong
-										>Registra un utente admin per il CMS</strong
-									>
-									<p>
-										Sempre in <em>Identity</em>, clicca <em
-											>Invite users</em
-										> e invia l'invito all'email del cliente.
-										L'utente potrà accedere a <code
-											id="ns-admin-url"></code>.
-									</p>
-								</div>
-								<button
-									class="step-check"
-									title="Segna come fatto">✓</button
-								>
-							</li>
-							<li class="step-item" data-step="4">
-								<span class="step-num">4</span>
-								<div class="step-content">
-									<strong
-										>Configura il dominio personalizzato</strong
-									>
-									<p>
-										Se hai inserito un dominio
-										personalizzato, vai su
-										<em
-											>Domain management → Add custom
-											domain</em
-										> e aggiorna i DNS del cliente con i valori
-										forniti da Netlify.
-									</p>
-								</div>
-								<button
-									class="step-check"
-									title="Segna come fatto">✓</button
-								>
-							</li>
-							<li class="step-item" data-step="5">
-								<span class="step-num">5</span>
 								<div class="step-content">
 									<strong
 										>Verifica la landing pubblicata</strong
@@ -396,14 +373,14 @@
 											rel="noopener"
 											>l'URL della landing</a
 										>
-										e controlla che contenuti e menu siano visualizzati
-										correttamente. Poi accedi al <a
+										e controlla che contenuti e menu siano corretti.
+										Poi accedi al <a
 											id="ns-cms-url"
 											href="#"
 											target="_blank"
 											rel="noopener">pannello CMS</a
 										>
-										con le credenziali appena create.
+										per verificare che il login funzioni.
 									</p>
 								</div>
 								<button
@@ -566,7 +543,8 @@
 										/>
 										<div class="tpicker-item-text">
 											<strong>Template 01</strong><em
-												>Dark — ristorante moderno</em>
+												>Dark — ristorante moderno</em
+											>
 										</div>
 										<div class="tpicker-item-preview">
 											<img
@@ -589,7 +567,8 @@
 										/>
 										<div class="tpicker-item-text">
 											<strong>Template 02</strong><em
-												>Light — elegante e chiaro</em>
+												>Light — elegante e chiaro</em
+											>
 										</div>
 										<div class="tpicker-item-preview">
 											<img

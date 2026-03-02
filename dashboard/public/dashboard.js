@@ -448,15 +448,14 @@ function showNextSteps(slug, siteUrl) {
     ? siteUrl.replace(/\/$/, "") + "/admin/"
     : "/" + slug + "/admin/";
 
-  document.getElementById("ns-slug").textContent  = slug;
-  document.getElementById("ns-repo").textContent  = slug;
+	document.getElementById("ns-slug").textContent = slug;
   document.getElementById("ns-admin-url").textContent = adminUrl;
 
   // Link diretto alla pagina del progetto su Netlify
   const netlifyLink = document.getElementById("ns-netlify-link");
   if (netlifyLink) {
-    netlifyLink.href        = `https://app.netlify.com/projects/ristogen-${slug}/`;
-    netlifyLink.textContent = `app.netlify.com/projects/ristogen-${slug}/`;
+	  netlifyLink.href = `https://app.netlify.com/projects/ristogen-${slug}/integrations/identity`;
+	  netlifyLink.textContent = `pannello Netlify`;
   }
 
   const siteLink = document.getElementById("ns-site-url");

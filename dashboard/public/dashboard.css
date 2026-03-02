@@ -467,6 +467,43 @@ margin-top: 0.5rem;
 #next-steps-box { display: none; }
 #next-steps-box.visible { display: block; }
 
+.ns-auto-summary {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	padding: 0.85rem 1.25rem;
+	background: var(--success-bg);
+	border-bottom: 1px solid var(--success-border);
+}
+
+.ns-auto-icon {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: var(--success);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75rem;
+	font-weight: 700;
+	flex-shrink: 0;
+	margin-top: 0.1rem;
+}
+
+.ns-auto-summary strong {
+	display: block;
+	font-size: 0.82rem;
+	color: var(--success);
+	margin-bottom: 0.15rem;
+}
+
+.ns-auto-summary p {
+	font-size: 0.78rem;
+	color: var(--text-muted);
+	line-height: 1.45;
+	margin: 0;
+}
 .next-steps-header {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
