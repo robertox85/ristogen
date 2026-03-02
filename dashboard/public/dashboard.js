@@ -132,6 +132,9 @@ function restoreTerminalLog() {
 
   box.classList.add('visible');
 }
+
+function renderDeployBadge(rs) {
+  if (!rs) return '';
 	const age = Date.now() - (rs.updated_at || 0);
 	// Nascondi i successi dopo 1 ora (il pannello prossimi passi li copre)
 	if (rs.conclusion === 'success' && age > 60 * 60 * 1000) return '';
