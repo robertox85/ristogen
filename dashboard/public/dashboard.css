@@ -238,72 +238,229 @@ input[type="file"] { padding: 0.45rem 0.75rem; cursor: pointer; font-size: 0.85r
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Action box ── */
-#action-box { display: none; animation: slideDown 0.25s ease; }
-#action-box.visible { display: block; }
+/* ── Terminal Console (action-box) ── */
+.terminal-console {
+	display: none;
+	animation: slideDown 0.25s ease;
+	border-radius: var(--radius);
+	overflow: hidden;
+	box-shadow: var(--shadow-md);
+	border: 1px solid #2d2d2d;
+}
 
-.action-status-bar {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.85rem 1.25rem;
-  font-weight: 600; font-size: 0.88rem;
-  border-bottom: 1px solid var(--border);
+.terminal-console.visible {
+	display: block;
 }
-.action-status-bar a {
-  margin-left: auto; font-size: 0.78rem; font-weight: 500;
-  color: var(--primary); text-decoration: none;
-  display: flex; align-items: center; gap: 0.3rem;
-}
-.action-status-bar a:hover { text-decoration: underline; }
-.action-status-bar.queued      { background: #f8fafc; color: var(--text-muted); }
-.action-status-bar.in_progress { background: #eff6ff; color: #1d4ed8; }
-.action-status-bar.success     { background: var(--success-bg); color: var(--success); }
-.action-status-bar.failure     { background: var(--error-bg);   color: var(--error); }
-.action-status-bar.cancelled,
-.action-status-bar.timed_out   { background: var(--warning-bg); color: var(--warning); }
 
-/* Steps timeline */
-.action-steps-wrap { padding: 0.75rem 1.25rem; }
-#action-steps { list-style: none; position: relative; }
-#action-steps::before {
-  content: ""; position: absolute;
-  left: 9px; top: 6px; bottom: 6px;
-  width: 1.5px; background: var(--border);
+.terminal-titlebar {
+	background: #e8e6e3;
+	padding: 0.5rem 0.75rem;
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	border-bottom: 1px solid #ccc;
+	min-height: 36px;
 }
-#action-steps li {
-  padding: 0.38rem 0 0.38rem 2rem;
-  font-size: 0.825rem; color: var(--text-muted);
-  position: relative; display: flex; align-items: center; gap: 0.5rem;
+.terminal-dots {
+	display: flex;
+	gap: 6px;
+	flex-shrink: 0;
 }
-#action-steps li .step-dot {
-  position: absolute; left: 3px;
-  width: 13px; height: 13px; border-radius: 50%;
-  background: var(--border); border: 2px solid var(--surface); flex-shrink: 0;
+.dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
 }
-#action-steps li.step-success    .step-dot { background: var(--success); }
-#action-steps li.step-failure    .step-dot { background: var(--error); }
-#action-steps li.step-in_progress .step-dot { background: var(--primary); animation: pulse 1.2s ease infinite; }
-#action-steps li.step-skipped { opacity: 0.45; }
-#action-steps li.step-success { color: var(--text); }
-#action-steps li.step-failure { color: var(--error); }
+
+.dot-red {
+	background: #ff5f57;
+}
+
+.dot-yellow {
+	background: #febc2e;
+}
+
+.dot-green {
+	background: #28c840;
+}
+
+.terminal-title {
+	flex: 1;
+	text-align: center;
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: #555;
+	font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.terminal-gh-link {
+	font-size: 0.72rem;
+	color: #666;
+	text-decoration: none;
+	flex-shrink: 0;
+	transition: color var(--transition);
+}
+
+.terminal-gh-link:hover {
+	color: #222;
+	text-decoration: underline;
+}
+
+.terminal-body {
+	background: #1e1e2e;
+	color: #cdd6f4;
+	padding: 0.85rem 1rem;
+	font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+	font-size: 0.8rem;
+	line-height: 1.7;
+	max-height: 260px;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #45475a #1e1e2e;
+}
+
+.terminal-body::-webkit-scrollbar {
+	width: 6px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+	background: #1e1e2e;
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+	background: #45475a;
+	border-radius: 3px;
+}
+
+/* Status line */
+.terminal-status-line {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.4rem;
+	font-weight: 600;
+}
+
+.terminal-status-line.queued {
+	color: #a6adc8;
+}
+
+.terminal-status-line.in_progress {
+	color: #89b4fa;
+}
+
+.terminal-status-line.success {
+	color: #a6e3a1;
+}
+
+.terminal-status-line.failure {
+	color: #f38ba8;
+}
+
+.terminal-status-line.cancelled,
+.terminal-status-line.timed_out {
+	color: #fab387;
+}
+
+/* Steps as terminal lines */
+.terminal-steps {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.terminal-steps li {
+	padding: 0.15rem 0;
+	font-size: 0.78rem;
+	color: #a6adc8;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+.terminal-steps li::before {
+	content: "›";
+	color: #585b70;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+.terminal-steps li .step-dot {
+	display: none;
+}
+
+.terminal-steps li.step-success {
+	color: #a6e3a1;
+}
+
+.terminal-steps li.step-success::before {
+	content: "✓";
+	color: #a6e3a1;
+}
+
+.terminal-steps li.step-failure {
+	color: #f38ba8;
+}
+
+.terminal-steps li.step-failure::before {
+	content: "✗";
+	color: #f38ba8;
+}
+
+.terminal-steps li.step-in_progress {
+	color: #89b4fa;
+}
+
+.terminal-steps li.step-in_progress::before {
+	content: "▸";
+	color: #89b4fa;
+	animation: pulse 1.2s ease infinite;
+}
+
+.terminal-steps li.step-skipped {
+	opacity: 0.35;
+}
+
+.terminal-steps li.step-skipped::before {
+	content: "–";
+}
 @keyframes pulse {
-  0%,100% { box-shadow: 0 0 0 0   rgba(99,102,241,.5); }
-  50%      { box-shadow: 0 0 0 5px rgba(99,102,241,0); }
+0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.3;
+	}
 }
 
-#action-errors {
+/* Errors */
+.terminal-errors {
   display: none;
-  margin: 0 1.25rem 1rem;
-  border-radius: var(--radius-sm);
-  background: var(--error-bg); border: 1px solid var(--error-border);
-  padding: 0.75rem 1rem;
+margin-top: 0.5rem;
+	padding: 0.6rem 0.75rem;
+	background: rgba(243, 139, 168, .1);
+	border: 1px solid rgba(243, 139, 168, .25);
+	border-radius: 4px;
 }
-#action-errors.visible { display: block; }
-#action-errors h4  { color: var(--error); font-size: 0.8rem; margin-bottom: 0.4rem; }
-#action-errors pre {
-  font-size: 0.75rem; color: var(--text);
-  white-space: pre-wrap; word-break: break-word;
-  font-family: "JetBrains Mono","Fira Code",monospace;
-  background: rgba(0,0,0,.03); border-radius: 4px; padding: 0.5rem;
+
+.terminal-errors.visible {
+	display: block;
+}
+
+.terminal-err-prefix {
+	color: #f38ba8;
+	font-weight: 700;
+	font-size: 0.75rem;
+	margin-bottom: 0.3rem;
+	display: block;
+}
+.terminal-errors pre {
+	font-size: 0.74rem;
+	color: #cdd6f4;
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-family: inherit;
+	margin: 0;
+	padding: 0;
 }
 
 /* ── Next Steps panel ── */

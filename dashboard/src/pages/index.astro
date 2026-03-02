@@ -245,38 +245,40 @@
 							<div id="status" role="alert"></div>
 						</div>
 					</div>
-
-					<!-- GitHub Action: stato deploy (sinistra, visibile dopo submit) -->
-					<div class="card" id="action-box">
-						<div class="card-header">
-							<div class="card-header-icon">⚙</div>
-							<div>
-								<h2>Deploy in corso</h2>
-								<p>Stato della GitHub Action</p>
-							</div>
-						</div>
-						<div id="action-header" class="action-status-bar">
-							<span id="action-icon"></span>
-							<span id="action-label">In attesa…</span>
-							<a
-								id="action-link"
-								href="#"
-								target="_blank"
-								rel="noopener">Apri su GitHub ↗</a
-							>
-						</div>
-						<div class="action-steps-wrap">
-							<ul id="action-steps"></ul>
-						</div>
-						<div id="action-errors">
-							<h4>⚠ Dettaglio errore</h4>
-							<pre id="action-errors-text"></pre>
-						</div>
-					</div>
 				</div><!-- /.split-left -->
 
 				<!-- Colonna destra: prossimi passi + landing create -->
 				<div class="split-right">
+					<!-- Console deploy (terminale) -->
+					<div class="terminal-console" id="action-box">
+						<div class="terminal-titlebar">
+							<div class="terminal-dots">
+								<span class="dot dot-red"></span>
+								<span class="dot dot-yellow"></span>
+								<span class="dot dot-green"></span>
+							</div>
+							<span class="terminal-title">deploy — ristogen</span>
+							<a
+								id="action-link"
+								href="#"
+								target="_blank"
+								rel="noopener"
+								class="terminal-gh-link">GitHub ↗</a
+							>
+						</div>
+						<div class="terminal-body">
+							<div id="action-header" class="terminal-status-line">
+								<span id="action-icon"></span>
+								<span id="action-label">In attesa…</span>
+							</div>
+							<ul id="action-steps" class="terminal-steps"></ul>
+							<div id="action-errors" class="terminal-errors">
+								<span class="terminal-err-prefix">ERR!</span>
+								<pre id="action-errors-text"></pre>
+							</div>
+						</div>
+					</div>
+
 					<!-- Prossimi passi (visibile dopo creazione) -->
 					<div class="card" id="next-steps-box">
 						<div class="next-steps-header">

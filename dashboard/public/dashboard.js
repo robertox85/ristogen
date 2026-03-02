@@ -669,7 +669,7 @@ function startPolling(runId, authToken, slug, siteUrl) {
       ? (data.conclusion ?? "failure")
       : data.status;
 
-    header.className    = "action-status-bar " + key;
+	  header.className = "terminal-status-line " + key;
     icon.innerHTML      = ICONS[key] ?? "❓";
     label.textContent   = LABELS[key] ?? key;
     link.href           = data.url;
@@ -678,11 +678,11 @@ function startPolling(runId, authToken, slug, siteUrl) {
       const steps = data.jobs[0].steps ?? [];
       stepsList.innerHTML = steps.map(s => {
         const state = s.conclusion ?? s.status ?? "";
-        return `<li class="${STEP_CLASS[state] || ""}"><span class="step-dot"></span>${s.name}</li>`;
+		  return `<li class="${STEP_CLASS[state] || ""}">${s.name}</li>`;
       }).join("");
 
       const allErrors = data.jobs.flatMap(j => j.errors ?? []).filter(Boolean);
-      errorsBox.className   = allErrors.length ? "visible" : "";
+		errorsBox.className = "terminal-errors" + (allErrors.length ? " visible" : "");
       errorsText.textContent = allErrors.join("\n\n");
     }
 
