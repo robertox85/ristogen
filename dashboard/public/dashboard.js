@@ -212,7 +212,10 @@ function updateCountBadge(n) {
 
 // ── Empty-state row ───────────────────────────────────────────
 const TABLE_COLS = 5;
-function emptyRow(msg) {
+function emptyRow(msg, withCta = false) {
+  const cta = withCta
+    ? `<button type="button" class="btn-empty-cta" onclick="document.getElementById('onboarding-form').scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('client-name').focus(),400)">+ Crea il primo cliente</button>`
+    : '';
   return `<tr><td colspan="${TABLE_COLS}">
     <div class="empty-state">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
@@ -221,6 +224,7 @@ function emptyRow(msg) {
         <path d="M9 12h6M12 9v6"/>
       </svg>
       <p>${msg}</p>
+      ${cta}
     </div>
   </td></tr>`;
 }
@@ -282,11 +286,18 @@ async function loadClients(token) {
     const r = await fetch("/api/clients", {
       headers: { Authorization: "Bearer " + tok },
     });
+    if (r.status === 401) {
+      showToast('Sessione scaduta — effettua di nuovo il login', 'error');
+      _authToken = null;
+      showLoginScreen();
+      window.netlifyIdentity && window.netlifyIdentity.open();
+      return;
+    }
     if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
     const { clients } = await r.json();
 
     if (!clients || clients.length === 0) {
-      tbody.innerHTML = emptyRow("Nessuna landing ancora creata");
+      tbody.innerHTML = emptyRow("Nessuna landing ancora creata", true);
       updateCountBadge(0);
       return;
     }
@@ -427,8 +438,10 @@ document.getElementById("btn-refresh-clients").addEventListener("click", functio
 });
 
 // ── Validazione slug real-time ────────────────────────────────
-let slugValid = false;
-let slugTimer = null;
+let slugValid   = false;
+let slugTimer   = null;
+let _submitting = false;  // guard doppio-submit
+let _drawerDirty = false; // modifiche non salvate nel drawer
 
 document.getElementById("slug").addEventListener("input", function () {
   const hint = document.getElementById("slug-hint");
@@ -473,6 +486,7 @@ document.getElementById("slug").addEventListener("input", function () {
 // ── Form submit ───────────────────────────────────────────────
 document.getElementById("onboarding-form").addEventListener("submit", async function (e) {
   e.preventDefault();
+  if (_submitting) return;
 
   const btn     = document.getElementById("submit-btn");
   const btnIcon = document.getElementById("submit-icon");
@@ -492,6 +506,7 @@ document.getElementById("onboarding-form").addEventListener("submit", async func
     return;
   }
 
+  _submitting = true;
   btn.disabled = true;
   btnIcon.innerHTML = '<span class="spin">⚙</span>';
   btnText.textContent = "Creazione in corso…";
@@ -513,6 +528,7 @@ document.getElementById("onboarding-form").addEventListener("submit", async func
       status.innerHTML = `<span>\u2713</span> <span>Landing <strong>${newSlug}</strong> creata \u2014 monitoraggio deploy in corso</span>`;
       showToast(`Landing "${newSlug}" creata!`, "success");
       this.reset();
+      setTemplatePicker('tpicker-main', 'template-01'); // resetta il picker visivo
       document.getElementById("slug-hint").textContent = "";
       slugValid = false;
       if (json.run_id) {
@@ -589,11 +605,14 @@ document.getElementById("ns-dismiss").addEventListener("click", () => {
 
 // ── Edit Drawer ──────────────────────────────────────────────
 function openDrawer() {
+	_drawerDirty = false;
 	document.getElementById('edit-drawer').classList.add('open');
 	document.getElementById('drawer-backdrop').classList.add('open');
 	document.body.style.overflow = 'hidden';
 }
 function closeDrawer() {
+	if (_drawerDirty && !confirm('Hai modifiche non salvate nel drawer. Chiudere senza salvare?')) return;
+	_drawerDirty = false;
 	document.getElementById('edit-drawer').classList.remove('open');
 	document.getElementById('drawer-backdrop').classList.remove('open');
 	document.body.style.overflow = '';
@@ -645,6 +664,7 @@ async function loadEditDrawer(slug) {
 		// Salva valori originali per confronto
 		document.getElementById('edit-form').dataset.origTemplate = data.template || 'template-01';
 		document.getElementById('edit-form').dataset.origLang = data.default_lang || 'it';
+		_drawerDirty = false; // reset dopo popolamento — solo le modifiche utente contano
 
 	} catch (e) {
 		showToast('Errore caricamento dettagli: ' + e.message, 'error');
@@ -707,6 +727,7 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 		// Aggiorna valori originali
 		this.dataset.origTemplate = template;
 		this.dataset.origLang = default_lang;
+		_drawerDirty = false;
 		document.getElementById('edit-rebuild-note').classList.remove('visible');
 
 	} catch (err) {
@@ -925,12 +946,16 @@ function initTemplatePickers() {
 		const el = document.getElementById(id);
 		if (!el) return;
 		el.addEventListener('change', function () {
+			_drawerDirty = true;
 			const form = document.getElementById('edit-form');
 			const changed = form.querySelector('#edit-template').value !== form.dataset.origTemplate
 				|| form.querySelector('#edit-lang').value !== form.dataset.origLang;
 			document.getElementById('edit-rebuild-note').classList.toggle('visible', changed);
 		});
 	});
+
+	// Qualunque modifica testuale nel drawer segna dirty
+	document.getElementById('edit-form').addEventListener('input', () => { _drawerDirty = true; });
 
   document.querySelectorAll('.tpicker').forEach(picker => {
     const trigger = picker.querySelector('.tpicker-btn');

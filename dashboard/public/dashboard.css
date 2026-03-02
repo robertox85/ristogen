@@ -958,6 +958,22 @@ margin-top: 0.5rem;
 .empty-state { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .empty-state svg { opacity: 0.25; margin-bottom: 0.75rem; }
 .empty-state p { font-size: 0.875rem; }
+.btn-empty-cta {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-empty-cta:hover { background: var(--primary-dark); }
 
 .skeleton {
   display: inline-block; height: 0.85em; border-radius: 4px;
