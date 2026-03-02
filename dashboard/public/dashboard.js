@@ -79,11 +79,11 @@ function resumePendingRun(authToken) {
 // ── Login / App screen ───────────────────────────────────────
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-content').style.display = '';
+  document.getElementById('main-content').classList.add('active');
 }
 function showLoginScreen() {
   document.getElementById('login-screen').style.display = '';
-  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('main-content').classList.remove('active');
 }
 
 // ── Helpers: token corrente ───────────────────────────────────

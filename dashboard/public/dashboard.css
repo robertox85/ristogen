@@ -582,6 +582,7 @@ input[type="file"] { padding: 0.45rem 0.75rem; cursor: pointer; font-size: 0.85r
 }
 /* ── Login screen ── */
 #main-content { display: none; }
+#main-content.active { display: block; }
 
 #login-screen {
   min-height: calc(100vh - 56px);
