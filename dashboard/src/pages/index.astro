@@ -63,6 +63,20 @@
 								enctype="multipart/form-data"
 							>
 								<div class="field">
+									<label for="client-name">
+										Nome ristorante
+									</label>
+									<input
+										id="client-name"
+										name="client_name"
+										type="text"
+										placeholder="Burger Prati"
+										required
+										autocomplete="off"
+									/>
+								</div>
+
+								<div class="field">
 									<label for="slug">
 										Slug cliente
 										<span class="helper"
@@ -441,6 +455,17 @@
 					<!-- Form modifica -->
 					<form id="edit-form">
 						<input type="hidden" id="edit-slug" name="slug" />
+
+						<div class="field">
+							<label for="edit-name">Nome ristorante</label>
+							<input
+								id="edit-name"
+								name="client_name"
+								type="text"
+								placeholder="Burger Prati"
+								autocomplete="off"
+							/>
+						</div>
 
 						<div class="field">
 							<label>Template</label>

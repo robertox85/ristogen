@@ -82,6 +82,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
 		return jsonResp({
 			slug: singleSlug,
+			client_name: netlifyMeta.client_name || '',
 			site_id: siteId,
 			site_url: netlifyMeta.site_url || null,
 			template,
@@ -115,6 +116,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 				const json = JSON.parse(atob(nData.content.replace(/\n/g, '')));
 				return {
 					slug: d.name,
+					client_name: json.client_name ?? '',
 					site_id: json.site_id ?? null,
 					site_url: json.site_url ?? null,
 					template: json.template ?? null,
@@ -138,7 +140,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 		return jsonResp({ error: 'JSON non valido' }, 400);
 	}
 
-	const { slug, template, default_lang, custom_domain } = body;
+	const { slug, template, default_lang, custom_domain, client_name } = body;
 	if (!slug || !/^[a-z0-9-]+$/.test(slug)) return jsonResp({ error: 'Slug non valido' }, 400);
 
 	const githubToken = import.meta.env.GITHUB_TOKEN;
@@ -190,6 +192,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 	if (netlifyJsonSha) {
 		const updatedMeta = {
 			...currentMeta,
+			...(typeof client_name === 'string' ? { client_name } : {}),
 			...(template ? { template } : {}),
 			...(default_lang ? { default_lang } : {}),
 			...(typeof custom_domain === 'string' ? { custom_domain } : {})

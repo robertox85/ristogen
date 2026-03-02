@@ -689,6 +689,14 @@ margin-top: 0.5rem;
 	color: var(--success);
 }
 
+.client-name {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e2035;
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+}
 .slug-chip {
   display: inline-flex; align-items: center; gap: 0.4rem;
   background: #f0f2ff; color: var(--primary-dark);

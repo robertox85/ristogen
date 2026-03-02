@@ -5,6 +5,9 @@ on:
       client_slug:
         description: 'Slug cliente (es. burger-prati)'
         required: true
+      client_name:
+        description: 'Nome visualizzato del ristorante'
+        required: false
       client_email:
         description: 'Email del cliente per invito Identity'
         required: false
@@ -232,7 +235,8 @@ jobs:
             --arg site_url "$NETLIFY_SITE_URL" \
             --arg template "${{ inputs.template }}" \
             --arg default_lang "${{ inputs.default_lang }}" \
-            '{"site_id": $site_id, "site_url": $site_url, "template": $template, "default_lang": $default_lang}' \
+            --arg client_name "${{ inputs.client_name }}" \
+            '{"site_id": $site_id, "site_url": $site_url, "template": $template, "default_lang": $default_lang, "client_name": $client_name}' \
             > "clients/$SLUG/netlify.json"
           git config user.name 'Ristogen Bot'
           git config user.email 'bot@ristogen.it'

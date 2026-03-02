@@ -7,6 +7,10 @@
 let _authToken    = null;  // JWT corrente
 let _loadStarted  = false; // true non appena iniziamo a caricare la lista clienti
 
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // ── Persistenza deploy in corso (sopravvive al refresh) ───────
 const PENDING_KEY = 'ristogen_pending_run';
 
@@ -294,7 +298,7 @@ async function loadClients(token) {
 		const rs = getRunStatus(c.slug);
 		const badge = renderDeployBadge(rs);
       return `<tr data-slug="${c.slug}" data-site-url="${url}">
-        <td><span class="slug-chip">${c.slug}</span>${badge ? `<br>${badge}` : ''}</td>
+        <td><span class="client-name">${c.client_name ? escHtml(c.client_name) : ''}</span><span class="slug-chip">${c.slug}</span>${badge ? `<br>${badge}` : ''}</td>
         <td><span class="tpl-badge">${tplLabel}</span></td>
         <td>${langFlag}</td>
         <td>${url
@@ -631,6 +635,7 @@ async function loadEditDrawer(slug) {
 
 		// Popola form
 		setTemplatePicker('tpicker-edit', data.template || 'template-01');
+		document.getElementById('edit-name').value = data.client_name || '';
 		document.getElementById('edit-lang').value = data.default_lang || 'it';
 		document.getElementById('edit-domain').value = data.custom_domain || '';
 
@@ -655,6 +660,7 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 	if (!tok) { window.netlifyIdentity && window.netlifyIdentity.open(); return; }
 
 	const slug = document.getElementById('edit-slug').value;
+	const client_name = document.getElementById('edit-name').value.trim();
 	const template = document.getElementById('edit-template').value;
 	const default_lang = document.getElementById('edit-lang').value;
 	const custom_domain = document.getElementById('edit-domain').value.trim();
@@ -662,7 +668,7 @@ document.getElementById('edit-form').addEventListener('submit', async function (
 	const origLang = this.dataset.origLang;
 
 	// Invia solo i campi effettivamente cambiati
-	const payload = { slug };
+	const payload = { slug, client_name }; // client_name invia sempre
 	if (template !== origTemplate) payload.template = template;
 	if (default_lang !== origLang) payload.default_lang = default_lang;
 	payload.custom_domain = custom_domain; // invia sempre (può essere svuotato)

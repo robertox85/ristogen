@@ -23,6 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	const clientSlug = (formData.get('client_slug') as string | null)?.trim();
+	const clientName = (formData.get('client_name') as string | null)?.trim() ?? '';
 	const template = (formData.get('template') as string | null) ?? 'template-01';
 	const defaultLang = (formData.get('default_lang') as string | null) ?? 'it';
 	const customDomain = (formData.get('custom_domain') as string | null)?.trim() ?? '';
@@ -117,6 +118,7 @@ Usa numeri 1-14 per gli allergeni EU. Nessun testo aggiuntivo.`
 				ref: 'master',
 				inputs: {
 					client_slug: clientSlug,
+					client_name: clientName,
 					client_email: clientEmail,
 					template,
 					default_lang: defaultLang,
