@@ -76,6 +76,16 @@ function resumePendingRun(authToken) {
   startPolling(data.run_id, authToken);
 }
 
+// ── Login / App screen ───────────────────────────────────────
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-content').style.display = '';
+}
+function showLoginScreen() {
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('main-content').style.display = 'none';
+}
+
 // ── Helpers: token corrente ───────────────────────────────────
 function currentToken() {
   if (_authToken) return _authToken;
@@ -224,6 +234,7 @@ function renderUserInfo(user) {
   document.getElementById("logout-btn").addEventListener("click", () =>
     window.netlifyIdentity && window.netlifyIdentity.logout()
   );
+  showApp();
 }
 
 function tryLoadClients() {
@@ -254,8 +265,7 @@ function tryLoadClients() {
 function initIdentity() {
   if (!window.netlifyIdentity) {
     // Identity widget non disponibile (locale senza Netlify)
-    document.getElementById("clients-tbody").innerHTML =
-      emptyRow("Netlify Identity non disponibile in locale");
+    showLoginScreen();
     return;
   }
 
@@ -263,9 +273,7 @@ function initIdentity() {
     if (user) {
       tryLoadClients();
     } else {
-      // Non loggato: mostra messaggio e aspetta login
-      document.getElementById("clients-tbody").innerHTML =
-        emptyRow("Accedi per vedere i siti creati");
+      showLoginScreen();
       window.netlifyIdentity.on("login", () => document.location.reload());
     }
   });
@@ -290,10 +298,7 @@ function initIdentity() {
         tryLoadClients();
       } else if (attempts >= MAX) {
         clearInterval(poll);
-        if (!_loadStarted) {
-          document.getElementById("clients-tbody").innerHTML =
-            emptyRow("Accedi per vedere i siti creati");
-        }
+        if (!_loadStarted) showLoginScreen();
       }
     }, INTERVAL);
   }
@@ -734,7 +739,10 @@ function initTemplatePickers() {
     }
   });
 }
-
+// ── Pulsante login nella login-screen ────────────────────────
+document.getElementById('btn-login').addEventListener('click', () => {
+  window.netlifyIdentity && window.netlifyIdentity.open();
+});
 // ── Bootstrap ─────────────────────────────────────────────
 // Aspetta che DOM e Identity widget siano pronti
 if (document.readyState === "loading") {

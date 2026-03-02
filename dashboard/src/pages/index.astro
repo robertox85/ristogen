@@ -21,8 +21,25 @@
 				Ristogen
 				<span class="logo-pill">Beta</span>
 			</div>
-			<div id="user-info"></div>
+				<div id="user-info"></div>
 		</header>
+
+		<!-- Schermata di login (visibile finché non autenticato) -->
+		<div id="login-screen">
+			<div class="login-card">
+				<div class="login-logo">
+					<span>🍽</span> Ristogen
+					<span class="logo-pill">Beta</span>
+				</div>
+				<p class="login-desc">Accedi per gestire i siti dei tuoi clienti.</p>
+				<button id="btn-login" class="btn-primary">
+					<span>🔑</span> Accedi
+				</button>
+			</div>
+		</div>
+
+		<!-- Contenuto principale (nascosto finché non autenticato) -->
+		<div id="main-content">
 
 		<div class="split-layout">
 			<!-- Colonna sinistra: form + deploy -->
@@ -470,6 +487,8 @@
 				<div id="edit-status" role="alert"></div>
 			</div>
 		</aside>
+
+		</div><!-- /#main-content -->
 
 		<div id="toast-container" aria-live="polite"></div>
 
