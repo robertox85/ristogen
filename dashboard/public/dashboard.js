@@ -758,7 +758,7 @@ function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
 						await fetch('/api/clients', {
 							method: 'PATCH',
 							headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'application/json' },
-							body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang })
+							body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang, no_rebuild: true })
 						});
 					} catch { /* best-effort */ }
 					// Riapre il drawer con i valori ripristinati

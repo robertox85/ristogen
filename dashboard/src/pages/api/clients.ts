@@ -170,7 +170,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 		return jsonResp({ error: 'JSON non valido' }, 400);
 	}
 
-	const { slug, template, default_lang, custom_domain, client_name } = body;
+	const { slug, template, default_lang, custom_domain, client_name, no_rebuild } = body;
 	if (!slug || !/^[a-z0-9-]+$/.test(slug)) return jsonResp({ error: 'Slug non valido' }, 400);
 
 	const githubToken = import.meta.env.GITHUB_TOKEN;
@@ -242,9 +242,9 @@ export const PATCH: APIRoute = async ({ request }) => {
 		);
 	}
 
-	// 4. Dispatch rebuild se template o lang sono cambiati
+	// 4. Dispatch rebuild se template o lang sono cambiati (e non è un ripristino)
 	let runId: number | null = null;
-	const needsRebuild = template || default_lang;
+	const needsRebuild = (template || default_lang) && !no_rebuild;
 	if (needsRebuild) {
 		const dispatchRes = await fetch(
 			`https://api.github.com/repos/${REPO}/actions/workflows/rebuild-client.yml/dispatches`,
