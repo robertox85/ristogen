@@ -230,7 +230,9 @@ jobs:
           jq -n \
             --arg site_id "$NETLIFY_SITE_ID" \
             --arg site_url "$NETLIFY_SITE_URL" \
-            '{"site_id": $site_id, "site_url": $site_url}' \
+            --arg template "${{ inputs.template }}" \
+            --arg default_lang "${{ inputs.default_lang }}" \
+            '{"site_id": $site_id, "site_url": $site_url, "template": $template, "default_lang": $default_lang}' \
             > "clients/$SLUG/netlify.json"
           git config user.name 'Ristogen Bot'
           git config user.email 'bot@ristogen.it'
