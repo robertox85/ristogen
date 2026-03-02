@@ -179,16 +179,19 @@ jobs:
 
       - name: Build template
         run: |
-          BUILD_DIR="/tmp/build-${{ inputs.client_slug }}"
+          SLUG=${{ inputs.client_slug }}
+          BUILD_DIR="build-$SLUG"
+          
           cp -r ${{ inputs.template }} "$BUILD_DIR"
-          cp clients/${{ inputs.client_slug }}/decap-config.yml \
-             "$BUILD_DIR/public/admin/config.yml"
-          printf 'CLIENT_SLUG=${{ inputs.client_slug }}\nDEFAULT_LANG=${{ inputs.default_lang }}\n' \
+          cp "clients/$SLUG/decap-config.yml" "$BUILD_DIR/public/admin/config.yml"
+          printf 'CLIENT_SLUG=%s\nDEFAULT_LANG=%s\n' "$SLUG" "${{ inputs.default_lang }}" \
             > "$BUILD_DIR/.env"
+          
           cd "$BUILD_DIR"
           npm ci
           npm run build
-          echo "BUILD_DIR=$BUILD_DIR" >> $GITHUB_ENV
+          
+          echo "BUILD_DIR=$PWD" >> $GITHUB_ENV
 
       - name: Deploy to Netlify
         env:
