@@ -3,8 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev --port 4321",
-    "build": "astro build",
+	"dev": "node scripts/generate-decap-config.mjs && astro dev --port 4321",
+	"build": "node scripts/generate-decap-config.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
