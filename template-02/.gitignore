@@ -26,4 +26,7 @@ pnpm-debug.log*
 .env
 .netlify/
 
+# Il gitignore globale esclude package-lock.json — lo forziamo
+!package-lock.json
+
 !public/
