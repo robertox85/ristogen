@@ -175,6 +175,15 @@ export const PATCH: APIRoute = async ({ request }) => {
 		});
 	}
 
+	// 2b. Aggiorna build settings (base) su Netlify se template è cambiato
+	if (template && siteId && netlifyToken) {
+		await fetch(`https://api.netlify.com/api/v1/sites/${siteId}`, {
+			method: 'PATCH',
+			headers: { Authorization: `Bearer ${netlifyToken}`, 'Content-Type': 'application/json' },
+			body: JSON.stringify({ build_settings: { base: template, cmd: 'npm run build', dir: 'dist' } })
+		});
+	}
+
 	// 3. Aggiorna netlify.json nel repo per memorizzare template/lang/dominio
 	if (netlifyJsonSha) {
 		const updatedMeta = {

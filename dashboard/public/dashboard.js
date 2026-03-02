@@ -23,7 +23,12 @@ function clearPendingRun() {
 }
 
 // ── Persistenza "Prossimi passi" (sopravvive al refresh) ──────
-const NS_KEY = 'ristogen_next_steps';
+const NS_KEY = 'ristogen_next_steps';       // {slug, site_url} — pannello attivo
+const NS_STEPS_PREFIX = 'ristogen_ns_steps_';        // per-slug check states
+
+function _getStepsForSlug(slug) {
+	try { return JSON.parse(localStorage.getItem(NS_STEPS_PREFIX + slug) || 'null'); } catch { return null; }
+}
 
 function saveNextStepsState() {
   const box = document.getElementById('next-steps-box');
@@ -32,26 +37,26 @@ function saveNextStepsState() {
   const siteUrl = document.getElementById('ns-site-url')?.href    || '';
   const steps   = Array.from(document.querySelectorAll('.step-item'))
                        .map(li => li.classList.contains('done'));
-  try { localStorage.setItem(NS_KEY, JSON.stringify({ slug, site_url: siteUrl, steps })); } catch {}
+	try {
+		localStorage.setItem(NS_KEY, JSON.stringify({ slug, site_url: siteUrl }));
+		localStorage.setItem(NS_STEPS_PREFIX + slug, JSON.stringify(steps));
+	} catch { }
 }
 
 function clearNextStepsState() {
+	// Rimuoviamo solo il pannello attivo — i check per-slug restano
   try { localStorage.removeItem(NS_KEY); } catch {}
+}
+
+function clearStepsForSlug(slug) {
+	try { localStorage.removeItem(NS_STEPS_PREFIX + slug); } catch { }
 }
 
 function restoreNextSteps() {
   let d;
   try { d = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
   if (!d?.slug) return;
-  showNextSteps(d.slug, d.site_url || '', false); // non azzerare i check
-  if (d.steps) {
-    document.querySelectorAll('.step-item').forEach((li, i) => {
-      if (d.steps[i]) {
-        li.classList.add('done');
-        li.querySelector('.step-num').textContent = '✓';
-      }
-    });
-  }
+	showNextSteps(d.slug, d.site_url || '');
 }
 
 function resumePendingRun(authToken) {
@@ -64,17 +69,11 @@ function resumePendingRun(authToken) {
     return;
   }
   showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, '');
-  // Non mostrare il pannello a ripresa: lo user lo riaprirà dalla tabella
-  // Ripristina se era già visibile (localStorage next-steps)
+	// Ripristina se era già visibile
   let _nsData;
   try { _nsData = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
   if (_nsData?.slug === data.slug) {
-    showNextSteps(data.slug, data.site_url || '');
-    if (_nsData?.steps) {
-      document.querySelectorAll('.step-item').forEach((li, i) => {
-        if (_nsData.steps[i]) { li.classList.add('done'); li.querySelector('.step-num').textContent = '\u2713'; }
-      });
-    }
+	  showNextSteps(data.slug, data.site_url || '');
   }
   startPolling(data.run_id, authToken, data.slug, data.site_url || '');
 }
@@ -463,9 +462,16 @@ function showNextSteps(slug, siteUrl) {
   if (siteUrl) { siteLink.href = siteUrl; siteLink.textContent = siteUrl; }
   cmsLink.href = adminUrl;
 
-  box.querySelectorAll(".step-item").forEach(li => {
-    li.classList.remove("done");
-    li.querySelector(".step-num").textContent = li.dataset.step;
+	// Reset e poi ripristina check salvati per questo slug
+	const saved = _getStepsForSlug(slug);
+	box.querySelectorAll(".step-item").forEach((li, i) => {
+		if (saved && saved[i]) {
+			li.classList.add("done");
+			li.querySelector(".step-num").textContent = "✓";
+		} else {
+			li.classList.remove("done");
+			li.querySelector(".step-num").textContent = li.dataset.step;
+	}
   });
 
   box.classList.add("visible");
@@ -691,7 +697,8 @@ function startPolling(runId, authToken, slug, siteUrl) {
       showToast(ok ? "✅ Landing pubblicata!" : "❌ Deploy fallito", ok ? "success" : "error");
       if (ok) {
         // Mostra prossimi passi solo a deploy riuscito, con step azzerati
-        showNextSteps(slug || '', siteUrl || '', true);
+		  clearStepsForSlug(slug || '');
+		  showNextSteps(slug || '', siteUrl || '');
         setTimeout(() => loadClients(), 3000);
       }
     }

@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +41,46 @@ jobs:
           SITE_URL=$(jq -r '.site_url' "$NETLIFY_JSON")
           echo "Sito: $SITE_URL (id=$SITE_ID)"
           echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
+
+      - name: Update Netlify build settings
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: |
+          echo "Aggiorno base → ${{ inputs.template }}"
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH \
+            "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"build_settings": {"base": "${{ inputs.template }}", "cmd": "npm run build", "dir": "dist"}}')
+          [ "$HTTP" = "200" ] && echo "✅ Build settings aggiornate" || echo "::warning::Build settings non aggiornate (HTTP $HTTP)"
+
+      - name: Update Netlify env vars
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_ACCOUNT_ID: ${{ secrets.NETLIFY_ACCOUNT_ID }}
+        run: |
+          # Elimina le env var esistenti e ricreale con i nuovi valori
+          for KEY in CLIENT_SLUG DEFAULT_LANG; do
+            curl -s -o /dev/null -X DELETE \
+              "https://api.netlify.com/api/v1/accounts/$NETLIFY_ACCOUNT_ID/env/$KEY?site_id=$NETLIFY_SITE_ID" \
+              -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN"
+          done
+          RESULT=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "https://api.netlify.com/api/v1/accounts/$NETLIFY_ACCOUNT_ID/env?site_id=$NETLIFY_SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "[
+              {\"key\": \"CLIENT_SLUG\", \"scopes\": [\"builds\",\"functions\",\"runtime\",\"post_processing\"], \"values\": [{\"context\": \"all\", \"value\": \"${{ inputs.client_slug }}\"}]},
+              {\"key\": \"DEFAULT_LANG\", \"scopes\": [\"builds\",\"functions\",\"runtime\",\"post_processing\"], \"values\": [{\"context\": \"all\", \"value\": \"${{ inputs.default_lang }}\"}]}
+            ]")
+          [ "$RESULT" = "201" ] && echo "✅ Env vars aggiornate" || echo "::warning::Env vars (HTTP $RESULT)"
+
+      - name: Regenerate Decap config
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          TMPL=${{ inputs.template }}
+          cp "$TMPL/public/admin/config.template.yml" "clients/$SLUG/decap-config.yml"
+          echo "✅ decap-config.yml rigenerato da $TMPL"
 
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
@@ -70,5 +110,16 @@ jobs:
           netlify deploy --prod \
             --dir=dist \
             --site=$NETLIFY_SITE_ID \
-            --message="Rebuild ${{ inputs.client_slug }} with latest template"
+            --message="Rebuild ${{ inputs.client_slug }} with ${{ inputs.template }}"
+
+      - name: Commit updated config
+        run: |
+          SLUG=${{ inputs.client_slug }}
+          git config user.name 'Ristogen Bot'
+          git config user.email 'bot@ristogen.it'
+          git add "clients/$SLUG/decap-config.yml"
+          git diff --staged --quiet && echo "Nessuna modifica da committare" && exit 0
+          git commit -m "config: rebuild $SLUG with ${{ inputs.template }}"
+          git pull --rebase origin master
+          git push origin HEAD:master
           echo "✅ Redeploy completato"
