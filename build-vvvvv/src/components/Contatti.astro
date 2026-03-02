@@ -1,0 +1,69 @@
+---
+import type { ClientContent } from '../schema/content.schema';
+
+interface Props { sections: ClientContent['sections'] }
+const { contatti } = Astro.props.sections;
+---
+
+{contatti.enabled && (
+  <section class="contatti" id="contatti">
+    <h2>Contatti</h2>
+    <div class="info">
+      {contatti.indirizzo && (
+        <p><strong>📍 Indirizzo:</strong> {contatti.indirizzo}</p>
+      )}
+      {contatti.telefono && (
+        <p><strong>📞 Telefono:</strong> <a href={`tel:${contatti.telefono}`}>{contatti.telefono}</a></p>
+      )}
+      {contatti.email && (
+        <p><strong>✉️ Email:</strong> <a href={`mailto:${contatti.email}`}>{contatti.email}</a></p>
+      )}
+      {contatti.orari && (
+        <p><strong>🕐 Orari:</strong> {contatti.orari}</p>
+      )}
+      {contatti.google_maps_url && (
+        <a href={contatti.google_maps_url} target="_blank" rel="noopener" class="maps-btn">
+          Apri su Google Maps
+        </a>
+      )}
+    </div>
+  </section>
+)}
+
+<style>
+  .contatti {
+    padding: 5rem 2rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  h2 {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    color: var(--color-primary);
+  }
+  .info {
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-family: var(--font-body);
+  }
+  p { margin: 0; }
+  a { color: var(--color-primary); }
+  .maps-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s;
+    text-align: center;
+  }
+  .maps-btn:hover { opacity: 0.85; color: #fff; }
+</style>

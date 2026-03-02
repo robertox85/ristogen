@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import Menu from '../../components/Menu.astro';
+import { getContent } from '../../content';
+
+const content = getContent('en');
+const { site, sections } = content;
+const menuJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Menu',
+  '@id': `${site.meta.canonical}/en/menu`,
+  'name': 'Menu',
+  'isPartOf': { '@id': `${site.meta.canonical}/#restaurant` },
+  'hasMenuSection': sections.menu.categories.map(cat => ({
+    '@type': 'MenuSection',
+    'name': cat.name,
+    'hasMenuItem': cat.items.map(item => ({
+      '@type': 'MenuItem',
+      'name': item.name,
+      'description': item.description,
+      'offers': { '@type': 'Offer', 'price': item.price, 'priceCurrency': 'EUR' }
+    }))
+  }))
+};
+---
+
+<Base {content}>
+  <script type="application/ld+json" set:html={JSON.stringify(menuJsonLd)} slot="head-extra" />
+  <Menu sections={sections} lang="en" preview={false} />
+</Base>
