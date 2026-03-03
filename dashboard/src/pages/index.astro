@@ -17,19 +17,15 @@
 	<body>
 		<header class="page-header">
 			<div class="logo">
-				<span>🍽</span>
-				Ristogen
-				<span class="logo-pill">Beta</span>
+				<span>🍽</span> Ristogen <span class="logo-pill">Beta</span>
 			</div>
 			<div id="user-info"></div>
 		</header>
 
-		<!-- Schermata di login (visibile finché non autenticato) -->
-		<div id="login-screen">
+		<section id="login-screen">
 			<div class="login-card">
 				<div class="login-logo">
-					<span>🍽</span> Ristogen
-					<span class="logo-pill">Beta</span>
+					<span>🍽</span> Ristogen <span class="logo-pill">Beta</span>
 				</div>
 				<p class="login-desc">
 					Accedi per gestire le landing dei tuoi clienti.
@@ -38,244 +34,228 @@
 					<span>🔑</span> Accedi
 				</button>
 			</div>
-		</div>
+		</section>
 
-		<!-- Contenuto principale (nascosto finché non autenticato) -->
-		<div id="main-content">
+		<main id="main-content">
 			<div class="dashboard-main">
-					<!-- Console deploy (terminale) -->
-					<div class="terminal-console" id="action-box">
-						<div class="terminal-titlebar">
-							<div class="terminal-dots">
-								<span class="dot dot-red"></span>
-								<span class="dot dot-yellow"></span>
-								<span class="dot dot-green"></span>
-							</div>
-							<span class="terminal-title">deploy — ristogen</span
-							>
-							<button
-								id="btn-cancel-run"
-								class="terminal-cancel-btn"
-								title="Annulla deploy"
-								style="display:none">✕ Annulla</button
-							>
-							<a
-								id="action-link"
-								href="#"
-								target="_blank"
-								rel="noopener"
-								class="terminal-gh-link">GitHub ↗</a
-							>
+				<div class="terminal-console" id="action-box">
+					<div class="terminal-titlebar">
+						<div class="terminal-dots">
+							<span class="dot dot-red"></span>
+							<span class="dot dot-yellow"></span>
+							<span class="dot dot-green"></span>
 						</div>
-						<div class="terminal-body">
-							<div
-								id="action-header"
-								class="terminal-status-line"
-							>
-								<span id="action-icon"></span>
-								<span id="action-label">In attesa…</span>
-							</div>
-							<ul id="action-steps" class="terminal-steps"></ul>
-							<div id="action-errors" class="terminal-errors">
-								<span class="terminal-err-prefix">ERR!</span>
-								<pre id="action-errors-text"></pre>
-							</div>
+						<span class="terminal-title">deploy — ristogen</span>
+						<button
+							id="btn-cancel-run"
+							class="terminal-cancel-btn"
+							title="Annulla deploy"
+							style="display:none">✕ Annulla</button
+						>
+						<a
+							id="action-link"
+							href="#"
+							target="_blank"
+							rel="noopener"
+							class="terminal-gh-link">GitHub ↗</a
+						>
+					</div>
+					<div class="terminal-body">
+						<div id="action-header" class="terminal-status-line">
+							<span id="action-icon"></span>
+							<span id="action-label">In attesa…</span>
+						</div>
+						<ul id="action-steps" class="terminal-steps"></ul>
+						<div id="action-errors" class="terminal-errors">
+							<span class="terminal-err-prefix">ERR!</span>
+							<pre id="action-errors-text"></pre>
 						</div>
 					</div>
+				</div>
 
-					<!-- Prossimi passi (visibile dopo creazione) -->
-					<div class="card" id="next-steps-box">
-						<div class="next-steps-header">
-							<div class="next-steps-title">
-								<div class="card-header-icon">🚀</div>
-								<div>
-									<h2>Prossimi passi</h2>
-									<p>
-										Completa la configurazione della landing <strong
-											id="ns-slug"></strong>
-									</p>
-								</div>
-							</div>
-							<button
-								class="btn-dismiss"
-								id="ns-dismiss"
-								title="Chiudi">✕</button
-							>
-						</div>
-						<div class="ns-auto-summary">
-							<span class="ns-auto-icon">✓</span>
+				<div class="card" id="next-steps-box">
+					<div class="next-steps-header">
+						<div class="next-steps-title">
+							<div class="card-header-icon">🚀</div>
 							<div>
-								<strong
-									>Configurazione automatica completata</strong
-								>
+								<h2>Prossimi passi</h2>
 								<p>
-									Sito Netlify, repo, Identity
-									(invite&#8209;only), Git Gateway e primo
-									deploy sono stati configurati dalla GitHub
-									Action.
+									Completa la configurazione della landing <strong
+										id="ns-slug"></strong>
 								</p>
 							</div>
 						</div>
-						<ul class="steps-list">
-							<li class="step-item" data-step="1">
-								<span class="step-num">1</span>
-								<div class="step-content">
-									<strong>Configura i DNS del dominio</strong>
-									<p>
-										Se hai inserito un dominio
-										personalizzato, vai su
-										<a
-											id="ns-netlify-link"
-											href="https://app.netlify.com"
-											target="_blank"
-											rel="noopener">app.netlify.com</a
-										> &rarr; <em>Domain management</em> e aggiorna
-										i record DNS del cliente con i valori forniti
-										da Netlify.
-									</p>
-								</div>
-								<button
-									class="step-check"
-									title="Segna come fatto">✓</button
-								>
-							</li>
-							<li class="step-item" data-step="2">
-								<span class="step-num">2</span>
-								<div class="step-content">
-									<strong>Invita il cliente al CMS</strong>
-									<p>
-										Se non hai fornito l'email durante la
-										creazione, vai su
-										<em>Identity &rarr; Invite users</em> nel
-										pannello Netlify e invia l'invito. L'utente
-										potrà accedere a
-										<code id="ns-admin-url"></code>.
-									</p>
-								</div>
-								<button
-									class="step-check"
-									title="Segna come fatto">✓</button
-								>
-							</li>
-							<li class="step-item" data-step="3">
-								<span class="step-num">3</span>
-								<div class="step-content">
-									<strong
-										>Verifica la landing pubblicata</strong
-									>
-									<p>
-										Apri <a
-											id="ns-site-url"
-											href="#"
-											target="_blank"
-											rel="noopener"
-											>l'URL della landing</a
-										>
-										e controlla che contenuti e menu siano corretti.
-										Poi accedi al <a
-											id="ns-cms-url"
-											href="#"
-											target="_blank"
-											rel="noopener">pannello CMS</a
-										>
-										per verificare che il login funzioni.
-									</p>
-								</div>
-								<button
-									class="step-check"
-									title="Segna come fatto">✓</button
-								>
-							</li>
-						</ul>
-						<div class="next-steps-footer">
-							<span>💡</span> Seleziona ✓ su ogni step una volta completato.
+						<button
+							class="btn-dismiss"
+							id="ns-dismiss"
+							title="Chiudi">✕</button
+						>
+					</div>
+					<div class="ns-auto-summary">
+						<span class="ns-auto-icon">✓</span>
+						<div>
+							<strong>Configurazione automatica completata</strong
+							>
+							<p>
+								Sito Netlify, repo, Identity
+								(invite&#8209;only), Git Gateway e primo deploy
+								sono stati configurati dalla GitHub Action.
+							</p>
 						</div>
 					</div>
-
-					<!-- Tabella landing create -->
-					<div class="card" id="clients-section">
-						<div class="section-header">
-							<h2>Landing create</h2>
-							<div class="section-header-actions">
-								<div class="search-box">
-									<svg
-										class="search-icon"
-										width="14"
-										height="14"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										><circle cx="11" cy="11" r="8"
-										></circle><path d="m21 21-4.35-4.35"
-										></path></svg
-									>
-									<input
-										id="clients-search"
-										type="text"
-										placeholder="Filtra per slug…"
-										autocomplete="off"
-									/>
-								</div>
-								<span class="badge" id="clients-count"></span>
-								<button
-									class="btn-refresh"
-									id="btn-refresh-clients"
-									title="Aggiorna lista"
-								>
-									<span class="refresh-icon">↻</span> Aggiorna
-								</button>
-								<button
-									class="btn-primary btn-sm"
-									id="btn-new-client"
-									title="Crea nuova landing"
-								>
-									+ Nuova landing
-								</button>
+					<ul class="steps-list">
+						<li class="step-item" data-step="1">
+							<span class="step-num">1</span>
+							<div class="step-content">
+								<strong>Configura i DNS del dominio</strong>
+								<p>
+									Se hai inserito un dominio personalizzato,
+									vai su <a
+										id="ns-netlify-link"
+										href="https://app.netlify.com"
+										target="_blank"
+										rel="noopener">app.netlify.com</a
+									> &rarr; <em>Domain management</em> e aggiorna
+									i record DNS del cliente con i valori forniti
+									da Netlify.
+								</p>
 							</div>
-						</div>
-						<div class="clients-wrap">
-							<table id="clients-table">
-								<thead>
-									<tr>
-										<th data-sort="slug" style="cursor:pointer" title="Ordina per slug">Slug</th>
-										<th data-sort="template" style="cursor:pointer" title="Ordina per template">Template</th>
-										<th data-sort="lang" style="cursor:pointer" title="Ordina per lingua">Lingua</th>
-										<th>URL</th>
-										<th>Azioni</th>
-									</tr>
-								</thead>
-								<tbody id="clients-tbody">
-									<tr>
-										<td colspan="5">
-											<div class="empty-state">
-												<svg
-													width="40"
-													height="40"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="1.5"
-												>
-													<circle
-														cx="12"
-														cy="12"
-														r="10"></circle>
-													<path d="M8 12h8M12 8v8"
-													></path>
-												</svg>
-												<p>Caricamento…</p>
-											</div>
-										</td>
-									</tr>
-								</tbody>
-							</table>
+							<button class="step-check" title="Segna come fatto"
+								>✓</button
+							>
+						</li>
+						<li class="step-item" data-step="2">
+							<span class="step-num">2</span>
+							<div class="step-content">
+								<strong>Invita il cliente al CMS</strong>
+								<p>
+									Se non hai fornito l'email durante la
+									creazione, vai su <em
+										>Identity &rarr; Invite users</em
+									> nel pannello Netlify e invia l'invito. L'utente
+									potrà accedere a <code id="ns-admin-url"
+									></code>.
+								</p>
+							</div>
+							<button class="step-check" title="Segna come fatto"
+								>✓</button
+							>
+						</li>
+						<li class="step-item" data-step="3">
+							<span class="step-num">3</span>
+							<div class="step-content">
+								<strong>Verifica la landing pubblicata</strong>
+								<p>
+									Apri <a
+										id="ns-site-url"
+										href="#"
+										target="_blank"
+										rel="noopener">l'URL della landing</a
+									> e controlla che contenuti e menu siano corretti.
+									Poi accedi al <a
+										id="ns-cms-url"
+										href="#"
+										target="_blank"
+										rel="noopener">pannello CMS</a
+									> per verificare che il login funzioni.
+								</p>
+							</div>
+							<button class="step-check" title="Segna come fatto"
+								>✓</button
+							>
+						</li>
+					</ul>
+					<div class="next-steps-footer">
+						<span>💡</span> Seleziona ✓ su ogni step una volta completato.
+					</div>
+				</div>
+
+				<div class="card" id="clients-section">
+					<div class="section-header">
+						<h2>Landing create</h2>
+						<div class="section-header-actions">
+							<div class="search-box">
+								<svg
+									class="search-icon"
+									width="14"
+									height="14"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									><circle cx="11" cy="11" r="8"
+									></circle><path d="m21 21-4.35-4.35"
+									></path></svg
+								>
+								<input
+									id="clients-search"
+									type="text"
+									placeholder="Filtra per slug…"
+									aria-label="Filtra per slug"
+									autocomplete="off"
+								/>
+							</div>
+							<span class="badge" id="clients-count"></span>
+							<button
+								class="btn-refresh"
+								id="btn-refresh-clients"
+								title="Aggiorna lista"
+							>
+								<span class="refresh-icon">↻</span> Aggiorna
+							</button>
+							<button
+								class="btn-primary btn-sm"
+								id="btn-new-client"
+								title="Crea nuova landing"
+							>
+								+ Nuova landing
+							</button>
 						</div>
 					</div>
-			</div><!-- /.dashboard-main -->
-
-			<!-- Drawer: modifica cliente -->
-			<div id="drawer-backdrop" class="drawer-backdrop"></div>
+					<div class="clients-wrap">
+						<table id="clients-table">
+							<thead>
+								<tr>
+									<th data-sort="slug" title="Ordina per slug"
+										>Slug</th
+									>
+									<th
+										data-sort="template"
+										title="Ordina per template">Template</th
+									>
+									<th
+										data-sort="lang"
+										title="Ordina per lingua">Lingua</th
+									>
+									<th>URL</th>
+									<th>Azioni</th>
+								</tr>
+							</thead>
+							<tbody id="clients-tbody">
+								<tr>
+									<td colspan="5">
+										<div class="empty-state">
+											<svg
+												width="40"
+												height="40"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.5"
+											>
+												<circle cx="12" cy="12" r="10"
+												></circle>
+												<path d="M8 12h8M12 8v8"></path>
+											</svg>
+											<p>Caricamento…</p>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div><div id="drawer-backdrop" class="drawer-backdrop"></div>
 			<aside
 				id="edit-drawer"
 				class="edit-drawer"
@@ -293,7 +273,6 @@
 					>
 				</div>
 				<div class="drawer-body">
-					<!-- Info read-only -->
 					<div class="drawer-info-grid">
 						<div class="drawer-info-item">
 							<span class="drawer-info-label">URL landing</span>
@@ -319,7 +298,6 @@
 
 					<hr class="drawer-divider" />
 
-					<!-- Form modifica -->
 					<form id="edit-form">
 						<input type="hidden" id="edit-slug" name="slug" />
 
@@ -341,51 +319,47 @@
 								id="tpicker-edit"
 							>
 							</div>
-							<div class="field">
-								<label for="edit-lang">Lingua principale</label>
-								<select id="edit-lang" name="default_lang">
-									<option value="it">🇮🇹 Italiano</option>
-									<option value="en">🇬🇧 English</option>
-								</select>
-							</div>
+						</div>
+						<div class="field">
+							<label for="edit-lang">Lingua principale</label>
+							<select id="edit-lang" name="default_lang">
+								<option value="it">🇮🇹 Italiano</option>
+								<option value="en">🇬🇧 English</option>
+							</select>
+						</div>
 
-							<div class="field">
-								<label for="edit-domain">
-									Dominio personalizzato
-									<span class="optional">(opzionale)</span>
-								</label>
-								<input
-									id="edit-domain"
-									name="custom_domain"
-									placeholder="www.ristoranteprati.it"
-									autocomplete="off"
-								/>
-							</div>
-
-							<div id="edit-rebuild-note" class="rebuild-note">
-								⚠ Cambiare template o lingua avvierà un rebuild
-								della landing (~2 min).
-							</div>
-
-							<button
-								type="submit"
-								id="edit-submit-btn"
-								class="btn-primary"
-							>
-								<span id="edit-submit-icon">💾</span>
-								<span id="edit-submit-text"
-									>Salva modifiche</span
+						<div class="field">
+							<label for="edit-domain">
+								Dominio personalizzato <span class="optional"
+									>(opzionale)</span
 								>
-							</button>
+							</label>
+							<input
+								id="edit-domain"
+								name="custom_domain"
+								placeholder="www.ristoranteprati.it"
+								autocomplete="off"
+							/>
+						</div>
+
+						<div id="edit-rebuild-note" class="rebuild-note">
+							⚠ Cambiare template o lingua avvierà un rebuild
+							della landing (~2 min).
 						</div>
 
 						<div id="edit-status" role="alert"></div>
+
+						<button
+							type="submit"
+							id="edit-submit-btn"
+							class="btn-primary"
+						>
+							<span id="edit-submit-icon">💾</span>
+							<span id="edit-submit-text">Salva modifiche</span>
+						</button>
 					</form>
 				</div>
-			</aside><!-- /#edit-drawer -->
-
-			<!-- Drawer: crea cliente -->
-			<div id="create-backdrop" class="drawer-backdrop"></div>
+			</aside><div id="create-backdrop" class="drawer-backdrop"></div>
 			<aside
 				id="create-drawer"
 				class="edit-drawer"
@@ -395,22 +369,54 @@
 			>
 				<div class="drawer-header">
 					<div>
-						<h2 id="create-drawer-title">Nuova landing ristorante</h2>
-						<p class="drawer-subtitle">Compila il form per avviare il deploy automatico</p>
+						<h2 id="create-drawer-title">
+							Nuova landing ristorante
+						</h2>
+						<p class="drawer-subtitle">
+							Compila il form per avviare il deploy automatico
+						</p>
 					</div>
-					<button id="create-drawer-close" class="btn-dismiss" title="Chiudi">✕</button>
+					<button
+						id="create-drawer-close"
+						class="btn-dismiss"
+						title="Chiudi">✕</button
+					>
 				</div>
 				<div class="drawer-body">
 					<form id="onboarding-form" enctype="multipart/form-data">
 						<div class="field">
 							<label for="client-name">Nome ristorante</label>
-							<input id="client-name" name="client_name" type="text" placeholder="Burger Prati" required autocomplete="off" />
+							<input
+								id="client-name"
+								name="client_name"
+								type="text"
+								placeholder="Burger Prati"
+								required
+								autocomplete="off"
+							/>
 						</div>
+
 						<div class="field">
-							<label for="slug">Slug cliente <span class="helper">Identificatore unico — es. <code>burger-prati</code></span></label>
-							<input id="slug" name="client_slug" placeholder="burger-prati" required autocomplete="off" spellcheck="false" pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*" title="Solo lettere minuscole, numeri e trattini" />
+							<label for="slug"
+								>Slug cliente <span class="helper"
+									>Identificatore unico — es. <code
+										>burger-prati</code
+									></span
+								></label
+							>
+							<input
+								id="slug"
+								name="client_slug"
+								placeholder="burger-prati"
+								required
+								autocomplete="off"
+								spellcheck="false"
+								pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
+								title="Solo lettere minuscole, numeri e trattini"
+							/>
 							<div id="slug-hint"></div>
 						</div>
+
 						<div class="field-row">
 							<div class="field">
 								<label>Template</label>
@@ -424,32 +430,70 @@
 								</select>
 							</div>
 						</div>
+
 						<div class="field-row">
 							<div class="field">
-								<label for="domain">Dominio personalizzato <span class="optional">(opzionale)</span></label>
-								<input id="domain" name="custom_domain" placeholder="www.ristoranteprati.it" />
+								<label for="domain"
+									>Dominio personalizzato <span
+										class="optional">(opzionale)</span
+									></label
+								>
+								<input
+									id="domain"
+									name="custom_domain"
+									placeholder="www.ristoranteprati.it"
+								/>
 							</div>
 							<div class="field">
-								<label for="client-email">Email cliente <span class="optional">(opzionale)</span> <span class="helper">Invito automatico al CMS</span></label>
-								<input id="client-email" name="client_email" type="email" placeholder="mario@ristorante.it" />
+								<label for="client-email"
+									>Email cliente <span class="optional"
+										>(opzionale)</span
+									>
+									<span class="helper"
+										>Invito automatico al CMS</span
+									></label
+								>
+								<input
+									id="client-email"
+									name="client_email"
+									type="email"
+									placeholder="mario@ristorante.it"
+								/>
 							</div>
 						</div>
+
 						<div class="field">
-							<label for="pdf">Menù PDF <span class="optional">(opzionale)</span> <span class="helper">Estrazione automatica dei contenuti via Claude AI</span></label>
-							<input id="pdf" name="menu_pdf" type="file" accept=".pdf" />
+							<label for="pdf"
+								>Menù PDF <span class="optional"
+									>(opzionale)</span
+								>
+								<span class="helper"
+									>Estrazione automatica dei contenuti via
+									Claude AI</span
+								></label
+							>
+							<input
+								id="pdf"
+								name="menu_pdf"
+								type="file"
+								accept=".pdf"
+							/>
 						</div>
-						<button type="submit" id="submit-btn" class="btn-primary">
+
+						<div id="status" role="alert"></div>
+
+						<button
+							type="submit"
+							id="submit-btn"
+							class="btn-primary"
+						>
 							<span id="submit-icon">✦</span>
 							<span id="submit-text">Crea cliente</span>
 						</button>
 					</form>
-					<div id="status" role="alert"></div>
 				</div>
-			</aside><!-- /#create-drawer -->
-
-			<div id="toast-container" aria-live="polite"></div>
-
-			<script is:inline src="/dashboard.js"></script>
-		</div>
+			</aside><div id="toast-container" aria-live="polite"></div>
+			<script type="module" src="/dashboard.js"></script>
+		</main>
 	</body>
 </html>
