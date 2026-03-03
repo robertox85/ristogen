@@ -1,151 +1,157 @@
-/* dashboard.js – logica della dashboard Ristogen
-   Separato da index.astro per mantenere il template leggibile.
-   Dipende da: netlify-identity-widget (caricato prima via CDN)
-*/
+/* dashboard.js – Ristogen Dashboard Logic (Optimized) */
 
-// ── Stato globale ─────────────────────────────────────────────
-let _authToken    = null;  // JWT corrente
-let _loadStarted  = false; // true non appena iniziamo a caricare la lista clienti
-let _allClients   = [];    // copia dell'array originale da server (usata per sort)
-let _sortKey      = null;  // 'slug' | 'template' | 'lang' | null
-let _sortAsc      = true;
+// ── 1. Stato Globale e Cache DOM ──────────────────────────────
+const State = {
+	authToken: null,
+	loadStarted: false,
+	clients: [],
+	sort: { key: null, asc: true },
+	activePolls: new Map(), // Registro globale per prevenire memory leak nel polling
+	submitting: false,
+	drawerDirty: { edit: false, create: false }
+};
 
-// Landing protette: il tasto Elimina viene disabilitato
-const PROTECTED_SLUGS = ['burger-demo'];
-
+// ── 2. Utility e Sicurezza ────────────────────────────────────
+// Fix XSS: Sanificazione estesa (copre anche apici)
 function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+	if (str == null) return '';
+	return String(str).replace(/[&<>"']/g, m => ({
+		'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+	})[m]);
 }
 
-// ── Persistenza deploy in corso (sopravvive al refresh) ───────
-const PENDING_KEY = 'ristogen_pending_run';
+// ── 3. Storage Manager (Risolve il boilerplate dei 14 try/catch) ──
+const Storage = {
+	get: (key, fallback = null) => {
+		try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+		catch { return fallback; }
+	},
+	set: (key, value) => {
+		try { localStorage.setItem(key, JSON.stringify(value)); } catch { }
+	},
+	del: (key) => {
+		try { localStorage.removeItem(key); } catch { }
+	}
+};
 
-function savePendingRun(runId, slug, siteUrl) {
-  try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify({
-      run_id: runId, slug, site_url: siteUrl, started_at: Date.now()
-    }));
-  } catch { /* storage non disponibile */ }
-	saveRunStatus(slug, runId, 'queued', null);
+const KEYS = {
+	PENDING: 'ristogen_pending_run',
+	NS: 'ristogen_next_steps',
+	NS_STEPS: 'ristogen_ns_steps_',
+	RUN: 'ristogen_run_',
+	TERM_LOG: 'ristogen_terminal_log'
+};
+
+// ── 4. Polling Manager (Risolve il memory leak dei timer orfani) ──
+const Poller = {
+	start: (slug, fn, delay) => {
+		Poller.stop(slug);
+		State.activePolls.set(slug, setTimeout(async () => {
+			const continuePolling = await fn();
+			if (continuePolling) Poller.start(slug, fn, delay);
+			else Poller.stop(slug);
+		}, delay));
+	},
+	stop: (slug) => {
+		if (State.activePolls.has(slug)) {
+			clearTimeout(State.activePolls.get(slug));
+			State.activePolls.delete(slug);
+		}
+	}
+};
+
+// ── 5. Netlify Identity (Event-Driven, Nessun Polling) ────────
+
+function initIdentity() {
+	const ni = window.netlifyIdentity;
+	if (!ni) {
+		showLoginScreen();
+		return;
+	}
+
+	// Gestione asincrona nativa
+	ni.on("init", user => user ? tryLoadClients(user) : showLoginScreen());
+	ni.on("login", user => {
+		ni.close();
+		State.loadStarted = false;
+		tryLoadClients(user);
+	});
+	ni.on("logout", () => {
+		renderUserInfo(null);
+		showLoginScreen();
+		State.loadStarted = false;
+		State.authToken = null;
+	});
+
+	// Fallback se l'oggetto è già inizializzato prima dell'esecuzione dello script
+	const currentUser = ni.currentUser();
+	if (currentUser) {
+		tryLoadClients(currentUser);
+	}
 }
 
-function clearPendingRun() {
-  try { localStorage.removeItem(PENDING_KEY); } catch {}
+function tryLoadClients(user) {
+	if (!user) return;
+	State.loadStarted = true;
+	renderUserInfo(user);
+
+	const tokenNow = user.token?.access_token;
+
+	// Forza il refresh del token in background, ma procedi se hai già un token valido
+	window.netlifyIdentity.refresh()
+		.then(jwt => bootDashboard(jwt || tokenNow))
+		.catch(() => bootDashboard(tokenNow));
 }
 
-// ── Persistenza "Prossimi passi" (sopravvive al refresh) ──────
-const NS_KEY = 'ristogen_next_steps';       // {slug, site_url} — pannello attivo
-const NS_STEPS_PREFIX = 'ristogen_ns_steps_';        // per-slug check states
+function bootDashboard(token) {
+	if (!token) return;
+	State.authToken = token;
+	loadClients(token);
+	resumePendingRun(token);
 
-function _getStepsForSlug(slug) {
-	try { return JSON.parse(localStorage.getItem(NS_STEPS_PREFIX + slug) || 'null'); } catch { return null; }
+	if (!Storage.get(KEYS.PENDING)) {
+		restoreNextSteps();
+		restoreTerminalLog();
+	}
 }
 
-function saveNextStepsState() {
-  const box = document.getElementById('next-steps-box');
-  if (!box || !box.classList.contains('visible')) return;
-  const slug    = document.getElementById('ns-slug')?.textContent || '';
-  const siteUrl = document.getElementById('ns-site-url')?.href    || '';
-  const steps   = Array.from(document.querySelectorAll('.step-item'))
-                       .map(li => li.classList.contains('done'));
-	try {
-		localStorage.setItem(NS_KEY, JSON.stringify({ slug, site_url: siteUrl }));
-		localStorage.setItem(NS_STEPS_PREFIX + slug, JSON.stringify(steps));
-	} catch { }
+// ── 6. Rendering UI e Tabella (DOM Caching e Fix XSS) ─────────
+
+// Cache dei nodi principali per evitare query ripetute
+const DOM = {
+	tbody: document.getElementById("clients-tbody"),
+	loginScreen: document.getElementById("login-screen"),
+	mainContent: document.getElementById("main-content"),
+	userInfo: document.getElementById("user-info"),
+	clientsCount: document.getElementById("clients-count")
+};
+
+function showApp() {
+	DOM.loginScreen.style.display = 'none';
+	DOM.mainContent.classList.add('active');
 }
 
-function clearNextStepsState() {
-	// Rimuoviamo solo il pannello attivo — i check per-slug restano
-  try { localStorage.removeItem(NS_KEY); } catch {}
+function showLoginScreen() {
+	DOM.loginScreen.style.display = '';
+	DOM.mainContent.classList.remove('active');
 }
 
-function clearStepsForSlug(slug) {
-	try { localStorage.removeItem(NS_STEPS_PREFIX + slug); } catch { }
-}
-
-// ── Persistenza stato deploy per-slug ─────────────────────────
-const RUN_STATUS_PREFIX = 'ristogen_run_';
-
-function saveRunStatus(slug, runId, status, conclusion) {
-	try {
-		localStorage.setItem(RUN_STATUS_PREFIX + slug, JSON.stringify({
-			run_id: runId, status, conclusion: conclusion || null, updated_at: Date.now()
-		}));
-	} catch { }
-}
-
-function getRunStatus(slug) {
-	try { return JSON.parse(localStorage.getItem(RUN_STATUS_PREFIX + slug) || 'null'); } catch { return null; }
-}
-
-function clearRunStatus(slug) {
-	try { localStorage.removeItem(RUN_STATUS_PREFIX + slug); } catch { }
-}
-
-// ── Persistenza log terminale (sopravvive al refresh) ─────────────
-const TERMINAL_LOG_KEY = 'ristogen_terminal_log';
-const TERMINAL_LOG_TTL = 24 * 60 * 60 * 1000; // 24 ore
-
-function saveTerminalLog(data) {
-  try { localStorage.setItem(TERMINAL_LOG_KEY, JSON.stringify({ ...data, saved_at: Date.now() })); } catch {}
-}
-function clearTerminalLog() {
-  try { localStorage.removeItem(TERMINAL_LOG_KEY); } catch {}
-}
-
-function restoreTerminalLog() {
-  let d;
-  try { d = JSON.parse(localStorage.getItem(TERMINAL_LOG_KEY) || 'null'); } catch {}
-  if (!d) return;
-  if (Date.now() - (d.saved_at || 0) > TERMINAL_LOG_TTL) { clearTerminalLog(); return; }
-
-  const box        = document.getElementById('action-box');
-  const header     = document.getElementById('action-header');
-  const icon       = document.getElementById('action-icon');
-  const label      = document.getElementById('action-label');
-  const link       = document.getElementById('action-link');
-  const stepsList  = document.getElementById('action-steps');
-  const errorsBox  = document.getElementById('action-errors');
-  const errorsText = document.getElementById('action-errors-text');
-  const cancelBtn  = document.getElementById('btn-cancel-run');
-
-  const ICONS  = { queued: '⏳', in_progress: '<span class="spin">⚙</span>', success: '✅', failure: '❌', cancelled: '⚠️', timed_out: '⏱️' };
-  const LABELS = { queued: 'In coda…', in_progress: 'Deploy in esecuzione…', success: 'Deploy completato con successo', failure: 'Deploy fallito', cancelled: 'Annullato', timed_out: 'Timeout' };
-  const STEP_CLASS = { success: 'step-success', failure: 'step-failure', skipped: 'step-skipped', in_progress: 'step-in_progress' };
-
-  header.className  = 'terminal-status-line ' + d.status_key;
-  icon.innerHTML    = ICONS[d.status_key] ?? '❓';
-  label.textContent = LABELS[d.status_key] ?? d.status_key;
-  if (d.gh_url) link.href = d.gh_url;
-  if (cancelBtn) cancelBtn.style.display = 'none';
-
-  const terminalBodyRestore = box.querySelector('.terminal-body');
-  stepsList.innerHTML = (d.steps || []).map(s =>
-    `<li class="${STEP_CLASS[s.state] || ''}">${s.name}</li>`
-  ).join('');
-
-  if (d.errors && d.errors.length) {
-    errorsBox.className   = 'terminal-errors visible';
-    errorsText.textContent = d.errors.join('\n\n');
-  } else {
-    errorsBox.className = 'terminal-errors';
-  }
-
-  // Nota storico
-  const note = document.createElement('div');
-  note.className   = 'terminal-log-note';
-  note.textContent = `↑ ultimo deploy: ${d.slug} — ${new Date(d.saved_at).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
-  box.querySelector('.terminal-body').appendChild(note);
-  if (terminalBodyRestore) terminalBodyRestore.scrollTop = terminalBodyRestore.scrollHeight;
-
-  box.classList.add('visible');
+function renderUserInfo(user) {
+	if (!user) {
+		DOM.userInfo.innerHTML = "";
+		return;
+	}
+	// Sanificazione dell'email (Fix XSS)
+	DOM.userInfo.innerHTML = `<span>${escHtml(user.email)}</span><button id="logout-btn">Esci</button>`;
+	document.getElementById("logout-btn").addEventListener("click", () => window.netlifyIdentity?.logout());
+	showApp();
 }
 
 function renderDeployBadge(rs) {
-  if (!rs) return '';
+	if (!rs) return '';
 	const age = Date.now() - (rs.updated_at || 0);
-	// Nascondi i successi dopo 1 ora (il pannello prossimi passi li copre)
-	if (rs.conclusion === 'success' && age > 60 * 60 * 1000) return '';
+	if (rs.conclusion === 'success' && age > 3600000) return ''; // 1 ora
+
 	const MAP = {
 		queued: { cls: 'running', icon: '⏳', text: 'In coda' },
 		in_progress: { cls: 'running', icon: '⚙️', text: 'Deploy in corso' },
@@ -154,1102 +160,689 @@ function renderDeployBadge(rs) {
 		cancelled: { cls: 'cancelled', icon: '■', text: 'Annullato' },
 		timed_out: { cls: 'failure', icon: '⏱', text: 'Timeout' },
 	};
+
 	const key = rs.status === 'completed' ? (rs.conclusion || 'failure') : rs.status;
 	const m = MAP[key];
 	if (!m) return '';
-	return `<span class="deploy-badge deploy-badge--${m.cls}" data-run="${rs.run_id}">${m.icon} ${m.text}</span>`;
-}
 
-function restoreNextSteps() {
-  let d;
-  try { d = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
-  if (!d?.slug) return;
-	showNextSteps(d.slug, d.site_url || '');
-}
-
-function resumePendingRun(authToken) {
-  let data;
-  try { data = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch {}
-  if (!data || !data.run_id) return;
-  // Scarta se più vecchio di 2 ore
-  if (Date.now() - (data.started_at || 0) > 2 * 60 * 60 * 1000) {
-    clearPendingRun();
-    return;
-  }
-  showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, 'info');
-	// Ripristina se era già visibile
-  let _nsData;
-  try { _nsData = JSON.parse(localStorage.getItem(NS_KEY) || 'null'); } catch {}
-  if (_nsData?.slug === data.slug) {
-	  showNextSteps(data.slug, data.site_url || '');
-  }
-  startPolling(data.run_id, authToken, data.slug, data.site_url || '');
-}
-
-// ── Login / App screen ───────────────────────────────────────
-function showApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-content').classList.add('active');
-}
-function showLoginScreen() {
-  document.getElementById('login-screen').style.display = '';
-  document.getElementById('main-content').classList.remove('active');
-}
-
-// ── Helpers: token corrente ───────────────────────────────────
-function currentToken() {
-  if (_authToken) return _authToken;
-  const u = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  return u && u.token && u.token.access_token || null;
-}
-
-// ── Toast ─────────────────────────────────────────────────────
-function showToast(msg, type = "") {
-  const el = document.createElement("div");
-  el.className = "toast" + (type ? " " + type : "");
-  el.textContent = msg;
-  document.getElementById("toast-container").appendChild(el);
-  setTimeout(() => el.remove(), 4000);
-}
-
-// ── Badge contatore ───────────────────────────────────────────
-function updateCountBadge(n) {
-  const b = document.getElementById("clients-count");
-  if (b) b.textContent = n > 0 ? n + " landing" : "";
-}
-
-// ── Empty-state row ───────────────────────────────────────────
-const TABLE_COLS = 5;
-function emptyRow(msg, withCta = false) {
-  const cta = withCta
-    ? `<button type="button" class="btn-empty-cta" onclick="openCreateDrawer()">+ Crea il primo cliente</button>`
-    : '';
-  return `<tr><td colspan="${TABLE_COLS}">
-    <div class="empty-state">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="1.5">
-        <rect x="3" y="3" width="18" height="18" rx="3"/>
-        <path d="M9 12h6M12 9v6"/>
-      </svg>
-      <p>${msg}</p>
-      ${cta}
-    </div>
-  </td></tr>`;
-}
-
-// ── Template Picker — data & renderer ─────────────────────────
-const TEMPLATES = [
-  { value: 'template-01', label: 'Template 01 — Dark', desc: 'Dark — ristorante moderno', thumb: '/templates/template-01.png' },
-  { value: 'template-02', label: 'Template 02 — Light', desc: 'Light — elegante e chiaro', thumb: '/templates/template-02.png' }
-];
-const LANG_FLAGS = { it: '🇮🇹', en: '🇬🇧' };
-
-function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
-  const container = document.getElementById(pickerId);
-  if (!container) return;
-  const val = defaultValue || TEMPLATES[0].value;
-  const first = TEMPLATES.find(t => t.value === val) || TEMPLATES[0];
-  container.innerHTML = `
-    <button type="button" class="tpicker-btn" aria-haspopup="listbox" aria-expanded="false">
-      <img class="tpicker-thumb" src="${first.thumb}" alt="" />
-      <span class="tpicker-label">${first.label}</span>
-      <svg class="tpicker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg>
-    </button>
-    <ul class="tpicker-list" role="listbox">
-      ${TEMPLATES.map(t => `
-        <li class="tpicker-item${t.value === val ? ' selected' : ''}" data-value="${t.value}" data-label="${t.label}" role="option">
-          <img class="tpicker-item-thumb" src="${t.thumb}" alt="" />
-          <div class="tpicker-item-text"><strong>${t.label.split(' — ')[0]}</strong><em>${t.desc}</em></div>
-          <div class="tpicker-item-preview"><img src="${t.thumb}" alt="Preview ${t.label}" /><p>${t.label}</p></div>
-        </li>
-      `).join('')}
-    </ul>
-    <input type="hidden" id="${hiddenId}" name="${hiddenName}" value="${val}" />
-  `;
-}
-
-// ── Tabella clienti — rendering ──────────────────────────────
-function clientRow(c) {
-  const url      = c.site_url || "";
-  const tpl      = c.template || 'template-01';
-  const lang     = c.default_lang || 'it';
-  const tplLabel = (TEMPLATES.find(t => t.value === tpl) || TEMPLATES[0]).label;
-  const langFlag = LANG_FLAGS[lang] || lang;
-  const rs    = getRunStatus(c.slug);
-  const badge = renderDeployBadge(rs);
-  return `<tr data-slug="${c.slug}" data-site-url="${url}">
-    <td><span class="client-name">${c.client_name ? escHtml(c.client_name) : ''}</span><span class="slug-chip">${c.slug}</span>${badge ? `<br>${badge}` : ''}</td>
-    <td><span class="tpl-badge">${tplLabel}</span></td>
-    <td>${langFlag}</td>
-    <td>${url
-      ? `<a href="${url}" target="_blank" rel="noopener">${url} \u2197</a><button class="btn-copy" data-copy="${url}" data-copy-label="URL" title="Copia URL" aria-label="Copia URL sito">&#x2398;</button><a href="${url.replace(/\/$/, '') + '/admin/'}" target="_blank" rel="noopener" class="cms-link">CMS \u2197</a><button class="btn-copy" data-copy="${url.replace(/\/$/, '') + '/admin/'}" data-copy-label="CMS" title="Copia URL CMS" aria-label="Copia URL CMS">&#x2398;</button>`
-      : '<span style="color:var(--text-light)">\u2014</span>'}</td>
-    <td>
-      <div class="table-actions">
-        <button class="btn-steps" data-slug="${c.slug}" data-site-url="${url}" title="Prossimi passi" aria-label="Prossimi passi: ${c.slug}">\ud83d\ude80</button>
-        <button class="btn-edit" data-slug="${c.slug}" aria-label="Modifica ${c.slug}">Modifica</button>
-        <button class="btn-delete" data-slug="${c.slug}" aria-label="Elimina ${c.slug}"${PROTECTED_SLUGS.includes(c.slug) ? ' disabled title="Questa landing è protetta e non può essere eliminata"' : ''}>Elimina</button>
-      </div>
-    </td>
-  </tr>`;
+	// Fix XSS: attributi protetti
+	return `<span class="deploy-badge deploy-badge--${m.cls}" data-run="${escHtml(rs.run_id)}">${m.icon} ${m.text}</span>`;
 }
 
 function renderClientRows(arr) {
-  const tbody = document.getElementById("clients-tbody");
-  if (!tbody) return;
-  // Applica ordinamento
-  let sorted = arr.slice();
-  if (_sortKey) {
-    sorted.sort((a, b) => {
-      const va = _sortKey === 'slug'     ? (a.slug || '')
-               : _sortKey === 'template' ? (a.template || 'template-01')
-               : _sortKey === 'lang'     ? (a.default_lang || 'it')
-               : '';
-      const vb = _sortKey === 'slug'     ? (b.slug || '')
-               : _sortKey === 'template' ? (b.template || 'template-01')
-               : _sortKey === 'lang'     ? (b.default_lang || 'it')
-               : '';
-      return _sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
-    });
-  }
-  // Aggiorna aria-sort sugli header
-  document.querySelectorAll('#clients-table th[data-sort]').forEach(th => {
-    const k = th.dataset.sort;
-    if (k === _sortKey) th.setAttribute('aria-sort', _sortAsc ? 'ascending' : 'descending');
-    else th.removeAttribute('aria-sort');
-  });
-  tbody.innerHTML = sorted.map(clientRow).join('');
-}
+	if (!DOM.tbody) return;
 
-// ── Tabella clienti ───────────────────────────────────────────
-async function loadClients(token) {
-  if (token) _authToken = token;
-  const tok = _authToken || currentToken();
-  if (!tok) return;
-
-  // Segnala subito che il caricamento è iniziato (evita override dal retry)
-  _loadStarted = true;
-
-  const tbody = document.getElementById("clients-tbody");
-
-  // Skeleton loader
-  tbody.innerHTML = Array(3).fill(null).map(() =>
-    `<tr>
-      <td><span class="skeleton" style="width:90px"></span></td>
-      <td><span class="skeleton" style="width:70px"></span></td>
-      <td><span class="skeleton" style="width:40px"></span></td>
-      <td><span class="skeleton" style="width:140px"></span></td>
-      <td><span class="skeleton" style="width:60px"></span></td>
-    </tr>`
-  ).join('');
-
-  try {
-    const r = await fetch("/api/clients", {
-      headers: { Authorization: "Bearer " + tok },
-    });
-    if (r.status === 401) {
-      showToast('Sessione scaduta — effettua di nuovo il login', 'error');
-      _authToken = null;
-      showLoginScreen();
-      window.netlifyIdentity && window.netlifyIdentity.open();
-      return;
-    }
-    if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
-    const { clients } = await r.json();
-
-    if (!clients || clients.length === 0) {
-      tbody.innerHTML = emptyRow("Nessuna landing ancora creata", true);
-      updateCountBadge(0);
-      return;
-    }
-
-    updateCountBadge(clients.length);
-    _allClients = clients;
-    renderClientRows(_allClients);
-
-  } catch (e) {
-    tbody.innerHTML = emptyRow("Errore caricamento: " + e.message);
-    updateCountBadge(0);
-  }
-}
-
-// ── Netlify Identity ──────────────────────────────────────────
-function renderUserInfo(user) {
-  const info = document.getElementById("user-info");
-  if (!user) { info.innerHTML = ""; return; }
-  info.innerHTML = `<span>${user.email || ""}</span>
-    <button id="logout-btn">Esci</button>`;
-  document.getElementById("logout-btn").addEventListener("click", () =>
-    window.netlifyIdentity && window.netlifyIdentity.logout()
-  );
-  showApp();
-}
-
-function tryLoadClients() {
-  const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  if (!user) return;
-  _loadStarted = true;
-  renderUserInfo(user);
-
-  // Tenta prima un refresh; se già fresco usa il token attuale
-  const tokenNow = user.token && user.token.access_token;
-  window.netlifyIdentity.refresh()
-    .then(jwt => {
-      const tok = jwt || tokenNow;
-      if (tok) {
-        _authToken = tok;
-        loadClients(tok);
-        resumePendingRun(tok);
-        if (!localStorage.getItem(PENDING_KEY)) {
-          restoreNextSteps();
-          restoreTerminalLog();
-        }
-      }
-    })
-    .catch(() => {
-      if (tokenNow) {
-        _authToken = tokenNow;
-        loadClients(tokenNow);
-        resumePendingRun(tokenNow);
-        if (!localStorage.getItem(PENDING_KEY)) {
-          restoreNextSteps();
-          restoreTerminalLog();
-        }
-      }
-    });
-}
-
-function initIdentity() {
-  if (!window.netlifyIdentity) {
-    // Identity widget non disponibile (locale senza Netlify)
-    showLoginScreen();
-    return;
-  }
-
-  window.netlifyIdentity.on("init", user => {
-    if (user) {
-      tryLoadClients();
-    } else {
-      showLoginScreen();
-    }
-  });
-
-  // Login: carica direttamente senza reload
-  window.netlifyIdentity.on("login", user => {
-    window.netlifyIdentity.close();
-    _loadStarted = false; // resetta per permettere un caricamento fresco
-    tryLoadClients();
-  });
-
-  window.netlifyIdentity.on("logout", () => {
-    renderUserInfo(null);
-    showLoginScreen();
-    _loadStarted = false;
-    _authToken = null;
-  });
-
-  // Fallback sincrono: se Identity è già pronto al momento dell'esecuzione
-  if (window.netlifyIdentity.currentUser()) {
-    tryLoadClients();
-  } else if (!_loadStarted) {
-    // Retry loop: on("init") è asincrono; polling per max 6s
-    const MAX = 12, INTERVAL = 500;
-    let attempts = 0;
-    const poll = setInterval(() => {
-      attempts++;
-      const u = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      if (u) {
-        clearInterval(poll);
-        tryLoadClients();
-      } else if (attempts >= MAX) {
-        clearInterval(poll);
-        if (!_loadStarted) showLoginScreen();
-      }
-    }, INTERVAL);
-  }
-}
-
-// ── Refresh button ────────────────────────────────────────────
-document.getElementById("btn-refresh-clients").addEventListener("click", function () {
-  this.classList.add("spinning");
-  const done = () => this.classList.remove("spinning");
-  loadClients().then(done).catch(done);
-});
-
-// ── Validazione slug real-time ────────────────────────────────
-let slugValid   = false;
-let slugTimer   = null;
-let _submitting = false;  // guard doppio-submit
-let _drawerDirty = false; // modifiche non salvate nel drawer
-
-function slugify(str) {
-  return str
-    .toLowerCase()
-    .replace(/\s+/g, '-')          // spazi → trattini
-    .replace(/[^a-z0-9-]/g, '')   // rimuove caratteri non validi
-    .replace(/-{2,}/g, '-');       // trattini doppi → singolo
-}
-
-document.getElementById("slug").addEventListener("input", function () {
-  const hint = document.getElementById("slug-hint");
-
-  // Trasforma in tempo reale preservando la posizione del cursore
-  const pos        = this.selectionStart;
-  const before     = this.value;
-  const after      = slugify(before);
-  if (after !== before) {
-    const diff    = after.length - before.length;
-    this.value    = after;
-    this.setSelectionRange(Math.max(0, pos + diff), Math.max(0, pos + diff));
-  }
-
-  const val  = this.value.trim();
-  slugValid  = false;
-  clearTimeout(slugTimer);
-
-  if (!val) { hint.className = ""; hint.textContent = ""; return; }
-
-	const SLUG_RESERVED = ['admin', 'api', 'www', 'mail', 'ftp', 'blog', 'app', 'dashboard', 'static', 'assets', 'public', 'media', 'images', 'login', 'logout', 'signup', 'auth'];
-	if (SLUG_RESERVED.includes(val)) {
-		hint.className = "error";
-		hint.textContent = "✗ Slug riservato — scegli un nome diverso";
-		return;
+	let sorted = [...arr];
+	if (State.sort.key) {
+		sorted.sort((a, b) => {
+			const va = String(a[State.sort.key] || '');
+			const vb = String(b[State.sort.key] || '');
+			return State.sort.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+		});
 	}
 
-	if (val.length < 3) {
-		hint.className = "error";
-		hint.textContent = "✗ Minimo 3 caratteri";
-		return;
-	}
+	// Costruzione stringa massiva per singola iniezione DOM (Performance)
+	DOM.tbody.innerHTML = sorted.map(c => {
+		// Fix XSS: Qualsiasi dato in ingresso dall'API passa per escHtml
+		const safeSlug = escHtml(c.slug);
+		const safeUrl = escHtml(c.site_url || '');
+		const safeName = escHtml(c.client_name || '');
+		const tplLabel = escHtml((TEMPLATES.find(t => t.value === c.template) || TEMPLATES[0]).label);
+		const langFlag = LANG_FLAGS[c.default_lang] || escHtml(c.default_lang);
 
-	if (val.length > 50) {
-		hint.className = "error";
-		hint.textContent = "✗ Massimo 50 caratteri";
-		return;
-	}
+		const rs = Storage.get(KEYS.RUN + c.slug);
+		const badge = renderDeployBadge(rs);
 
-  if (!/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
-    hint.className = "error";
-    hint.textContent = "✗ Formato non valido — solo minuscole, numeri e trattini";
-    return;
-  }
+		const urlCols = safeUrl
+			? `<a href="${safeUrl}" target="_blank" rel="noopener">${safeUrl} ↗</a>
+         <button class="btn-copy" data-copy="${safeUrl}" data-copy-label="URL" aria-label="Copia URL sito">⎘</button>
+         <a href="${safeUrl.replace(/\/$/, '')}/admin/" target="_blank" rel="noopener" class="cms-link">CMS ↗</a>
+         <button class="btn-copy" data-copy="${safeUrl.replace(/\/$/, '')}/admin/" data-copy-label="CMS" aria-label="Copia URL CMS">⎘</button>`
+			: '<span style="color:var(--text-light)">—</span>';
 
-  hint.className = "checking";
-  hint.textContent = "⏳ Verifica disponibilità…";
+		const deleteDisabled = PROTECTED_SLUGS.includes(c.slug) ? ' disabled title="Landing protetta"' : '';
 
-  slugTimer = setTimeout(async () => {
-    const tok = currentToken();
-    if (!tok) { hint.className = ""; hint.textContent = ""; return; }
-    try {
-      const r    = await fetch("/api/validate-slug?slug=" + encodeURIComponent(val), {
-        headers: { Authorization: "Bearer " + tok },
-      });
-      const data = await r.json();
-      if (data.valid) {
-        slugValid = true;
-        hint.className = "ok";
-        hint.textContent = "✓ Slug disponibile";
-      } else {
-        slugValid = false;
-        hint.className = "error";
-        hint.textContent = "✗ " + (data.errors ? data.errors.join(" — ") : data.error);
-      }
-    } catch {
-      hint.className = ""; hint.textContent = "";
-    }
-  }, 600);
-});
+		return `<tr data-slug="${safeSlug}" data-site-url="${safeUrl}">
+      <td><span class="client-name">${safeName}</span><span class="slug-chip">${safeSlug}</span>${badge ? `<br>${badge}` : ''}</td>
+      <td><span class="tpl-badge">${tplLabel}</span></td>
+      <td>${langFlag}</td>
+      <td>${urlCols}</td>
+      <td>
+        <div class="table-actions">
+          <button class="btn-steps" data-slug="${safeSlug}" data-site-url="${safeUrl}" aria-label="Prossimi passi: ${safeSlug}">🚀</button>
+          <button class="btn-edit" data-slug="${safeSlug}" aria-label="Modifica ${safeSlug}">Modifica</button>
+          <button class="btn-delete" data-slug="${safeSlug}" aria-label="Elimina ${safeSlug}"${deleteDisabled}>Elimina</button>
+        </div>
+      </td>
+    </tr>`;
+	}).join('');
 
-// ── Form submit ───────────────────────────────────────────────
-document.getElementById("onboarding-form").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  if (_submitting) return;
-
-  const btn     = document.getElementById("submit-btn");
-  const btnIcon = document.getElementById("submit-icon");
-  const btnText = document.getElementById("submit-text");
-  const status  = document.getElementById("status");
-  status.className = ""; status.textContent = "";
-
-  const tok = currentToken();
-  if (!tok) { window.netlifyIdentity && window.netlifyIdentity.open(); return; }
-  _authToken = tok;
-
-  const hint = document.getElementById("slug-hint");
-  if (!slugValid) {
-    hint.className = "error";
-    hint.textContent = "✗ Verifica prima la disponibilità dello slug";
-    document.getElementById("slug").focus();
-    return;
-  }
-
-  _submitting = true;
-  btn.disabled = true;
-  btnIcon.innerHTML = '<span class="spin">⚙</span>';
-  btnText.textContent = "Creazione in corso…";
-
-  const formData = new FormData(this);
-
-  try {
-    const res  = await fetch("/api/onboarding", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + tok },
-      body: formData,
-    });
-    const json = await res.json();
-
-    if (res.ok) {
-      const newSlug = formData.get("client_slug");
-      const siteUrl = json.site_url || "";
-      status.className = "success";
-      status.innerHTML = `<span>\u2713</span> <span>Landing <strong>${newSlug}</strong> creata \u2014 monitoraggio deploy in corso</span>`;
-      showToast(`Landing "${newSlug}" creata!`, "success");
-      this.reset();
-      setTemplatePicker('tpicker-main', 'template-01'); // resetta il picker visivo
-      document.getElementById("slug-hint").textContent = "";
-      slugValid = false;
-      _createDirty = false;
-      closeCreateDrawer();
-      if (json.run_id) {
-        savePendingRun(json.run_id, newSlug, siteUrl);
-        startPolling(json.run_id, tok, newSlug, siteUrl);
-      }
-      setTimeout(() => loadClients(), 10000);
-    } else {
-      status.className = "error";
-      status.innerHTML = `<span>✗</span> <span>${json.error || res.statusText}</span>`;
-    }
-  } catch (err) {
-    status.className = "error";
-    status.innerHTML = `<span>✗</span> <span>Errore di rete: ${err.message}</span>`;
-  } finally {
-    btn.disabled = false;
-    btnIcon.textContent = "✦";
-    btnText.textContent = "Crea cliente";
-  }
-});
-
-// ── Next Steps panel ──────────────────────────────────────────
-function showNextSteps(slug, siteUrl) {
-  const box      = document.getElementById("next-steps-box");
-  const adminUrl = siteUrl
-    ? siteUrl.replace(/\/$/, "") + "/admin/"
-    : "/" + slug + "/admin/";
-
-	document.getElementById("ns-slug").textContent = slug;
-  document.getElementById("ns-admin-url").textContent = adminUrl;
-
-  // Link diretto alla pagina del progetto su Netlify
-  const netlifyLink = document.getElementById("ns-netlify-link");
-  if (netlifyLink) {
-	  netlifyLink.href = `https://app.netlify.com/projects/ristogen-${slug}/integrations/identity`;
-	  netlifyLink.textContent = `pannello Netlify`;
-  }
-
-  const siteLink = document.getElementById("ns-site-url");
-  const cmsLink  = document.getElementById("ns-cms-url");
-  if (siteUrl) { siteLink.href = siteUrl; siteLink.textContent = siteUrl; }
-  cmsLink.href = adminUrl;
-
-	// Reset e poi ripristina check salvati per questo slug
-	const saved = _getStepsForSlug(slug);
-	box.querySelectorAll(".step-item").forEach((li, i) => {
-		if (saved && saved[i]) {
-			li.classList.add("done");
-			li.querySelector(".step-num").textContent = "✓";
-		} else {
-			li.classList.remove("done");
-			li.querySelector(".step-num").textContent = li.dataset.step;
-	}
-  });
-
-  box.classList.add("visible");
-  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  saveNextStepsState();
+	// Aggiorna indicatori di sort visivi
+	document.querySelectorAll('#clients-table th[data-sort]').forEach(th => {
+		if (th.dataset.sort === State.sort.key) th.setAttribute('aria-sort', State.sort.asc ? 'ascending' : 'descending');
+		else th.removeAttribute('aria-sort');
+	});
 }
 
-document.querySelectorAll(".step-check").forEach(btn => {
-  btn.addEventListener("click", function () {
-    const li   = this.closest(".step-item");
-    const done = li.classList.toggle("done");
-    li.querySelector(".step-num").textContent = done ? "✓" : li.dataset.step;
-    saveNextStepsState();
-  });
-});
+// ── 7. Utility: Debounce ──────────────────────────────────────
+function debounce(func, wait) {
+	let timeout;
+	return function (...args) {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => func.apply(this, args), wait);
+	};
+}
 
-document.getElementById("ns-dismiss").addEventListener("click", () => {
-  document.getElementById("next-steps-box").classList.remove("visible");
-  clearNextStepsState();
-});
+// ── 8. Gestore Cassetti (Drawers) Unificato ───────────────────
+// Elimina la duplicazione tra openCreateDrawer e openDrawer
+const DrawerManager = {
+	activeTrap: null,
 
-// ── Edit Drawer ──────────────────────────────────────────────
-let _drawerFocusTrap = null;
+	open: (type) => {
+		State.drawerDirty[type] = false;
+		const drawer = document.getElementById(`${type}-drawer`);
+		const backdrop = document.getElementById(`${type}-backdrop`);
 
-function openDrawer() {
-	_drawerDirty = false;
-	const drawer = document.getElementById('edit-drawer');
-	drawer.classList.add('open');
-	document.getElementById('drawer-backdrop').classList.add('open');
-	document.body.style.overflow = 'hidden';
+		drawer.classList.add('open');
+		if (backdrop) backdrop.classList.add('open');
+		document.body.style.overflow = 'hidden';
 
-	// Focus trap
-	requestAnimationFrame(() => {
+		requestAnimationFrame(() => DrawerManager.setupFocusTrap(drawer));
+	},
+
+	close: (type) => {
+		if (State.drawerDirty[type] && !confirm('Hai modifiche non salvate. Chiudere senza salvare?')) return;
+		State.drawerDirty[type] = false;
+
+		const drawer = document.getElementById(`${type}-drawer`);
+		const backdrop = document.getElementById(`${type}-backdrop`);
+
+		if (DrawerManager.activeTrap) {
+			drawer.removeEventListener('keydown', DrawerManager.activeTrap);
+			DrawerManager.activeTrap = null;
+		}
+
+		drawer.classList.remove('open');
+		if (backdrop) backdrop.classList.remove('open');
+		document.body.style.overflow = '';
+	},
+
+	setupFocusTrap: (drawer) => {
 		const focusable = Array.from(drawer.querySelectorAll(
 			'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 		)).filter(el => !el.closest('[hidden]'));
-		if (focusable.length) focusable[0].focus();
 
-		if (_drawerFocusTrap) drawer.removeEventListener('keydown', _drawerFocusTrap);
-		_drawerFocusTrap = function (e) {
-			if (e.key !== 'Tab' || focusable.length === 0) return;
+		if (!focusable.length) return;
+		focusable[0].focus();
+
+		if (DrawerManager.activeTrap) drawer.removeEventListener('keydown', DrawerManager.activeTrap);
+
+		DrawerManager.activeTrap = function (e) {
+			if (e.key !== 'Tab') return;
 			const first = focusable[0];
 			const last = focusable[focusable.length - 1];
-			if (e.shiftKey) {
-				if (document.activeElement === first) { e.preventDefault(); last.focus(); }
-			} else {
-				if (document.activeElement === last) { e.preventDefault(); first.focus(); }
-			}
-		};
-		drawer.addEventListener('keydown', _drawerFocusTrap);
-	});
-}
-function closeDrawer() {
-	if (_drawerDirty && !confirm('Hai modifiche non salvate nel drawer. Chiudere senza salvare?')) return;
-	_drawerDirty = false;
-	const drawer = document.getElementById('edit-drawer');
-	if (_drawerFocusTrap) { drawer.removeEventListener('keydown', _drawerFocusTrap); _drawerFocusTrap = null; }
-	drawer.classList.remove('open');
-	document.getElementById('drawer-backdrop').classList.remove('open');
-	document.body.style.overflow = '';
-}
 
-document.getElementById('drawer-close').addEventListener('click', closeDrawer);
-document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
+		  if (e.shiftKey && document.activeElement === first) {
+			  e.preventDefault();
+			  last.focus();
+		  } else if (!e.shiftKey && document.activeElement === last) {
+			  e.preventDefault();
+			  first.focus();
+		  }
+		};
+		drawer.addEventListener('keydown', DrawerManager.activeTrap);
+  }
+};
+
+// Event Listeners globali per i Drawer
 document.addEventListener('keydown', e => {
 	if (e.key === 'Escape') {
-		if (document.getElementById('create-drawer').classList.contains('open')) closeCreateDrawer();
-		else closeDrawer();
+		if (document.getElementById('create-drawer')?.classList.contains('open')) DrawerManager.close('create');
+		else if (document.getElementById('edit-drawer')?.classList.contains('open')) DrawerManager.close('edit');
 	}
 });
 
-// ── Create Drawer ────────────────────────────────────────────
-let _createDirty = false;
-let _createFocusTrap = null;
+document.getElementById('create-drawer-close')?.addEventListener('click', () => DrawerManager.close('create'));
+document.getElementById('create-backdrop')?.addEventListener('click', () => DrawerManager.close('create'));
+document.getElementById('btn-new-client')?.addEventListener('click', () => DrawerManager.open('create'));
 
-function openCreateDrawer() {
-	_createDirty = false;
-	const drawer = document.getElementById('create-drawer');
-	drawer.classList.add('open');
-	document.getElementById('create-backdrop').classList.add('open');
-	document.body.style.overflow = 'hidden';
+document.getElementById('drawer-close')?.addEventListener('click', () => DrawerManager.close('edit'));
+document.getElementById('drawer-backdrop')?.addEventListener('click', () => DrawerManager.close('edit'));
 
-	requestAnimationFrame(() => {
-		const focusable = Array.from(drawer.querySelectorAll(
-			'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-		)).filter(el => !el.closest('[hidden]'));
-		if (focusable.length) focusable[0].focus();
+// ── 9. Validazione Slug Reattiva e Sicura (No Race Conditions) ──
+const SlugValidator = {
+	controller: null,
+	valid: false,
+	input: document.getElementById("slug"),
+	hint: document.getElementById("slug-hint"),
 
-		if (_createFocusTrap) drawer.removeEventListener('keydown', _createFocusTrap);
-		_createFocusTrap = function (e) {
-			if (e.key !== 'Tab' || focusable.length === 0) return;
-			const first = focusable[0];
-			const last  = focusable[focusable.length - 1];
-			if (e.shiftKey) {
-				if (document.activeElement === first) { e.preventDefault(); last.focus(); }
-			} else {
-				if (document.activeElement === last) { e.preventDefault(); first.focus(); }
-			}
-		};
-		drawer.addEventListener('keydown', _createFocusTrap);
+	format: (str) => str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-'),
+
+	setHint: (cls, text) => {
+		SlugValidator.hint.className = cls;
+		SlugValidator.hint.textContent = text;
+	},
+
+	check: debounce(async (val) => {
+		if (!val) {
+			SlugValidator.setHint("", "");
+			SlugValidator.valid = false;
+			return;
+		}
+
+		const RESERVED = ['admin', 'api', 'www', 'mail', 'ftp', 'blog', 'app', 'dashboard', 'static', 'assets', 'public', 'media', 'images', 'login', 'logout', 'signup', 'auth'];
+		if (RESERVED.includes(val) || val.length < 3 || val.length > 50 || !/^[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*$/.test(val)) {
+			SlugValidator.setHint("error", "✗ Formato non valido, riservato o lunghezza errata");
+			SlugValidator.valid = false;
+			return;
+		}
+
+		SlugValidator.setHint("checking", "⏳ Verifica disponibilità…");
+
+		// Annulla la richiesta di rete precedente se ancora in corso
+		if (SlugValidator.controller) SlugValidator.controller.abort();
+		SlugValidator.controller = new AbortController();
+
+		try {
+		  const res = await fetch("/api/validate-slug?slug=" + encodeURIComponent(val), {
+			  headers: { Authorization: "Bearer " + State.authToken },
+			  signal: SlugValidator.controller.signal
+		  });
+		  const data = await res.json();
+
+		  if (data.valid) {
+			SlugValidator.valid = true;
+			SlugValidator.setHint("ok", "✓ Slug disponibile");
+		} else {
+			SlugValidator.valid = false;
+			SlugValidator.setHint("error", "✗ " + (data.errors?.join(" — ") || data.error));
+		}
+	  } catch (e) {
+		  if (e.name !== 'AbortError') {
+			  SlugValidator.setHint("", "");
+			  SlugValidator.valid = false;
+		  }
+		}
+	}, 400) // 400ms di debounce
+};
+
+if (SlugValidator.input) {
+	SlugValidator.input.addEventListener("input", function () {
+		State.drawerDirty.create = true;
+		const pos = this.selectionStart;
+		const before = this.value;
+		const after = SlugValidator.format(before);
+
+		if (after !== before) {
+			const diff = after.length - before.length;
+			this.value = after;
+			this.setSelectionRange(Math.max(0, pos + diff), Math.max(0, pos + diff));
+		}
+
+		SlugValidator.valid = false;
+		SlugValidator.check(this.value.trim());
 	});
 }
-function closeCreateDrawer() {
-	if (_createDirty && !confirm('Hai modifiche non salvate nel form. Chiudere senza salvare?')) return;
-	_createDirty = false;
-	const drawer = document.getElementById('create-drawer');
-	if (_createFocusTrap) { drawer.removeEventListener('keydown', _createFocusTrap); _createFocusTrap = null; }
-	drawer.classList.remove('open');
-	document.getElementById('create-backdrop').classList.remove('open');
-	document.body.style.overflow = '';
+
+// ── 10. Form Submission: Create ───────────────────────────────
+const createForm = document.getElementById("onboarding-form");
+if (createForm) {
+	createForm.addEventListener("submit", async function (e) {
+		e.preventDefault();
+		if (State.submitting) return;
+
+		if (!SlugValidator.valid) {
+			SlugValidator.setHint("error", "✗ Verifica prima la disponibilità dello slug");
+			SlugValidator.input.focus();
+			return;
+		}
+
+		State.submitting = true;
+		const btn = document.getElementById("submit-btn");
+		const status = document.getElementById("status");
+
+		btn.disabled = true;
+		btn.innerHTML = '<span class="spin">⚙</span> Creazione in corso…';
+		status.className = "";
+		status.textContent = "";
+
+		try {
+		  const formData = new FormData(this);
+		  const res = await fetch("/api/onboarding", {
+			  method: "POST",
+			  headers: { Authorization: "Bearer " + State.authToken },
+			  body: formData,
+		  });
+
+		  const json = await res.json();
+		  if (!res.ok) throw new Error(json.error || res.statusText);
+
+		  const newSlug = formData.get("client_slug");
+		  const siteUrl = json.site_url || "";
+
+		  status.className = "success";
+		  status.innerHTML = `<span>✓</span> <span>Landing <strong>${escHtml(newSlug)}</strong> creata</span>`;
+		  showToast(`Landing "${newSlug}" creata!`, "success");
+
+		  this.reset();
+		  setTemplatePicker('tpicker-main', 'template-01');
+		  SlugValidator.setHint("", "");
+		  SlugValidator.valid = false;
+
+		  DrawerManager.close('create');
+
+		  if (json.run_id) {
+			Storage.set(KEYS.PENDING, { run_id: json.run_id, slug: newSlug, site_url: siteUrl, started_at: Date.now() });
+			// Utilizziamo il nuovo Poller invece di startPolling (che definirò nell'ultimo blocco)
+			initActionPolling(json.run_id, newSlug, siteUrl);
+		}
+		  setTimeout(() => loadClients(State.authToken), 10000);
+
+	  } catch (err) {
+		  status.className = "error";
+		  status.innerHTML = `<span>✗</span> <span>${escHtml(err.message)}</span>`;
+	  } finally {
+		  State.submitting = false;
+		  btn.disabled = false;
+		  btn.innerHTML = '✦ Crea cliente';
+	  }
+  });
+
+	createForm.addEventListener('change', () => { State.drawerDirty.create = true; });
 }
 
-document.getElementById('create-drawer-close').addEventListener('click', closeCreateDrawer);
-document.getElementById('create-backdrop').addEventListener('click', closeCreateDrawer);
-document.getElementById('btn-new-client').addEventListener('click', openCreateDrawer);
-
-// Traccia modifiche nel form creazione
-document.getElementById('onboarding-form').addEventListener('input', () => { _createDirty = true; });
-document.getElementById('onboarding-form').addEventListener('change', () => { _createDirty = true; });
+// ── 11. Edit Drawer: Caricamento e Salvataggio ────────────────
 
 async function loadEditDrawer(slug) {
-	// Reset
-	document.getElementById('drawer-subtitle').textContent = slug;
-	document.getElementById('di-site-url').textContent = '…';
-	document.getElementById('di-site-url').href = '#';
-	document.getElementById('di-cms-url').textContent = '…';
-	document.getElementById('di-cms-url').href = '#';
-	document.getElementById('edit-slug').value = slug;
-	document.getElementById('edit-status').className = '';
-	document.getElementById('edit-status').textContent = '';
-	document.getElementById('edit-rebuild-note').classList.remove('visible');
-	openDrawer();
+	const els = {
+		subtitle: document.getElementById('drawer-subtitle'),
+		siteUrl: document.getElementById('di-site-url'),
+		cmsUrl: document.getElementById('di-cms-url'),
+		slug: document.getElementById('edit-slug'),
+		status: document.getElementById('edit-status'),
+		name: document.getElementById('edit-name'),
+		lang: document.getElementById('edit-lang'),
+		domain: document.getElementById('edit-domain'),
+		form: document.getElementById('edit-form'),
+		rebuildNote: document.getElementById('edit-rebuild-note')
+	};
 
-	const tok = currentToken();
-	if (!tok) { showToast('Token non disponibile', 'error'); return; }
+	els.subtitle.textContent = escHtml(slug);
+	els.siteUrl.textContent = '…'; els.siteUrl.href = '#';
+	els.cmsUrl.textContent = '…'; els.cmsUrl.href = '#';
+	els.slug.value = slug;
+	els.status.className = ''; els.status.textContent = '';
+	els.rebuildNote.classList.remove('visible');
+
+	DrawerManager.open('edit');
+
+	if (!State.authToken) {
+		showToast('Token non disponibile', 'error');
+		return;
+	}
 
 	try {
 		const r = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
-			headers: { Authorization: 'Bearer ' + tok }
+			headers: { Authorization: 'Bearer ' + State.authToken }
 		});
 		const data = await r.json();
 		if (!r.ok) throw new Error(data.error || r.statusText);
 
-		// Popola info
 		const siteUrl = data.site_url || '';
 		const adminUrl = siteUrl ? siteUrl.replace(/\/$/, '') + '/admin/' : '';
-		const urlEl = document.getElementById('di-site-url');
-		const cmsEl = document.getElementById('di-cms-url');
-		if (siteUrl) { urlEl.href = siteUrl; urlEl.textContent = siteUrl; }
-		else { urlEl.textContent = '—'; urlEl.className = 'drawer-info-value plain'; }
-		if (adminUrl) { cmsEl.href = adminUrl; cmsEl.textContent = 'Apri CMS ↗'; }
-		else { cmsEl.textContent = '—'; cmsEl.className = 'drawer-info-value plain'; }
 
-		// Popola form
+		if (siteUrl) {
+			els.siteUrl.href = escHtml(siteUrl);
+			els.siteUrl.textContent = escHtml(siteUrl);
+		} else {
+			els.siteUrl.textContent = '—';
+			els.siteUrl.className = 'drawer-info-value plain';
+		}
+
+		if (adminUrl) {
+			els.cmsUrl.href = escHtml(adminUrl);
+			els.cmsUrl.textContent = 'Apri CMS ↗';
+		} else {
+			els.cmsUrl.textContent = '—';
+			els.cmsUrl.className = 'drawer-info-value plain';
+		}
+
 		setTemplatePicker('tpicker-edit', data.template || 'template-01');
-		document.getElementById('edit-name').value = data.client_name || '';
-		document.getElementById('edit-lang').value = data.default_lang || 'it';
-		document.getElementById('edit-domain').value = data.custom_domain || '';
+		els.name.value = data.client_name || '';
+		els.lang.value = data.default_lang || 'it';
+		els.domain.value = data.custom_domain || '';
 
-		// Salva valori originali per confronto
-		document.getElementById('edit-form').dataset.origTemplate = data.template || 'template-01';
-		document.getElementById('edit-form').dataset.origLang = data.default_lang || 'it';
-		_drawerDirty = false; // reset dopo popolamento — solo le modifiche utente contano
+		els.form.dataset.origTemplate = data.template || 'template-01';
+		els.form.dataset.origLang = data.default_lang || 'it';
+		State.drawerDirty.edit = false;
 
 	} catch (e) {
 		showToast('Errore caricamento dettagli: ' + e.message, 'error');
 	}
 }
 
-document.getElementById('edit-form').addEventListener('submit', async function (e) {
-	e.preventDefault();
-	const btn = document.getElementById('edit-submit-btn');
-	const icon = document.getElementById('edit-submit-icon');
-	const text = document.getElementById('edit-submit-text');
-	const status = document.getElementById('edit-status');
-	status.className = ''; status.textContent = '';
+const editForm = document.getElementById('edit-form');
+if (editForm) {
+	editForm.addEventListener('submit', async function (e) {
+		e.preventDefault();
+		if (State.submitting) return;
 
-	const tok = currentToken();
-	if (!tok) { window.netlifyIdentity && window.netlifyIdentity.open(); return; }
+		const btn = document.getElementById('edit-submit-btn');
+		const status = document.getElementById('edit-status');
+		status.className = ''; status.textContent = '';
 
-	const slug = document.getElementById('edit-slug').value;
-	const client_name = document.getElementById('edit-name').value.trim();
-	const template = document.getElementById('edit-template').value;
-	const default_lang = document.getElementById('edit-lang').value;
-	const custom_domain = document.getElementById('edit-domain').value.trim();
-	const origTemplate = this.dataset.origTemplate;
-	const origLang = this.dataset.origLang;
+		const slug = document.getElementById('edit-slug').value;
+		const client_name = document.getElementById('edit-name').value.trim();
+		const template = document.getElementById('edit-template').value;
+		const default_lang = document.getElementById('edit-lang').value;
+		const custom_domain = document.getElementById('edit-domain').value.trim();
 
-	// Invia solo i campi effettivamente cambiati
-	const payload = { slug, client_name }; // client_name invia sempre
-	if (template !== origTemplate) payload.template = template;
-	if (default_lang !== origLang) payload.default_lang = default_lang;
-	payload.custom_domain = custom_domain; // invia sempre (può essere svuotato)
+		const origTemplate = this.dataset.origTemplate;
+		const origLang = this.dataset.origLang;
 
-	btn.disabled = true;
-	icon.innerHTML = '<span class="spin">⚙</span>';
-	text.textContent = 'Salvataggio…';
+		const payload = { slug, client_name, custom_domain };
+		if (template !== origTemplate) payload.template = template;
+		if (default_lang !== origLang) payload.default_lang = default_lang;
 
-	try {
-		const res = await fetch('/api/clients', {
-			method: 'PATCH',
-			headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
-			body: JSON.stringify(payload)
-		});
-		const json = await res.json();
-		if (!res.ok) throw new Error(json.error || res.statusText);
+		State.submitting = true;
+		btn.disabled = true;
+		btn.innerHTML = '<span class="spin">⚙</span> Salvataggio…';
 
-		if (json.needs_rebuild && json.run_id) {
-			status.className = 'success';
-			status.innerHTML = '<span>✓</span> <span>Modifiche salvate — rebuild avviato</span>';
-			showToast(`Rebuild avviato per "${slug}"`, 'success');
-			const rebuildSiteUrl = document.getElementById('di-site-url').href;
-			savePendingRun(json.run_id, slug, rebuildSiteUrl);
-			// Passa i valori PRE-modifica: se l'utente annulla, verranno ripristinati
-			startPolling(json.run_id, tok, slug, rebuildSiteUrl, { template: origTemplate, default_lang: origLang });
-			setTimeout(closeDrawer, 1500);
-		} else {
-			status.className = 'success';
-			status.innerHTML = '<span>✓</span> <span>Modifiche salvate</span>';
-			showToast('Dominio aggiornato', 'success');
-			setTimeout(closeDrawer, 1200);
-		}
-		// Aggiorna valori originali
-		this.dataset.origTemplate = template;
-		this.dataset.origLang = default_lang;
-		_drawerDirty = false;
-		document.getElementById('edit-rebuild-note').classList.remove('visible');
+		try {
+			const res = await fetch('/api/clients', {
+				method: 'PATCH',
+				headers: { Authorization: 'Bearer ' + State.authToken, 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			const json = await res.json();
+			if (!res.ok) throw new Error(json.error || res.statusText);
 
-	} catch (err) {
-		status.className = 'error';
-		status.innerHTML = '<span>✗</span> <span>' + err.message + '</span>';
-	} finally {
-		btn.disabled = false;
-		icon.textContent = '💾';
-		text.textContent = 'Salva modifiche';
-	}
-});
+			if (json.needs_rebuild && json.run_id) {
+				status.className = 'success';
+				status.innerHTML = '<span>✓</span> <span>Modifiche salvate — rebuild avviato</span>';
+				showToast(`Rebuild avviato per "${slug}"`, 'success');
 
-// ── GitHub Actions polling ────────────────────────────────────
-function startPolling(runId, authToken, slug, siteUrl, prevSettings) {
-	const box = document.getElementById("action-box");
-	const header = document.getElementById("action-header");
-	const icon = document.getElementById("action-icon");
-	const label = document.getElementById("action-label");
-	const link = document.getElementById("action-link");
-	const stepsList = document.getElementById("action-steps");
-	const terminalBody = box.querySelector('.terminal-body');
-	const errorsBox = document.getElementById("action-errors");
-  const errorsText = document.getElementById("action-errors-text");
-	const cancelBtn = document.getElementById("btn-cancel-run");
+				const rebuildSiteUrl = document.getElementById('di-site-url').href;
+				Storage.set(KEYS.PENDING, { run_id: json.run_id, slug, site_url: rebuildSiteUrl, started_at: Date.now() });
 
-  box.classList.add("visible");
-  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  clearTerminalLog(); // il nuovo render() sovrascriverà con i dati aggiornati
-
-	// ─ Cancel handler ──────────────────────────────────────
-	let cancelListener = null;
-	function attachCancel() {
-		if (cancelListener) cancelBtn.removeEventListener('click', cancelListener);
-		cancelListener = async function () {
-			if (!confirm('Annullare il deploy in corso?')) return;
-			cancelBtn.disabled = true;
-			cancelBtn.textContent = '…';
-			try {
-				const r = await fetch('/api/cancel-run?run_id=' + runId + (slug ? '&slug=' + encodeURIComponent(slug) : ''), {
-					method: 'POST',
-					headers: { Authorization: 'Bearer ' + authToken }
-				});
-				const j = await r.json();
-				if (!r.ok) throw new Error(j.error || r.statusText);
-				showToast('⏹ Deploy annullato', 'error');
-
-				// Ripristina template/lingua precedenti in netlify.json e nel drawer
-				if (prevSettings && slug) {
-					try {
-						await fetch('/api/clients', {
-							method: 'PATCH',
-							headers: { Authorization: 'Bearer ' + authToken, 'Content-Type': 'application/json' },
-							body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang, no_rebuild: true })
-						});
-					} catch { /* best-effort */ }
-					// Riapre il drawer con i valori ripristinati
-					openDrawer();
-					loadEditDrawer(slug);
-				}
-			} catch (err) {
-				showToast('Errore annullamento: ' + err.message, 'error');
-				cancelBtn.disabled = false;
-				cancelBtn.textContent = '✕ Annulla';
+				initActionPolling(json.run_id, slug, rebuildSiteUrl, { template: origTemplate, default_lang: origLang });
+				setTimeout(() => DrawerManager.close('edit'), 1500);
+			} else {
+				status.className = 'success';
+				status.innerHTML = '<span>✓</span> <span>Modifiche salvate</span>';
+				showToast('Landing aggiornata', 'success');
+				setTimeout(() => DrawerManager.close('edit'), 1200);
 			}
-		};
-		cancelBtn.addEventListener('click', cancelListener);
-	}
-	attachCancel();
 
-  const ICONS = {
-    queued:     "⏳",
-    in_progress:'<span class="spin">⚙</span>',
-    success:    "✅",
-    failure:    "❌",
-    cancelled:  "⚠️",
-    timed_out:  "⏱️",
-  };
-  const LABELS = {
-    queued:     "In coda…",
-    in_progress:"Deploy in esecuzione…",
-    success:    "Deploy completato con successo",
-    failure:    "Deploy fallito",
-    cancelled:  "Annullato",
-    timed_out:  "Timeout",
-  };
-  const STEP_CLASS = {
-    success:    "step-success",
-    failure:    "step-failure",
-    skipped:    "step-skipped",
-    in_progress:"step-in_progress",
-  };
+			this.dataset.origTemplate = template;
+			this.dataset.origLang = default_lang;
+			State.drawerDirty.edit = false;
+			document.getElementById('edit-rebuild-note').classList.remove('visible');
 
-  function render(data) {
-    const key = data.status === "completed"
-      ? (data.conclusion ?? "failure")
-      : data.status;
-
-	  // Aggiorna persistenza e badge in tabella
-	  saveRunStatus(slug, runId, data.status, data.conclusion || null);
-	  const slugRow = document.querySelector(`tr[data-slug="${slug}"]`);
-	  if (slugRow) {
-		  const existing = slugRow.querySelector('.deploy-badge');
-		  const newBadge = renderDeployBadge(getRunStatus(slug));
-		  if (existing) {
-			  if (newBadge) existing.outerHTML = newBadge;
-			  else existing.remove();
-		  } else if (newBadge) {
-			  const chipCell = slugRow.querySelector('td:first-child');
-			  if (chipCell) chipCell.insertAdjacentHTML('beforeend', '<br>' + newBadge);
-		  }
-	  }
-
-	  // Mostra/nascondi pulsante annulla
-	  const cancellable = data.status === 'queued' || data.status === 'in_progress';
-	  cancelBtn.style.display = cancellable ? '' : 'none';
-	  cancelBtn.disabled = false;
-	  cancelBtn.textContent = '\u2715 Annulla';
-
-	  header.className = "terminal-status-line " + key;
-    icon.innerHTML      = ICONS[key] ?? "❓";
-    label.textContent   = LABELS[key] ?? key;
-	  document.title = (LABELS[key] ?? key) + ' — Ristogen';
-    link.href           = data.url;
-
-    if (data.jobs && data.jobs.length > 0) {
-      const steps = data.jobs[0].steps ?? [];
-      stepsList.innerHTML = steps.map(s => {
-        const state = s.conclusion ?? s.status ?? "";
-		  return `<li class="${STEP_CLASS[state] || ""}">${s.name}</li>`;
-      }).join("");
-      if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-
-      const allErrors = data.jobs.flatMap(j => j.errors ?? []).filter(Boolean);
-		errorsBox.className = "terminal-errors" + (allErrors.length ? " visible" : "");
-      errorsText.textContent = allErrors.join("\n\n");
-
-      // Salva snapshot log
-      saveTerminalLog({
-        slug,
-        run_id: runId,
-        gh_url: link.href,
-        status_key: key,
-        steps: steps.map(s => ({ name: s.name, state: s.conclusion ?? s.status ?? '' })),
-        errors: allErrors
-      });
-    }
-
-    if (data.status === "completed") {
-      clearPendingRun();
-		document.title = 'Ristogen — Dashboard';
-		cancelBtn.style.display = 'none';
-      const ok = data.conclusion === "success";
-      showToast(ok ? "✅ Landing pubblicata!" : "❌ Deploy fallito", ok ? "success" : "error");
-      if (ok) {
-        // Mostra prossimi passi solo a deploy riuscito, con step azzerati
-		  clearStepsForSlug(slug || '');
-		  showNextSteps(slug || '', siteUrl || '');
-        setTimeout(() => loadClients(), 3000);
-      }
-    }
-  }
-
-  // ── Backoff polling: 3s (0-60s) → 5s (60-180s) → 10s (180s+) ───────────
-  const pollStart = Date.now();
-  let _pollTimer = null;
-
-  function scheduleNext() {
-    const elapsed = Date.now() - pollStart;
-    const delay = elapsed < 60_000 ? 3_000
-                : elapsed < 180_000 ? 5_000
-                : 10_000;
-    _pollTimer = setTimeout(tick, delay);
-  }
-
-  async function tick() {
-    try {
-      const r = await fetch("/api/action-status?run_id=" + runId, {
-        headers: { Authorization: "Bearer " + authToken },
-      });
-      if (!r.ok) { scheduleNext(); return; }
-      const data = await r.json();
-      render(data);
-      if (data.status !== "completed") scheduleNext();
-    } catch { scheduleNext(); /* ignora errori transitori */ }
-  }
-
-  scheduleNext();
-}
-
-// ── Template Picker personalizzato ────────────────────────────
-function setTemplatePicker(pickerId, value) {
-  const picker = document.getElementById(pickerId);
-  if (!picker) return;
-  const input  = picker.querySelector('input[type="hidden"]');
-  const item   = picker.querySelector(`.tpicker-item[data-value="${value}"]`);
-  if (!item) return;
-  if (input) {
-    input.value = value;
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-  const label   = item.dataset.label || '';
-  const thumbSrc = item.querySelector('.tpicker-item-thumb')?.src || '';
-  const trigger = picker.querySelector('.tpicker-btn');
-  if (trigger) {
-    trigger.querySelector('.tpicker-label').textContent = label;
-    const t = trigger.querySelector('.tpicker-thumb');
-    if (t && thumbSrc) t.src = thumbSrc;
-  }
-  picker.querySelectorAll('.tpicker-item').forEach(i => i.classList.toggle('selected', i === item));
-}
-
-function initTemplatePickers() {
-  // Render dynamic picker HTML
-  renderTemplatePicker('tpicker-main', 'template', 'template', 'template-01');
-  renderTemplatePicker('tpicker-edit', 'template', 'edit-template', 'template-01');
-
-	// Mostra nota rebuild quando template o lang cambiano (deve stare qui perché
-	// #edit-template viene creato da renderTemplatePicker appena sopra)
-	['edit-template', 'edit-lang'].forEach(id => {
-		const el = document.getElementById(id);
-		if (!el) return;
-		el.addEventListener('change', function () {
-			_drawerDirty = true;
-			const form = document.getElementById('edit-form');
-			const changed = form.querySelector('#edit-template').value !== form.dataset.origTemplate
-				|| form.querySelector('#edit-lang').value !== form.dataset.origLang;
-			document.getElementById('edit-rebuild-note').classList.toggle('visible', changed);
-		});
+		} catch (err) {
+			status.className = 'error';
+			status.innerHTML = `<span>✗</span> <span>${escHtml(err.message)}</span>`;
+		} finally {
+			State.submitting = false;
+			btn.disabled = false;
+			btn.innerHTML = '💾 Salva modifiche';
+		}
 	});
 
-	// Qualunque modifica testuale nel drawer segna dirty
-	document.getElementById('edit-form').addEventListener('input', () => { _drawerDirty = true; });
-
-  document.querySelectorAll('.tpicker').forEach(picker => {
-    const trigger = picker.querySelector('.tpicker-btn');
-    const list    = picker.querySelector('.tpicker-list');
-    const input   = picker.querySelector('input[type="hidden"]');
-    if (!trigger || !list) return;
-
-    // Apri/chiudi al click sul trigger
-    trigger.addEventListener('click', e => {
-      e.stopPropagation();
-      const isOpen = picker.classList.toggle('open');
-      trigger.setAttribute('aria-expanded', String(isOpen));
-    });
-
-    // Selezione opzione
-    list.querySelectorAll('.tpicker-item').forEach(item => {
-      item.addEventListener('click', () => {
-        setTemplatePicker(picker.id, item.dataset.value);
-        picker.classList.remove('open');
-        trigger.setAttribute('aria-expanded', 'false');
-      });
-    });
-
-    // Chiudi cliccando fuori
-    document.addEventListener('click', e => {
-      if (!picker.contains(e.target)) {
-        picker.classList.remove('open');
-        trigger.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    // Stato iniziale
-    const initVal = input?.value || list.querySelector('.tpicker-item')?.dataset.value;
-    if (initVal) {
-      list.querySelectorAll('.tpicker-item').forEach(i =>
-        i.classList.toggle('selected', i.dataset.value === initVal)
-      );
-    }
-  });
+	editForm.addEventListener('input', () => { State.drawerDirty.edit = true; });
+	editForm.addEventListener('change', () => {
+		State.drawerDirty.edit = true;
+		const changed = document.getElementById('edit-template').value !== editForm.dataset.origTemplate
+			|| document.getElementById('edit-lang').value !== editForm.dataset.origLang;
+		document.getElementById('edit-rebuild-note').classList.toggle('visible', changed);
+	});
 }
 
-// ── Event delegation su tbody ─────────────────────────────────
+// ── 12. GitHub Actions Polling (Optimized DOM Updates) ────────
+
+function initActionPolling(runId, slug, siteUrl, prevSettings) {
+	const els = {
+		box: document.getElementById("action-box"),
+		header: document.getElementById("action-header"),
+		icon: document.getElementById("action-icon"),
+		label: document.getElementById("action-label"),
+		link: document.getElementById("action-link"),
+		steps: document.getElementById("action-steps"),
+		body: document.querySelector('#action-box .terminal-body'),
+		errorsBox: document.getElementById("action-errors"),
+		errorsText: document.getElementById("action-errors-text"),
+		cancelBtn: document.getElementById("btn-cancel-run")
+	};
+
+	els.box.classList.add("visible");
+	els.box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+	Storage.del(KEYS.TERM_LOG);
+
+	const ICONS = { queued: "⏳", in_progress: '<span class="spin">⚙</span>', success: "✅", failure: "❌", cancelled: "⚠️", timed_out: "⏱️" };
+	const LABELS = { queued: "In coda…", in_progress: "Deploy in esecuzione…", success: "Deploy completato con successo", failure: "Deploy fallito", cancelled: "Annullato", timed_out: "Timeout" };
+	const STEP_CLASS = { success: "step-success", failure: "step-failure", skipped: "step-skipped", in_progress: "step-in_progress" };
+
+	// Rimuovi listener precedenti dal bottone Annulla tramite clonazione
+	const newCancelBtn = els.cancelBtn.cloneNode(true);
+	els.cancelBtn.parentNode.replaceChild(newCancelBtn, els.cancelBtn);
+	els.cancelBtn = newCancelBtn;
+
+	els.cancelBtn.addEventListener('click', async () => {
+		if (!confirm('Annullare il deploy in corso?')) return;
+		els.cancelBtn.disabled = true;
+		els.cancelBtn.textContent = '…';
+		try {
+			const r = await fetch(`/api/cancel-run?run_id=${runId}${slug ? '&slug=' + encodeURIComponent(slug) : ''}`, {
+				method: 'POST',
+				headers: { Authorization: 'Bearer ' + State.authToken }
+			});
+			if (!r.ok) throw new Error(await r.text());
+			showToast('⏹ Deploy annullato', 'error');
+			Poller.stop(slug); // Ferma immediatamente il polling locale
+
+			if (prevSettings && slug) {
+				await fetch('/api/clients', {
+					method: 'PATCH',
+					headers: { Authorization: 'Bearer ' + State.authToken, 'Content-Type': 'application/json' },
+					body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang, no_rebuild: true })
+				});
+				DrawerManager.open('edit');
+				loadEditDrawer(slug);
+			}
+		} catch (err) {
+			showToast('Errore annullamento: ' + err.message, 'error');
+			els.cancelBtn.disabled = false;
+			els.cancelBtn.textContent = '✕ Annulla';
+		}
+	});
+
+	let lastStatus = null;
+	let lastStepsHash = null;
+
+	async function pollTick() {
+		try {
+			const r = await fetch("/api/action-status?run_id=" + runId, {
+				headers: { Authorization: "Bearer " + State.authToken },
+			});
+			if (!r.ok) return true; // Continua a riprovare su errori 5xx transitori
+
+			const data = await r.json();
+			const key = data.status === "completed" ? (data.conclusion ?? "failure") : data.status;
+
+			if (key !== lastStatus) {
+				Storage.set(KEYS.RUN + slug, { run_id: runId, status: data.status, conclusion: data.conclusion || null, updated_at: Date.now() });
+				els.header.className = "terminal-status-line " + key;
+				els.icon.innerHTML = ICONS[key] ?? "❓";
+				els.label.textContent = LABELS[key] ?? key;
+				document.title = `${LABELS[key] ?? key} — Ristogen`;
+				els.link.href = escHtml(data.url);
+				lastStatus = key;
+
+				const cancellable = data.status === 'queued' || data.status === 'in_progress';
+				els.cancelBtn.style.display = cancellable ? '' : 'none';
+				els.cancelBtn.disabled = false;
+				els.cancelBtn.textContent = '\u2715 Annulla';
+
+				// Aggiorna badge in tabella senza ricreare l'intera riga
+				const badgeCell = document.querySelector(`tr[data-slug="${slug}"] td:first-child`);
+				if (badgeCell) {
+					const oldBadge = badgeCell.querySelector('.deploy-badge');
+					if (oldBadge) oldBadge.remove();
+					const newBadgeHtml = renderDeployBadge(Storage.get(KEYS.RUN + slug));
+					if (newBadgeHtml) badgeCell.insertAdjacentHTML('beforeend', '<br>' + newBadgeHtml);
+				}
+			}
+
+			if (data.jobs?.length > 0) {
+				const steps = data.jobs[0].steps ?? [];
+				const currentHash = steps.map(s => s.name + (s.conclusion ?? s.status)).join('|');
+
+				// Evita reflow del DOM se i log non sono cambiati (Performance)
+				if (currentHash !== lastStepsHash) {
+					els.steps.innerHTML = steps.map(s =>
+						`<li class="${STEP_CLASS[s.conclusion ?? s.status ?? ""] || ""}">${escHtml(s.name)}</li>`
+					).join("");
+					if (els.body) els.body.scrollTop = els.body.scrollHeight;
+					lastStepsHash = currentHash;
+				}
+
+				const allErrors = data.jobs.flatMap(j => j.errors ?? []).filter(Boolean);
+				if (allErrors.length) {
+					els.errorsBox.className = "terminal-errors visible";
+					els.errorsText.textContent = allErrors.join("\n\n");
+				}
+
+				Storage.set(KEYS.TERM_LOG, {
+					slug, run_id: runId, gh_url: data.url, status_key: key, saved_at: Date.now(),
+					steps: steps.map(s => ({ name: s.name, state: s.conclusion ?? s.status ?? '' })),
+					errors: allErrors
+				});
+			}
+
+			if (data.status === "completed") {
+				Storage.del(KEYS.PENDING);
+				document.title = 'Ristogen — Dashboard';
+				els.cancelBtn.style.display = 'none';
+
+				const ok = data.conclusion === "success";
+				showToast(ok ? "✅ Landing pubblicata!" : "❌ Deploy fallito", ok ? "success" : "error");
+
+				if (ok) {
+					Storage.del(KEYS.NS_STEPS + slug);
+					showNextSteps(slug || '', siteUrl || '');
+					setTimeout(() => loadClients(State.authToken), 3000);
+				}
+				return false; // Ferma il poller
+			}
+			return true; // Continua il poller
+		} catch {
+			return true; // Continua su network error client-side
+		}
+	}
+
+	// Backoff polling controllato
+	const start = Date.now();
+	Poller.start(slug, pollTick, 3000); // Il primo tick partirà a 3s, la logica di backoff reale può essere implementata nel wrapper Poller se serve, qui manteniamo 3s fissi sicuri.
+}
+
+// ── 13. Event Delegation & Search ─────────────────────────────
+
 function initTableDelegation() {
-  const tbody = document.getElementById('clients-tbody');
-  if (!tbody) return;
+	if (!DOM.tbody) return;
 
-  // Ordinamento colonne
-  const thead = document.querySelector('#clients-table thead');
-  if (thead) {
-    thead.addEventListener('click', function (e) {
-      const th = e.target.closest('th[data-sort]');
-      if (!th || !_allClients.length) return;
-      const key = th.dataset.sort;
-      if (_sortKey === key) _sortAsc = !_sortAsc;
-      else { _sortKey = key; _sortAsc = true; }
-      renderClientRows(_allClients);
-    });
-  }
+	const thead = document.querySelector('#clients-table thead');
+	if (thead) {
+		thead.addEventListener('click', function (e) {
+			const th = e.target.closest('th[data-sort]');
+			if (!th || !State.clients.length) return;
+			const key = th.dataset.sort;
+			if (State.sort.key === key) State.sort.asc = !State.sort.asc;
+			else { State.sort.key = key; State.sort.asc = true; }
+			renderClientRows(State.clients);
+		});
+	}
 
-  tbody.addEventListener('click', async function (e) {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const slug = btn.dataset.slug;
+	DOM.tbody.addEventListener('click', async function (e) {
+		const btn = e.target.closest('button');
+		if (!btn) return;
+		const slug = btn.dataset.slug;
 
-    if (btn.classList.contains('btn-steps')) {
-      showNextSteps(slug, btn.dataset.siteUrl || '');
-	} else if (btn.classList.contains('btn-copy')) {
-		const text = btn.dataset.copy || '';
-		const label = btn.dataset.copyLabel || 'testo';
-		if (!text) return;
-		navigator.clipboard.writeText(text).then(() => {
-			const orig = btn.innerHTML;
-			btn.innerHTML = '&#x2713;';
-			btn.classList.add('btn-copy--ok');
-			setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('btn-copy--ok'); }, 1500);
-			showToast(`${label} copiato`, 'success');
-		}).catch(() => showToast('Copia non riuscita', 'error'));
-    } else if (btn.classList.contains('btn-edit')) {
-      loadEditDrawer(slug);
-    } else if (btn.classList.contains('btn-delete')) {
-      if (PROTECTED_SLUGS.includes(slug)) { showToast('Questa landing è protetta e non può essere eliminata', 'error'); return; }
-      if (!confirm(`Eliminare "${slug}" da Netlify e dal repo?`)) return;
-      btn.disabled = true;
-      btn.textContent = '…';
-      try {
-        const dr = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
-          method: 'DELETE',
-          headers: { Authorization: 'Bearer ' + _authToken }
-        });
-        const dj = await dr.json();
-        if (!dr.ok) throw new Error(dj.error || dr.statusText);
-        document.querySelector(`tr[data-slug="${slug}"]`)?.remove();
-        const remaining = document.querySelectorAll('#clients-tbody tr[data-slug]').length;
-        updateCountBadge(remaining);
-        if (!remaining) document.getElementById('clients-tbody').innerHTML =
-          emptyRow('Nessuna landing ancora creata');
-        showToast(`Landing "${slug}" eliminata`, 'success');
-      } catch (err) {
-        showToast('Errore eliminazione: ' + err.message, 'error');
-        btn.disabled = false;
-        btn.textContent = 'Elimina';
-      }
-    }
-  });
+		if (btn.classList.contains('btn-steps')) {
+			showNextSteps(slug, btn.dataset.siteUrl || '');
+		} else if (btn.classList.contains('btn-copy')) {
+			const text = btn.dataset.copy || '';
+			const label = btn.dataset.copyLabel || 'testo';
+			if (!text) return;
+			navigator.clipboard.writeText(text).then(() => {
+				const orig = btn.innerHTML;
+				btn.innerHTML = '✓';
+				btn.classList.add('btn-copy--ok');
+				setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('btn-copy--ok'); }, 1500);
+				showToast(`${label} copiato`, 'success');
+			}).catch(() => showToast('Copia non riuscita', 'error'));
+		} else if (btn.classList.contains('btn-edit')) {
+			loadEditDrawer(slug);
+		} else if (btn.classList.contains('btn-delete')) {
+			if (PROTECTED_SLUGS.includes(slug)) { showToast('Landing protetta, impossibile eliminare', 'error'); return; }
+			if (!confirm(`Eliminare definitivamente "${slug}"?`)) return;
+
+			btn.disabled = true;
+			btn.textContent = '…';
+			try {
+				const r = await fetch('/api/clients?slug=' + encodeURIComponent(slug), {
+					method: 'DELETE',
+					headers: { Authorization: 'Bearer ' + State.authToken }
+				});
+				if (!r.ok) throw new Error((await r.json()).error || r.statusText);
+
+				document.querySelector(`tr[data-slug="${slug}"]`)?.remove();
+				State.clients = State.clients.filter(c => c.slug !== slug);
+				updateCountBadge(State.clients.length);
+
+				if (!State.clients.length) DOM.tbody.innerHTML = emptyRow('Nessuna landing ancora creata', true);
+				showToast(`Landing "${slug}" eliminata`, 'success');
+				Storage.del(KEYS.RUN + slug);
+				Storage.del(KEYS.NS_STEPS + slug);
+			} catch (err) {
+				showToast('Errore eliminazione: ' + err.message, 'error');
+				btn.disabled = false;
+				btn.textContent = 'Elimina';
+			}
+		}
+	});
 }
 
-// ── Search / filter ───────────────────────────────────────────
 function initSearchFilter() {
-  const input = document.getElementById('clients-search');
-  if (!input) return;
-  input.addEventListener('input', function () {
-    const q = this.value.trim().toLowerCase();
-    document.querySelectorAll('#clients-tbody tr[data-slug]').forEach(row => {
-      row.style.display = !q || row.dataset.slug.includes(q) ? '' : 'none';
-    });
-  });
+	const input = document.getElementById('clients-search');
+	if (!input) return;
+
+	// Utilizza il debounce creato in precedenza per le performance di ricerca
+	input.addEventListener('input', debounce(function () {
+		const q = this.value.trim().toLowerCase();
+		document.querySelectorAll('#clients-tbody tr[data-slug]').forEach(row => {
+			row.style.display = !q || row.dataset.slug.includes(q) ? '' : 'none';
+		});
+	}, 200));
 }
-// ── Pulsante login nella login-screen ────────────────────────
-document.getElementById('btn-login').addEventListener('click', () => {
-  window.netlifyIdentity && window.netlifyIdentity.open();
-});
-// ── Bootstrap ─────────────────────────────────────────────
-// Aspetta che DOM e Identity widget siano pronti
+
+// ── 14. Bootstrap ─────────────────────────────────────────────
+
 function bootstrap() {
-  initTemplatePickers();
-  initTableDelegation();
-  initSearchFilter();
-  initIdentity();
+	initTemplatePickers();
+	initTableDelegation();
+	initSearchFilter();
+	initIdentity();
+
+	document.getElementById("btn-refresh-clients")?.addEventListener("click", function () {
+		if (!State.authToken) return;
+		this.classList.add("spinning");
+		loadClients(State.authToken)
+			.finally(() => this.classList.remove("spinning"));
+	});
 }
+
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bootstrap);
+	document.addEventListener("DOMContentLoaded", bootstrap);
 } else {
-  bootstrap();
+	bootstrap();
 }
