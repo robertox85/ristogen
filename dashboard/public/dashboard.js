@@ -11,6 +11,16 @@ const State = {
 	drawerDirty: { edit: false, create: false }
 };
 
+
+const TEMPLATES = [
+	{ value: 'template-01', label: 'Template 01 — Dark', desc: 'Dark — ristorante moderno', thumb: '/templates/template-01.png' },
+	{ value: 'template-02', label: 'Template 02 — Light', desc: 'Light — elegante e chiaro', thumb: '/templates/template-02.png' }
+];
+
+const LANG_FLAGS = { it: '🇮🇹', en: '🇬🇧' };
+const PROTECTED_SLUGS = ['burger-demo'];
+
+
 // ── 2. Utility e Sicurezza ────────────────────────────────────
 // Fix XSS: Sanificazione estesa (copre anche apici)
 function escHtml(str) {
@@ -623,38 +633,41 @@ function initActionPolling(runId, slug, siteUrl, prevSettings) {
 	const STEP_CLASS = { success: "step-success", failure: "step-failure", skipped: "step-skipped", in_progress: "step-in_progress" };
 
 	// Rimuovi listener precedenti dal bottone Annulla tramite clonazione
-	const newCancelBtn = els.cancelBtn.cloneNode(true);
-	els.cancelBtn.parentNode.replaceChild(newCancelBtn, els.cancelBtn);
-	els.cancelBtn = newCancelBtn;
+	if (els.cancelBtn) {
+		const newCancelBtn = els.cancelBtn.cloneNode(true);
+		els.cancelBtn.parentNode.replaceChild(newCancelBtn, els.cancelBtn);
+		els.cancelBtn = newCancelBtn;
 
-	els.cancelBtn.addEventListener('click', async () => {
-		if (!confirm('Annullare il deploy in corso?')) return;
-		els.cancelBtn.disabled = true;
-		els.cancelBtn.textContent = '…';
-		try {
-			const r = await fetch(`/api/cancel-run?run_id=${runId}${slug ? '&slug=' + encodeURIComponent(slug) : ''}`, {
-				method: 'POST',
-				headers: { Authorization: 'Bearer ' + State.authToken }
-			});
-			if (!r.ok) throw new Error(await r.text());
-			showToast('⏹ Deploy annullato', 'error');
-			Poller.stop(slug); // Ferma immediatamente il polling locale
-
-			if (prevSettings && slug) {
-				await fetch('/api/clients', {
-					method: 'PATCH',
-					headers: { Authorization: 'Bearer ' + State.authToken, 'Content-Type': 'application/json' },
-					body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang, no_rebuild: true })
+		els.cancelBtn.addEventListener('click', async () => {
+			if (!confirm('Annullare il deploy in corso?')) return;
+			els.cancelBtn.disabled = true;
+			els.cancelBtn.textContent = '…';
+			try {
+				const r = await fetch(`/api/cancel-run?run_id=${runId}${slug ? '&slug=' + encodeURIComponent(slug) : ''}`, {
+					method: 'POST',
+					headers: { Authorization: 'Bearer ' + State.authToken }
 				});
-				DrawerManager.open('edit');
-				loadEditDrawer(slug);
+				if (!r.ok) throw new Error(await r.text());
+				showToast('⏹ Deploy annullato', 'error');
+				Poller.stop(slug); // Ferma immediatamente il polling locale
+
+				if (prevSettings && slug) {
+					await fetch('/api/clients', {
+						method: 'PATCH',
+						headers: { Authorization: 'Bearer ' + State.authToken, 'Content-Type': 'application/json' },
+						body: JSON.stringify({ slug, template: prevSettings.template, default_lang: prevSettings.default_lang, no_rebuild: true })
+					});
+					DrawerManager.open('edit');
+					loadEditDrawer(slug);
+				}
+			} catch (err) {
+				showToast('Errore annullamento: ' + err.message, 'error');
+				els.cancelBtn.disabled = false;
+				els.cancelBtn.textContent = '✕ Annulla';
 			}
-		} catch (err) {
-			showToast('Errore annullamento: ' + err.message, 'error');
-			els.cancelBtn.disabled = false;
-			els.cancelBtn.textContent = '✕ Annulla';
-		}
-	});
+		});
+	}
+
 
 	let lastStatus = null;
 	let lastStepsHash = null;
@@ -826,14 +839,6 @@ function initSearchFilter() {
 }
 
 // ── 15. Costanti e Helper UI ──────────────────────────────────
-
-const TEMPLATES = [
-	{ value: 'template-01', label: 'Template 01 — Dark', desc: 'Dark — ristorante moderno', thumb: '/templates/template-01.png' },
-	{ value: 'template-02', label: 'Template 02 — Light', desc: 'Light — elegante e chiaro', thumb: '/templates/template-02.png' }
-];
-
-const LANG_FLAGS = { it: '🇮🇹', en: '🇬🇧' };
-const PROTECTED_SLUGS = ['burger-demo'];
 
 function showToast(msg, type = "") {
 	const el = document.createElement("div");
@@ -1166,6 +1171,8 @@ function restoreTerminalLog() {
 
 // ── 14. Bootstrap ─────────────────────────────────────────────
 
+
+
 function bootstrap() {
 	initTemplatePickers();
 	initTableDelegation();
@@ -1177,6 +1184,10 @@ function bootstrap() {
 		this.classList.add("spinning");
 		loadClients(State.authToken)
 			.finally(() => this.classList.remove("spinning"));
+	});
+
+	document.getElementById('btn-login').addEventListener('click', () => {
+		window.netlifyIdentity && window.netlifyIdentity.open();
 	});
 }
 
