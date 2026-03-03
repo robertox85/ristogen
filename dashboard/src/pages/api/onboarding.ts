@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
 	const defaultLang = (formData.get('default_lang') as string | null) ?? 'it';
 	const customDomain = (formData.get('custom_domain') as string | null)?.trim() ?? '';
 	const clientEmail = (formData.get('client_email') as string | null)?.trim() ?? '';
-	const menuPdf = formData.get('menu_pdf') as File | null;
+	const menuJson = (formData.get('menu_json') as string | null)?.trim() ?? '';
 
 	if (!clientSlug || !/^[a-z0-9-]+$/.test(clientSlug)) {
 		return new Response(JSON.stringify({ error: 'Slug non valido' }), {
@@ -37,67 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	// 3. Estrazione menu da PDF via Claude API (se fornito)
-	let menuJson = '';
-	if (menuPdf && menuPdf.size > 0) {
-		const anthropicKey = import.meta.env.ANTHROPIC_API_KEY;
-		if (!anthropicKey) {
-			return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY non configurata' }), {
-				status: 500,
-				headers: { 'Content-Type': 'application/json' }
-			});
-		}
-
-		const pdfBytes = await menuPdf.arrayBuffer();
-		const uint8 = new Uint8Array(pdfBytes);
-		let binary = '';
-		const chunkSize = 8192;
-		for (let i = 0; i < uint8.length; i += chunkSize) {
-			binary += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
-		}
-		const base64 = btoa(binary);
-
-		const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'x-api-key': anthropicKey,
-				'anthropic-version': '2023-06-01'
-			},
-			body: JSON.stringify({
-				model: 'claude-sonnet-4-20250514',
-				max_tokens: 4096,
-				messages: [{
-					role: 'user',
-					content: [
-						{
-							type: 'document',
-							source: { type: 'base64', media_type: 'application/pdf', data: base64 }
-						},
-						{
-							type: 'text',
-							text: `Estrai il menù da questo PDF.
-Restituisci SOLO un array JSON con questo formato:
-[{"name":"Categoria","items":[{"name":"Piatto","description":"...","price":"9.00","allergeni":[1,7]}]}]
-Usa numeri 1-14 per gli allergeni EU. Nessun testo aggiuntivo.`
-						}
-					]
-				}]
-			})
-		});
-
-		if (!claudeRes.ok) {
-			return new Response(JSON.stringify({ error: 'Errore Claude API: ' + claudeRes.statusText }), {
-				status: 502,
-				headers: { 'Content-Type': 'application/json' }
-			});
-		}
-
-		const claudeData = await claudeRes.json() as { content: Array<{ text: string }> };
-		menuJson = claudeData.content[0]?.text ?? '';
-	}
-
-	// 4. Dispatch GitHub Action
+	// 3. Dispatch GitHub Action
 	const githubToken = import.meta.env.GITHUB_TOKEN;
 	if (!githubToken) {
 		return new Response(JSON.stringify({ error: 'GITHUB_TOKEN non configurato' }), {

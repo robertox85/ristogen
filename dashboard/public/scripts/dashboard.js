@@ -8,7 +8,7 @@ const State = {
 	sort: { key: null, asc: true },
 	activePolls: new Map(), // Registro globale per prevenire memory leak nel polling
 	submitting: false,
-	drawerDirty: { edit: false, create: false }
+	drawerDirty: { edit: false, create: false, menu: false }
 };
 
 
@@ -314,7 +314,8 @@ const DrawerManager = {
 // Event Listeners globali per i Drawer
 document.addEventListener('keydown', e => {
 	if (e.key === 'Escape') {
-		if (document.getElementById('create-drawer')?.classList.contains('open')) DrawerManager.close('create');
+		if (document.getElementById('menu-drawer')?.classList.contains('open')) DrawerManager.close('menu');
+		else if (document.getElementById('create-drawer')?.classList.contains('open')) DrawerManager.close('create');
 		else if (document.getElementById('edit-drawer')?.classList.contains('open')) DrawerManager.close('edit');
 	}
 });
@@ -325,6 +326,9 @@ document.getElementById('btn-new-client')?.addEventListener('click', () => Drawe
 
 document.getElementById('drawer-close')?.addEventListener('click', () => DrawerManager.close('edit'));
 document.getElementById('drawer-backdrop')?.addEventListener('click', () => DrawerManager.close('edit'));
+
+document.getElementById('menu-drawer-close')?.addEventListener('click', () => DrawerManager.close('menu'));
+document.getElementById('menu-backdrop')?.addEventListener('click', () => DrawerManager.close('menu'));
 
 // ── 9. Validazione Slug Reattiva e Sicura (No Race Conditions) ──
 const SlugValidator = {
@@ -1186,6 +1190,392 @@ function restoreTerminalLog() {
 	els.box.classList.add('visible');
 }
 
+// ── 20. Menu Extractor ────────────────────────────────────────
+
+const MenuExtractor = {
+	currentMenu: null,
+
+	async extractFromFile(file) {
+		if (!file || file.type !== 'application/pdf') {
+			MenuExtractor.showError('Seleziona un file PDF valido');
+			return;
+		}
+		if (file.size > 10 * 1024 * 1024) {
+			MenuExtractor.showError('Il PDF è troppo grande (max 10MB)');
+			return;
+		}
+
+		MenuExtractor.showLoading();
+
+		const fd = new FormData();
+		fd.append('menu_pdf', file);
+
+		try {
+			const res = await fetch('/api/extract-menu', {
+				method: 'POST',
+				headers: { Authorization: 'Bearer ' + State.authToken },
+				body: fd
+			});
+			const data = await res.json();
+
+			if (!res.ok) throw new Error(data.error || res.statusText);
+			if (data.error) {
+				MenuExtractor.showError(data.error);
+				return;
+			}
+
+			MenuExtractor.currentMenu = data;
+			MenuDrawer.open(data);
+			MenuExtractor.showIdle();
+		} catch (err) {
+			MenuExtractor.showError('Errore estrazione: ' + err.message);
+		}
+	},
+
+	showLoading() {
+		const dz = document.getElementById('pdf-dropzone');
+		if (!dz) return;
+		dz.querySelector('#dropzone-idle').classList.add('hidden');
+		dz.querySelector('#dropzone-drag').classList.add('hidden');
+		dz.querySelector('#dropzone-loading').classList.remove('hidden');
+		dz.querySelector('#dropzone-loading').classList.add('flex');
+		dz.querySelector('#dropzone-error').classList.add('hidden');
+		dz.querySelector('#dropzone-error').classList.remove('flex');
+	},
+
+	showError(msg) {
+		const dz = document.getElementById('pdf-dropzone');
+		if (!dz) return;
+		dz.querySelector('#dropzone-idle').classList.add('hidden');
+		dz.querySelector('#dropzone-drag').classList.add('hidden');
+		dz.querySelector('#dropzone-loading').classList.add('hidden');
+		dz.querySelector('#dropzone-loading').classList.remove('flex');
+		const errEl = dz.querySelector('#dropzone-error');
+		errEl.classList.remove('hidden');
+		errEl.classList.add('flex');
+		const msgEl = dz.querySelector('#dropzone-error-msg');
+		if (msgEl) msgEl.textContent = msg;
+	},
+
+	showIdle() {
+		const dz = document.getElementById('pdf-dropzone');
+		if (!dz) return;
+		dz.querySelector('#dropzone-idle').classList.remove('hidden');
+		dz.querySelector('#dropzone-drag').classList.add('hidden');
+		dz.querySelector('#dropzone-loading').classList.add('hidden');
+		dz.querySelector('#dropzone-loading').classList.remove('flex');
+		dz.querySelector('#dropzone-error').classList.add('hidden');
+		dz.querySelector('#dropzone-error').classList.remove('flex');
+	}
+};
+
+// ── 21. Menu Drawer ────────────────────────────────────────────
+
+const MenuDrawer = {
+	open(data) {
+		const list = document.getElementById('menu-categories-list');
+		if (!list) return;
+		list.innerHTML = '';
+
+		(data.menu || []).forEach(cat => MenuDrawer._appendCategory(list, cat));
+		MenuDrawer._updateSubtitle();
+		DrawerManager.open('menu');
+	},
+
+	close() {
+		DrawerManager.close('menu');
+	},
+
+	serialize() {
+		const list = document.getElementById('menu-categories-list');
+		if (!list) return [];
+		return Array.from(list.querySelectorAll('.menu-category')).map(catEl => ({
+			name: catEl.querySelector('.cat-name-input').value.trim(),
+			items: Array.from(catEl.querySelectorAll('.menu-item')).map(itemEl => ({
+				name: itemEl.querySelector('.item-name').value.trim(),
+				description: itemEl.querySelector('.item-desc').value.trim(),
+				price: itemEl.querySelector('.item-price').value.trim(),
+				allergeni: itemEl.querySelector('.item-allergeni').value
+					.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n >= 1 && n <= 14)
+			}))
+		}));
+	},
+
+	_updateSubtitle() {
+		const list = document.getElementById('menu-categories-list');
+		const sub = document.getElementById('menu-drawer-subtitle');
+		if (!list || !sub) return;
+		const cats = list.querySelectorAll('.menu-category').length;
+		const items = list.querySelectorAll('.menu-item').length;
+		sub.textContent = `${cats} categor${cats === 1 ? 'ia' : 'ie'}, ${items} piatt${items === 1 ? 'o' : 'i'}`;
+	},
+
+	_appendCategory(list, cat) {
+		const el = document.createElement('div');
+		el.className = 'menu-category rounded-lg border border-gray-200 bg-gray-50';
+		el.draggable = true;
+		el.innerHTML = `
+			<div class="cat-header flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-white rounded-t-lg">
+				<span class="cat-drag-handle cursor-grab touch-none select-none text-gray-300 hover:text-gray-500 text-lg leading-none" title="Trascina per riordinare">⠿</span>
+				<input class="cat-name-input flex-1 rounded border-0 bg-transparent py-0.5 text-[13px] font-semibold text-gray-900 outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 px-1" value="${escHtml(cat.name || '')}" placeholder="Nome categoria" />
+				<button type="button" class="btn-add-item ml-auto rounded border border-gray-200 px-2 py-0.5 text-[11px] text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600">+ Piatto</button>
+				<button type="button" class="btn-remove-cat rounded border border-red-100 px-2 py-0.5 text-[11px] text-red-400 transition hover:bg-red-50 hover:text-red-600">🗑</button>
+			</div>
+			<div class="items-list flex flex-col gap-0 px-2 py-1.5"></div>`;
+
+		const itemsList = el.querySelector('.items-list');
+		(cat.items || []).forEach(item => MenuDrawer._appendItem(itemsList, item));
+
+		el.querySelector('.btn-add-item').addEventListener('click', () => {
+			MenuDrawer._appendItem(itemsList, {});
+			MenuDrawer._updateSubtitle();
+		});
+		el.querySelector('.btn-remove-cat').addEventListener('click', () => {
+			el.remove();
+			MenuDrawer._updateSubtitle();
+		});
+
+		MenuDrawer._initCatDnd(el, list);
+		list.appendChild(el);
+	},
+
+	_appendItem(itemsList, item) {
+		const el = document.createElement('div');
+		el.className = 'menu-item flex items-center gap-1.5 rounded py-1 px-1 transition hover:bg-white group';
+		el.draggable = true;
+		el.innerHTML = `
+			<span class="item-drag-handle cursor-grab touch-none select-none text-gray-200 group-hover:text-gray-400 text-base leading-none shrink-0" title="Trascina">⠿</span>
+			<input class="item-name flex-[2] min-w-0 rounded border border-gray-200 bg-white px-1.5 py-1 text-[12px] text-gray-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10" value="${escHtml(item.name || '')}" placeholder="Piatto" />
+			<input class="item-desc flex-[3] min-w-0 rounded border border-gray-200 bg-white px-1.5 py-1 text-[12px] text-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10" value="${escHtml(item.description || '')}" placeholder="Descrizione" />
+			<div class="flex items-center shrink-0 rounded border border-gray-200 bg-white px-1.5 py-1 gap-0.5">
+				<span class="text-[11px] text-gray-400">€</span>
+				<input class="item-price w-14 text-[12px] text-gray-900 outline-none bg-transparent" value="${escHtml(item.price || '')}" placeholder="0.00" />
+			</div>
+			<input class="item-allergeni w-20 shrink-0 rounded border border-gray-200 bg-white px-1.5 py-1 text-[12px] text-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10" value="${escHtml((item.allergeni || []).join(','))}" placeholder="1,7…" title="Allergeni EU (1-14)" />
+			<button type="button" class="btn-remove-item shrink-0 rounded border border-red-100 px-1.5 py-0.5 text-[11px] text-red-300 transition hover:bg-red-50 hover:text-red-500">🗑</button>`;
+
+		el.querySelector('.btn-remove-item').addEventListener('click', () => {
+			el.remove();
+			MenuDrawer._updateSubtitle();
+		});
+
+		MenuDrawer._initItemDnd(el, itemsList);
+		itemsList.appendChild(el);
+		MenuDrawer._updateSubtitle();
+	},
+
+	// HTML5 DnD for categories
+	_initCatDnd(el, list) {
+		let dragSrc = null;
+
+		el.addEventListener('dragstart', e => {
+			if (!e.target.classList.contains('cat-drag-handle') && !e.target.closest('.cat-drag-handle')) {
+				e.preventDefault(); return;
+			}
+			dragSrc = el;
+			e.dataTransfer.effectAllowed = 'move';
+			setTimeout(() => el.classList.add('opacity-40'), 0);
+		});
+		el.addEventListener('dragend', () => {
+			el.classList.remove('opacity-40');
+			list.querySelectorAll('.menu-category').forEach(c => c.classList.remove('drag-over-cat'));
+		});
+		el.addEventListener('dragover', e => {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'move';
+			if (dragSrc && dragSrc !== el) el.classList.add('drag-over-cat');
+		});
+		el.addEventListener('dragleave', () => el.classList.remove('drag-over-cat'));
+		el.addEventListener('drop', e => {
+			e.preventDefault();
+			el.classList.remove('drag-over-cat');
+			if (!dragSrc || dragSrc === el) return;
+			const cats = Array.from(list.querySelectorAll('.menu-category'));
+			const fromIdx = cats.indexOf(dragSrc);
+			const toIdx = cats.indexOf(el);
+			if (fromIdx < toIdx) el.after(dragSrc);
+			else el.before(dragSrc);
+			dragSrc = null;
+		});
+	},
+
+	// HTML5 DnD for items within a category
+	_initItemDnd(el, itemsList) {
+		let dragSrc = null;
+
+		el.addEventListener('dragstart', e => {
+			if (!e.target.classList.contains('item-drag-handle') && !e.target.closest('.item-drag-handle')) {
+				e.preventDefault(); return;
+			}
+			dragSrc = el;
+			e.dataTransfer.effectAllowed = 'move';
+			setTimeout(() => el.classList.add('opacity-40'), 0);
+		});
+		el.addEventListener('dragend', () => {
+			el.classList.remove('opacity-40');
+			itemsList.querySelectorAll('.menu-item').forEach(i => i.classList.remove('drag-over-item'));
+		});
+		el.addEventListener('dragover', e => {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'move';
+			if (dragSrc && dragSrc !== el) el.classList.add('drag-over-item');
+		});
+		el.addEventListener('dragleave', () => el.classList.remove('drag-over-item'));
+		el.addEventListener('drop', e => {
+			e.preventDefault();
+			el.classList.remove('drag-over-item');
+			if (!dragSrc || dragSrc === el) return;
+			const items = Array.from(itemsList.querySelectorAll('.menu-item'));
+			const fromIdx = items.indexOf(dragSrc);
+			const toIdx = items.indexOf(el);
+			if (fromIdx < toIdx) el.after(dragSrc);
+			else el.before(dragSrc);
+			dragSrc = null;
+		});
+	}
+};
+
+// ── 22. onConfirmMenu ──────────────────────────────────────────
+
+function onConfirmMenu() {
+	const menu = MenuDrawer.serialize();
+	const menuInput = document.getElementById('menu-json-input');
+	if (menuInput) menuInput.value = JSON.stringify(menu);
+
+	const catCount = menu.length;
+	const itemCount = menu.reduce((acc, c) => acc + c.items.length, 0);
+
+	const statusRow = document.getElementById('menu-status-row');
+	const statusText = document.getElementById('menu-status-text');
+	if (statusRow && statusText) {
+		statusText.textContent = `✓ Menu caricato — ${catCount} categor${catCount === 1 ? 'ia' : 'ie'}, ${itemCount} piatt${itemCount === 1 ? 'o' : 'i'}`;
+		statusRow.classList.remove('hidden');
+	}
+
+	// Pre-popola nome ristorante se il campo è vuoto
+	const nameInput = document.getElementById('client-name');
+	if (nameInput && !nameInput.value.trim() && MenuExtractor.currentMenu?.restaurant_name) {
+		nameInput.value = MenuExtractor.currentMenu.restaurant_name;
+		if (SlugValidator.input) {
+			const slug = MenuExtractor.currentMenu.restaurant_name
+				.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-');
+			SlugValidator.input.value = slug;
+			SlugValidator.input.dispatchEvent(new Event('input'));
+		}
+	}
+
+	// Pre-seleziona lingua
+	if (MenuExtractor.currentMenu?.lang) {
+		const langSel = document.getElementById('lang');
+		if (langSel) langSel.value = MenuExtractor.currentMenu.lang;
+	}
+
+	DrawerManager.close('menu');
+	DrawerManager.open('create');
+}
+
+// ── 23. Dropzone Init ─────────────────────────────────────────
+
+function initDropzone() {
+	const dz = document.getElementById('pdf-dropzone');
+	const input = document.getElementById('dropzone-input');
+	if (!dz || !input) return;
+
+	// Click → file picker
+	dz.addEventListener('click', e => {
+		if (e.target.closest('#dropzone-retry') || e.target.closest('#dropzone-skip')) return;
+		input.click();
+	});
+
+	input.addEventListener('change', () => {
+		const file = input.files?.[0];
+		if (file) MenuExtractor.extractFromFile(file);
+		input.value = '';
+	});
+
+	// Retry button
+	document.getElementById('dropzone-retry')?.addEventListener('click', e => {
+		e.stopPropagation();
+		MenuExtractor.showIdle();
+	});
+
+	// Skip button on error → open create drawer directly
+	document.getElementById('dropzone-skip')?.addEventListener('click', e => {
+		e.stopPropagation();
+		MenuExtractor.showIdle();
+		DrawerManager.open('create');
+	});
+
+	// Drag & drop
+	let dragCounter = 0;
+	document.addEventListener('dragenter', e => {
+		const hasFiles = Array.from(e.dataTransfer?.items || []).some(i => i.kind === 'file');
+		if (!hasFiles) return;
+		dragCounter++;
+		dz.classList.add('drag-over');
+		dz.querySelector('#dropzone-idle').classList.add('hidden');
+		dz.querySelector('#dropzone-drag').classList.remove('hidden');
+		dz.querySelector('#dropzone-drag').classList.add('flex');
+	});
+
+	document.addEventListener('dragleave', e => {
+		dragCounter--;
+		if (dragCounter <= 0) {
+			dragCounter = 0;
+			dz.classList.remove('drag-over');
+			dz.querySelector('#dropzone-drag').classList.add('hidden');
+			dz.querySelector('#dropzone-drag').classList.remove('flex');
+			dz.querySelector('#dropzone-idle').classList.remove('hidden');
+		}
+	});
+
+	document.addEventListener('dragover', e => e.preventDefault());
+
+	document.addEventListener('drop', e => {
+		e.preventDefault();
+		dragCounter = 0;
+		dz.classList.remove('drag-over');
+		dz.querySelector('#dropzone-drag').classList.add('hidden');
+		dz.querySelector('#dropzone-drag').classList.remove('flex');
+		dz.querySelector('#dropzone-idle').classList.remove('hidden');
+
+		const file = Array.from(e.dataTransfer?.files || []).find(f => f.type === 'application/pdf');
+		if (file) MenuExtractor.extractFromFile(file);
+		else if (e.dataTransfer?.files?.length) {
+			MenuExtractor.showError('Rilascia un file PDF');
+		}
+	});
+
+	// Menu drawer footer buttons
+	document.getElementById('btn-confirm-menu')?.addEventListener('click', onConfirmMenu);
+	document.getElementById('btn-skip-menu')?.addEventListener('click', () => {
+		DrawerManager.close('menu');
+		DrawerManager.open('create');
+	});
+
+	// Add category button
+	document.getElementById('btn-add-category')?.addEventListener('click', () => {
+		const list = document.getElementById('menu-categories-list');
+		if (list) MenuDrawer._appendCategory(list, { name: '', items: [] });
+	});
+
+	// Edit / clear menu buttons in create drawer
+	document.getElementById('btn-edit-menu')?.addEventListener('click', () => {
+		DrawerManager.close('create');
+		const current = MenuExtractor.currentMenu;
+		if (current) MenuDrawer.open(current);
+		else DrawerManager.open('menu');
+	});
+
+	document.getElementById('btn-clear-menu')?.addEventListener('click', () => {
+		const menuInput = document.getElementById('menu-json-input');
+		if (menuInput) menuInput.value = '';
+		MenuExtractor.currentMenu = null;
+		const statusRow = document.getElementById('menu-status-row');
+		if (statusRow) statusRow.classList.add('hidden');
+	});
+}
+
 // ── 14. Bootstrap ─────────────────────────────────────────────
 
 
@@ -1194,6 +1584,7 @@ function bootstrap() {
 	initTemplatePickers();
 	initTableDelegation();
 	initSearchFilter();
+	initDropzone();
 	initIdentity();
 
 	document.getElementById("btn-refresh-clients")?.addEventListener("click", function () {
