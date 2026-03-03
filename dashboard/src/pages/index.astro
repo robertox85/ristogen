@@ -1,10 +1,11 @@
 ---
+import "../styles/global.css";
 // Dashboard Ristogen — protetta da Netlify Identity (Invite Only)
-// CSS → /dashboard.css  |  JS → /dashboard.js
+// CSS ora processato tramite Tailwind/PostCSS
 ---
 
 <!doctype html>
-<html lang="it">
+<html lang="it" class="h-full bg-gray-50">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,44 +13,79 @@
 		<script
 			src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
 		></script>
-		<link rel="stylesheet" href="/dashboard.css" />
 	</head>
-	<body>
-		<header class="page-header">
-			<div class="logo">
-				<span>🍽</span> Ristogen <span class="logo-pill">Beta</span>
+	<body class="h-full min-h-full text-gray-900 antialiased">
+		<header
+			class="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-gray-200 bg-white px-6 shadow-sm"
+		>
+			<div
+				class="flex items-center gap-2 text-lg font-bold tracking-tight text-gray-900"
+			>
+				<span>🍽</span> Ristogen
+				<span
+					class="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+					>Beta</span
+				>
 			</div>
-			<div id="user-info"></div>
+			<div
+				id="user-info"
+				class="ml-auto flex items-center gap-2 text-sm text-gray-500"
+			>
+			</div>
 		</header>
 
-		<section id="login-screen">
-			<div class="login-card">
-				<div class="login-logo">
-					<span>🍽</span> Ristogen <span class="logo-pill">Beta</span>
+		<section
+			id="login-screen"
+			class="flex min-h-[calc(100vh-56px)] items-center justify-center p-8"
+		>
+			<div
+				class="flex w-full max-w-sm flex-col items-center gap-5 rounded-xl border border-gray-200 bg-white p-10 text-center shadow-md"
+			>
+				<div
+					class="flex items-center gap-2 text-2xl font-extrabold tracking-tight"
+				>
+					<span>🍽</span> Ristogen
+					<span
+						class="rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white"
+						>Beta</span
+					>
 				</div>
-				<p class="login-desc">
+				<p class="max-w-[260px] text-sm leading-relaxed text-gray-500">
 					Accedi per gestire le landing dei tuoi clienti.
 				</p>
-				<button id="btn-login" class="btn-primary">
+				<button
+					id="btn-login"
+					class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-3 text-[15px] font-semibold tracking-wide text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+				>
 					<span>🔑</span> Accedi
 				</button>
 			</div>
 		</section>
 
-		<main id="main-content">
-			<div class="dashboard-main">
-				<div class="terminal-console" id="action-box">
-					<div class="terminal-titlebar">
-						<div class="terminal-dots">
-							<span class="dot dot-red"></span>
-							<span class="dot dot-yellow"></span>
-							<span class="dot dot-green"></span>
+		<main id="main-content" class="hidden [&.active]:block">
+			<div class="mx-auto flex max-w-[1280px] flex-col gap-6 px-5 py-8">
+				<div
+					id="action-box"
+					class="hidden animate-[slideDown_0.25s_ease] overflow-hidden rounded-xl border border-[#2d2d2d] shadow-lg [&.visible]:block"
+				>
+					<div
+						class="flex min-h-[36px] items-center gap-2.5 border-b border-[#ccc] bg-[#e8e6e3] px-3 py-2"
+					>
+						<div class="flex shrink-0 gap-1.5">
+							<span class="h-3 w-3 rounded-full bg-[#ff5f57]"
+							></span>
+							<span class="h-3 w-3 rounded-full bg-[#febc2e]"
+							></span>
+							<span class="h-3 w-3 rounded-full bg-[#28c840]"
+							></span>
 						</div>
-						<span class="terminal-title">deploy — ristogen</span>
+						<span
+							class="flex-1 text-center font-mono text-xs font-medium text-gray-600"
+							>deploy — ristogen</span
+						>
 						<button
 							id="btn-cancel-run"
-							class="terminal-cancel-btn"
-							title="Annulla deploy"
+							class="shrink-0 rounded bg-red-400/10 border border-red-400/35 px-2.5 py-0.5 font-mono text-xs text-[#e06c75] transition hover:border-[#e06c75] hover:bg-red-400/25 disabled:opacity-50"
 							style="display:none">✕ Annulla</button
 						>
 						<a
@@ -57,126 +93,203 @@
 							href="#"
 							target="_blank"
 							rel="noopener"
-							class="terminal-gh-link">GitHub ↗</a
+							class="shrink-0 text-xs text-gray-500 transition hover:text-gray-900 hover:underline"
+							>GitHub ↗</a
 						>
 					</div>
-					<div class="terminal-body">
-						<div id="action-header" class="terminal-status-line">
+					<div
+						class="max-h-[260px] overflow-y-auto bg-[#1e1e2e] p-4 font-mono text-sm leading-relaxed text-[#cdd6f4]"
+					>
+						<div
+							id="action-header"
+							class="mb-2 flex items-center gap-2 font-semibold [&.queued]:text-[#a6adc8] [&.in_progress]:text-[#89b4fa] [&.success]:text-[#a6e3a1] [&.failure]:text-[#f38ba8] [&.cancelled]:text-[#fab387] [&.timed_out]:text-[#fab387]"
+						>
 							<span id="action-icon"></span>
 							<span id="action-label">In attesa…</span>
 						</div>
-						<ul id="action-steps" class="terminal-steps"></ul>
-						<div id="action-errors" class="terminal-errors">
-							<span class="terminal-err-prefix">ERR!</span>
-							<pre id="action-errors-text"></pre>
+						<ul
+							id="action-steps"
+							class="m-0 list-none p-0 [&>li]:flex [&>li]:items-center [&>li]:gap-2 [&>li]:py-0.5 [&>li]:text-xs [&>li]:text-[#a6adc8] [&>li.step-success]:text-[#a6e3a1] [&>li.step-failure]:text-[#f38ba8] [&>li.step-in_progress]:text-[#89b4fa]"
+						>
+						</ul>
+						<div
+							id="action-errors"
+							class="hidden mt-2 rounded border border-[#f38ba8]/30 bg-[#f38ba8]/10 px-3 py-2.5 [&.visible]:block"
+						>
+							<span
+								class="mb-1 block text-xs font-bold text-[#f38ba8]"
+								>ERR!</span
+							>
+							<pre
+								id="action-errors-text"
+								class="m-0 whitespace-pre-wrap break-words font-mono text-[11px] text-[#fca5a5]">
+							</pre>
 						</div>
 					</div>
 				</div>
 
-				<div class="card" id="next-steps-box">
-					<div class="next-steps-header">
-						<div class="next-steps-title">
-							<div class="card-header-icon">🚀</div>
+				<div
+					id="next-steps-box"
+					class="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm [&.visible]:block"
+				>
+					<div
+						class="flex items-start justify-between border-b border-gray-200 p-4"
+					>
+						<div class="flex items-center gap-3">
+							<div
+								class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500"
+							>
+								🚀
+							</div>
 							<div>
-								<h2>Prossimi passi</h2>
-								<p>
+								<h2
+									class="text-[15px] font-semibold tracking-tight"
+								>
+									Prossimi passi
+								</h2>
+								<p class="mt-0.5 text-xs text-gray-500">
 									Completa la configurazione della landing <strong
-										id="ns-slug"></strong>
+										id="ns-slug"
+										class="text-gray-900"></strong>
 								</p>
 							</div>
 						</div>
 						<button
-							class="btn-dismiss"
 							id="ns-dismiss"
+							class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
 							title="Chiudi">✕</button
 						>
 					</div>
-					<div class="ns-auto-summary">
-						<span class="ns-auto-icon">✓</span>
+					<div
+						class="flex items-start gap-3 border-b border-emerald-200 bg-emerald-50 px-5 py-3.5"
+					>
+						<span
+							class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white"
+							>✓</span
+						>
 						<div>
-							<strong>Configurazione automatica completata</strong
+							<strong
+								class="mb-0.5 block text-[13px] text-emerald-700"
+								>Configurazione automatica completata</strong
 							>
-							<p>
-								Sito Netlify, repo, Identity
-								(invite&#8209;only), Git Gateway e primo deploy
-								sono stati configurati dalla GitHub Action.
+							<p
+								class="m-0 text-[13px] leading-relaxed text-gray-600"
+							>
+								Sito Netlify, repo, Identity, Git Gateway e
+								primo deploy sono stati configurati.
 							</p>
 						</div>
 					</div>
-					<ul class="steps-list">
-						<li class="step-item" data-step="1">
-							<span class="step-num">1</span>
-							<div class="step-content">
-								<strong>Configura i DNS del dominio</strong>
-								<p>
-									Se hai inserito un dominio personalizzato,
-									vai su <a
+					<ul class="m-0 list-none px-5 py-2">
+						<li
+							class="group/step flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0 [&.done_.step-num]:bg-emerald-100 [&.done_.step-num]:text-emerald-700 [&.done_.step-check]:border-emerald-500 [&.done_.step-check]:bg-emerald-100 [&.done_.step-check]:text-emerald-600"
+							data-step="1"
+						>
+							<span
+								class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+								>1</span
+							>
+							<div class="flex-1 text-[13px]">
+								<strong class="mb-1 block text-gray-900"
+									>Configura i DNS del dominio</strong
+								>
+								<p class="leading-relaxed text-gray-500">
+									Vai su <a
 										id="ns-netlify-link"
-										href="https://app.netlify.com"
+										href="#"
 										target="_blank"
-										rel="noopener">app.netlify.com</a
-									> &rarr; <em>Domain management</em> e aggiorna
-									i record DNS del cliente con i valori forniti
-									da Netlify.
+										class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+										>app.netlify.com</a
+									> e aggiorna i record DNS.
 								</p>
 							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
+							<button
+								class="step-check flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-xs text-gray-400 transition hover:border-emerald-500 hover:text-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+								title="Segna come fatto">✓</button
 							>
 						</li>
-						<li class="step-item" data-step="2">
-							<span class="step-num">2</span>
-							<div class="step-content">
-								<strong>Invita il cliente al CMS</strong>
-								<p>
-									Se non hai fornito l'email durante la
-									creazione, vai su <em
-										>Identity &rarr; Invite users</em
-									> nel pannello Netlify e invia l'invito. L'utente
-									potrà accedere a <code id="ns-admin-url"
+						<li
+							class="group/step flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0 [&.done_.step-num]:bg-emerald-100 [&.done_.step-num]:text-emerald-700 [&.done_.step-check]:border-emerald-500 [&.done_.step-check]:bg-emerald-100 [&.done_.step-check]:text-emerald-600"
+							data-step="2"
+						>
+							<span
+								class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+								>2</span
+							>
+							<div class="flex-1 text-[13px]">
+								<strong class="mb-1 block text-gray-900"
+									>Invita il cliente al CMS</strong
+								>
+								<p class="leading-relaxed text-gray-500">
+									Invia l'invito da Netlify. L'utente potrà
+									accedere a <code
+										id="ns-admin-url"
+										class="rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px]"
 									></code>.
 								</p>
 							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
+							<button
+								class="step-check flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-xs text-gray-400 transition hover:border-emerald-500 hover:text-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+								title="Segna come fatto">✓</button
 							>
 						</li>
-						<li class="step-item" data-step="3">
-							<span class="step-num">3</span>
-							<div class="step-content">
-								<strong>Verifica la landing pubblicata</strong>
-								<p>
+						<li
+							class="group/step flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0 [&.done_.step-num]:bg-emerald-100 [&.done_.step-num]:text-emerald-700 [&.done_.step-check]:border-emerald-500 [&.done_.step-check]:bg-emerald-100 [&.done_.step-check]:text-emerald-600"
+							data-step="3"
+						>
+							<span
+								class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+								>3</span
+							>
+							<div class="flex-1 text-[13px]">
+								<strong class="mb-1 block text-gray-900"
+									>Verifica la landing pubblicata</strong
+								>
+								<p class="leading-relaxed text-gray-500">
 									Apri <a
 										id="ns-site-url"
 										href="#"
 										target="_blank"
-										rel="noopener">l'URL della landing</a
-									> e controlla che contenuti e menu siano corretti.
-									Poi accedi al <a
+										class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+										>l'URL</a
+									> e controlla. Poi accedi al <a
 										id="ns-cms-url"
 										href="#"
 										target="_blank"
-										rel="noopener">pannello CMS</a
-									> per verificare che il login funzioni.
+										class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+										>CMS</a
+									>.
 								</p>
 							</div>
-							<button class="step-check" title="Segna come fatto"
-								>✓</button
+							<button
+								class="step-check flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-xs text-gray-400 transition hover:border-emerald-500 hover:text-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+								title="Segna come fatto">✓</button
 							>
 						</li>
 					</ul>
-					<div class="next-steps-footer">
+					<div
+						class="flex items-center gap-2 border-t border-gray-200 bg-gray-50 px-5 py-3 text-xs text-gray-500"
+					>
 						<span>💡</span> Seleziona ✓ su ogni step una volta completato.
 					</div>
 				</div>
 
-				<div class="card" id="clients-section">
-					<div class="section-header">
-						<h2>Landing create</h2>
-						<div class="section-header-actions">
-							<div class="search-box">
+				<div
+					id="clients-section"
+					class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+				>
+					<div
+						class="flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+					>
+						<h2
+							class="text-[15px] font-semibold tracking-tight text-gray-900"
+						>
+							Landing create
+						</h2>
+						<div class="flex items-center gap-2">
+							<div class="relative flex items-center">
 								<svg
-									class="search-icon"
+									class="absolute left-2.5 text-gray-400"
 									width="14"
 									height="14"
 									viewBox="0 0 24 24"
@@ -193,213 +306,276 @@
 									placeholder="Filtra per slug…"
 									aria-label="Filtra per slug"
 									autocomplete="off"
+									class="w-full min-w-[160px] rounded-md border border-gray-200 py-1.5 pl-7 pr-3 text-xs outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 sm:focus:w-[220px]"
 								/>
 							</div>
-							<span class="badge" id="clients-count"></span>
+							<span
+								id="clients-count"
+								class="hidden rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-600 sm:inline-block"
+							></span>
 							<button
-								class="btn-refresh"
 								id="btn-refresh-clients"
+								class="group flex items-center gap-1.5 rounded-md border border-gray-200 px-2.5 py-1.5 text-[13px] text-gray-500 transition hover:border-indigo-500 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
 								title="Aggiorna lista"
 							>
-								<span class="refresh-icon">↻</span> Aggiorna
+								<span
+									class="inline-block transition-transform duration-500 group-[.spinning]:animate-[spin_0.7s_linear_infinite]"
+									>↻</span
+								>
+								<span class="hidden sm:inline">Aggiorna</span>
 							</button>
 							<button
-								class="btn-primary btn-sm"
 								id="btn-new-client"
-								title="Crea nuova landing"
+								class="whitespace-nowrap rounded-md bg-indigo-500 px-3 py-1.5 text-[13px] font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
 							>
-								+ Nuova landing
+								+ <span class="hidden sm:inline"
+									>Nuova landing</span
+								>
 							</button>
 						</div>
 					</div>
-					<div class="clients-wrap">
-						<table id="clients-table">
-							<thead>
+					<div class="overflow-x-auto">
+						<table
+							id="clients-table"
+							class="w-full min-w-[480px] table-fixed border-collapse text-left text-[13px]"
+						>
+							<thead
+								class="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500"
+							>
 								<tr>
-									<th data-sort="slug" title="Ordina per slug"
-										>Slug</th
+									<th
+										data-sort="slug"
+										class="w-[30%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:w-[22%] [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
+										title="Ordina per slug">Slug</th
 									>
 									<th
 										data-sort="template"
+										class="hidden w-[18%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:table-cell [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
 										title="Ordina per template">Template</th
 									>
 									<th
 										data-sort="lang"
+										class="hidden w-[8%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 min-[400px]:table-cell [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
 										title="Ordina per lingua">Lingua</th
 									>
-									<th>URL</th>
-									<th>Azioni</th>
+									<th
+										class="hidden w-[36%] border-b border-gray-200 p-3 sm:table-cell"
+										>URL</th
+									>
+									<th
+										class="w-[35%] border-b border-gray-200 p-3 sm:w-[16%]"
+										>Azioni</th
+									>
 								</tr>
 							</thead>
-							<tbody id="clients-tbody">
-								<tr>
-									<td colspan="5">
-										<div class="empty-state">
-											<svg
-												width="40"
-												height="40"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.5"
-											>
-												<circle cx="12" cy="12" r="10"
-												></circle>
-												<path d="M8 12h8M12 8v8"></path>
-											</svg>
-											<p>Caricamento…</p>
-										</div>
-									</td>
-								</tr>
-							</tbody>
+							<tbody id="clients-tbody"> </tbody>
 						</table>
 					</div>
 				</div>
-			</div><div id="drawer-backdrop" class="drawer-backdrop"></div>
+			</div>
+
+			<div
+				id="drawer-backdrop"
+				class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
+			>
+			</div>
 			<aside
 				id="edit-drawer"
-				class="edit-drawer"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="drawer-title"
+				class="fixed inset-y-0 right-0 z-[101] flex w-[420px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
 			>
-				<div class="drawer-header">
+				<div
+					class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
+				>
 					<div>
-						<h2 id="drawer-title">Modifica landing</h2>
-						<p id="drawer-subtitle" class="drawer-subtitle"></p>
+						<h2 class="text-base font-bold text-gray-900">
+							Modifica landing
+						</h2>
+						<p
+							id="drawer-subtitle"
+							class="mt-0.5 text-xs text-gray-500"
+						>
+						</p>
 					</div>
-					<button id="drawer-close" class="btn-dismiss" title="Chiudi"
+					<button
+						id="drawer-close"
+						class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
 						>✕</button
 					>
 				</div>
-				<div class="drawer-body">
-					<div class="drawer-info-grid">
-						<div class="drawer-info-item">
-							<span class="drawer-info-label">URL landing</span>
+				<div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+					<div class="grid grid-cols-2 gap-3">
+						<div
+							class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
+						>
+							<span
+								class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
+								>URL landing</span
+							>
 							<a
 								id="di-site-url"
 								href="#"
 								target="_blank"
-								rel="noopener"
-								class="drawer-info-value">—</a
+								class="text-xs font-semibold text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 [&.plain]:text-gray-500 [&.plain]:no-underline"
+								>—</a
 							>
 						</div>
-						<div class="drawer-info-item">
-							<span class="drawer-info-label">CMS Admin</span>
+						<div
+							class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
+						>
+							<span
+								class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
+								>CMS Admin</span
+							>
 							<a
 								id="di-cms-url"
 								href="#"
 								target="_blank"
-								rel="noopener"
-								class="drawer-info-value">—</a
+								class="text-xs font-semibold text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 [&.plain]:text-gray-500 [&.plain]:no-underline"
+								>—</a
 							>
 						</div>
 					</div>
-
-					<hr class="drawer-divider" />
-
+					<hr class="border-gray-200" />
 					<form id="edit-form">
 						<input type="hidden" id="edit-slug" name="slug" />
-
-						<div class="field">
-							<label for="edit-name">Nome ristorante</label>
+						<div class="mb-4">
+							<label
+								for="edit-name"
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Nome ristorante</label
+							>
 							<input
 								id="edit-name"
 								name="client_name"
 								type="text"
 								placeholder="Burger Prati"
+								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 								autocomplete="off"
 							/>
 						</div>
-
-						<div class="field">
-							<label>Template</label>
+						<div class="mb-4">
+							<label
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Template</label
+							>
 							<div
-								class="tpicker tpicker--preview-left"
+								class="tpicker tpicker--preview-left relative"
 								id="tpicker-edit"
 							>
 							</div>
 						</div>
-						<div class="field">
-							<label for="edit-lang">Lingua principale</label>
-							<select id="edit-lang" name="default_lang">
+						<div class="mb-4">
+							<label
+								for="edit-lang"
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Lingua principale</label
+							>
+							<select
+								id="edit-lang"
+								name="default_lang"
+								class="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 pr-8 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+								style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center;"
+							>
 								<option value="it">🇮🇹 Italiano</option>
 								<option value="en">🇬🇧 English</option>
 							</select>
 						</div>
-
-						<div class="field">
-							<label for="edit-domain">
-								Dominio personalizzato <span class="optional"
+						<div class="mb-4">
+							<label
+								for="edit-domain"
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Dominio personalizzato <span
+									class="font-normal text-gray-400"
 									>(opzionale)</span
-								>
-							</label>
+								></label
+							>
 							<input
 								id="edit-domain"
 								name="custom_domain"
 								placeholder="www.ristoranteprati.it"
+								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 								autocomplete="off"
 							/>
 						</div>
 
-						<div id="edit-rebuild-note" class="rebuild-note">
+						<div
+							id="edit-rebuild-note"
+							class="hidden mb-4 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700 [&.visible]:block"
+						>
 							⚠ Cambiare template o lingua avvierà un rebuild
 							della landing (~2 min).
 						</div>
-
-						<div id="edit-status" role="alert"></div>
+						<div
+							id="edit-status"
+							class="hidden mb-4 rounded-md border p-2.5 text-sm font-medium [&.success]:flex [&.success]:items-start [&.success]:gap-2 [&.success]:border-emerald-200 [&.success]:bg-emerald-50 [&.success]:text-emerald-700 [&.error]:flex [&.error]:items-start [&.error]:gap-2 [&.error]:border-red-200 [&.error]:bg-red-50 [&.error]:text-red-700"
+							role="alert"
+						>
+						</div>
 
 						<button
 							type="submit"
 							id="edit-submit-btn"
-							class="btn-primary"
+							class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[15px] font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"
 						>
 							<span id="edit-submit-icon">💾</span>
 							<span id="edit-submit-text">Salva modifiche</span>
 						</button>
 					</form>
 				</div>
-			</aside><div id="create-backdrop" class="drawer-backdrop"></div>
+			</aside>
+
+			<div
+				id="create-backdrop"
+				class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
+			>
+			</div>
 			<aside
 				id="create-drawer"
-				class="edit-drawer"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="create-drawer-title"
+				class="fixed inset-y-0 right-0 z-[101] flex w-[460px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
 			>
-				<div class="drawer-header">
+				<div
+					class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
+				>
 					<div>
-						<h2 id="create-drawer-title">
+						<h2 class="text-base font-bold text-gray-900">
 							Nuova landing ristorante
 						</h2>
-						<p class="drawer-subtitle">
+						<p class="mt-0.5 text-xs text-gray-500">
 							Compila il form per avviare il deploy automatico
 						</p>
 					</div>
 					<button
 						id="create-drawer-close"
-						class="btn-dismiss"
-						title="Chiudi">✕</button
+						class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+						>✕</button
 					>
 				</div>
-				<div class="drawer-body">
+				<div class="flex flex-1 flex-col overflow-y-auto p-5">
 					<form id="onboarding-form" enctype="multipart/form-data">
-						<div class="field">
-							<label for="client-name">Nome ristorante</label>
+						<div class="mb-4">
+							<label
+								for="client-name"
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Nome ristorante</label
+							>
 							<input
 								id="client-name"
 								name="client_name"
 								type="text"
 								placeholder="Burger Prati"
+								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 								required
 								autocomplete="off"
 							/>
 						</div>
-
-						<div class="field">
-							<label for="slug"
-								>Slug cliente <span class="helper"
+						<div class="mb-4">
+							<label
+								for="slug"
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Slug cliente <span
+									class="block mt-0.5 font-normal text-gray-500 text-[11px]"
 									>Identificatore unico — es. <code
+										class="bg-gray-100 rounded px-1"
 										>burger-prati</code
 									></span
 								></label
@@ -408,48 +584,72 @@
 								id="slug"
 								name="client_slug"
 								placeholder="burger-prati"
+								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 								required
 								autocomplete="off"
 								spellcheck="false"
 								pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
 								title="Solo lettere minuscole, numeri e trattini"
 							/>
-							<div id="slug-hint"></div>
-						</div>
-
-						<div class="field-row">
-							<div class="field">
-								<label>Template</label>
-								<div class="tpicker" id="tpicker-main"></div>
+							<div
+								id="slug-hint"
+								class="mt-1.5 flex items-center gap-1.5 rounded px-2 py-1 min-h-[1.4em] text-[11px] transition-colors empty:p-0 [&.checking]:text-gray-500 [&.ok]:bg-emerald-100 [&.ok]:text-emerald-700 [&.error]:bg-red-100 [&.error]:text-red-700"
+							>
 							</div>
-							<div class="field">
-								<label for="lang">Lingua principale</label>
-								<select id="lang" name="default_lang">
+						</div>
+						<div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div>
+								<label
+									class="mb-1 block text-sm font-semibold text-gray-900"
+									>Template</label
+								>
+								<div class="tpicker relative" id="tpicker-main">
+								</div>
+							</div>
+							<div>
+								<label
+									for="lang"
+									class="mb-1 block text-sm font-semibold text-gray-900"
+									>Lingua principale</label
+								>
+								<select
+									id="lang"
+									name="default_lang"
+									class="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 pr-8 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+									style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center;"
+								>
 									<option value="it">🇮🇹 Italiano</option>
 									<option value="en">🇬🇧 English</option>
 								</select>
 							</div>
 						</div>
-
-						<div class="field-row">
-							<div class="field">
-								<label for="domain"
+						<div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div>
+								<label
+									for="domain"
+									class="mb-1 block text-sm font-semibold text-gray-900"
 									>Dominio personalizzato <span
-										class="optional">(opzionale)</span
+										class="font-normal text-gray-400 text-xs"
+										>(opzionale)</span
 									></label
 								>
 								<input
 									id="domain"
 									name="custom_domain"
 									placeholder="www.ristoranteprati.it"
+									class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 								/>
 							</div>
-							<div class="field">
-								<label for="client-email"
-									>Email cliente <span class="optional"
+							<div>
+								<label
+									for="client-email"
+									class="mb-1 block text-sm font-semibold text-gray-900"
+									>Email cliente <span
+										class="font-normal text-gray-400 text-xs"
 										>(opzionale)</span
 									>
-									<span class="helper"
+									<span
+										class="block mt-0.5 font-normal text-gray-500 text-[11px]"
 										>Invito automatico al CMS</span
 									></label
 								>
@@ -458,18 +658,21 @@
 									name="client_email"
 									type="email"
 									placeholder="mario@ristorante.it"
+									class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 								/>
 							</div>
 						</div>
-
-						<div class="field">
-							<label for="pdf"
-								>Menù PDF <span class="optional"
+						<div class="mb-6">
+							<label
+								for="pdf"
+								class="mb-1 block text-sm font-semibold text-gray-900"
+								>Menù PDF <span
+									class="font-normal text-gray-400 text-xs"
 									>(opzionale)</span
 								>
-								<span class="helper"
-									>Estrazione automatica dei contenuti via
-									Claude AI</span
+								<span
+									class="block mt-0.5 font-normal text-gray-500 text-[11px]"
+									>Estrazione automatica via Claude AI</span
 								></label
 							>
 							<input
@@ -477,23 +680,36 @@
 								name="menu_pdf"
 								type="file"
 								accept=".pdf"
+								class="w-full cursor-pointer rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
 							/>
 						</div>
 
-						<div id="status" role="alert"></div>
+						<div
+							id="status"
+							class="hidden mb-4 rounded-md border p-2.5 text-sm font-medium [&.success]:flex [&.success]:items-start [&.success]:gap-2 [&.success]:border-emerald-200 [&.success]:bg-emerald-50 [&.success]:text-emerald-700 [&.error]:flex [&.error]:items-start [&.error]:gap-2 [&.error]:border-red-200 [&.error]:bg-red-50 [&.error]:text-red-700"
+							role="alert"
+						>
+						</div>
 
 						<button
 							type="submit"
 							id="submit-btn"
-							class="btn-primary"
+							class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[15px] font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"
 						>
 							<span id="submit-icon">✦</span>
 							<span id="submit-text">Crea cliente</span>
 						</button>
 					</form>
 				</div>
-			</aside><div id="toast-container" aria-live="polite"></div>
-			<script type="module" src="/dashboard.js"></script>
+			</aside>
 		</main>
+
+		<div
+			id="toast-container"
+			aria-live="polite"
+			class="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col gap-2"
+		>
+		</div>
+		<script type="module" src="/scripts/dashboard.js"></script>
 	</body>
 </html>

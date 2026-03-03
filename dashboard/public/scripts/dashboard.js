@@ -129,19 +129,21 @@ function bootDashboard(token) {
 
 // Cache dei nodi principali per evitare query ripetute
 const DOM = {
-	tbody: document.getElementById("clients-tbody"),
-	loginScreen: document.getElementById("login-screen"),
-	mainContent: document.getElementById("main-content"),
-	userInfo: document.getElementById("user-info"),
-	clientsCount: document.getElementById("clients-count")
+	get tbody() { return document.getElementById("clients-tbody"); },
+	get loginScreen() { return document.getElementById("login-screen"); },
+	get mainContent() { return document.getElementById("main-content"); },
+	get userInfo() { return document.getElementById("user-info"); },
+	get clientsCount() { return document.getElementById("clients-count"); }
 };
 
 function showApp() {
+	if (!DOM.loginScreen || !DOM.mainContent) return;
 	DOM.loginScreen.style.display = 'none';
 	DOM.mainContent.classList.add('active');
 }
 
 function showLoginScreen() {
+	if (!DOM.loginScreen || !DOM.mainContent) return;
 	DOM.loginScreen.style.display = '';
 	DOM.mainContent.classList.remove('active');
 }
@@ -160,23 +162,22 @@ function renderUserInfo(user) {
 function renderDeployBadge(rs) {
 	if (!rs) return '';
 	const age = Date.now() - (rs.updated_at || 0);
-	if (rs.conclusion === 'success' && age > 3600000) return ''; // 1 ora
+	if (rs.conclusion === 'success' && age > 3600000) return '';
 
 	const MAP = {
-		queued: { cls: 'running', icon: '⏳', text: 'In coda' },
-		in_progress: { cls: 'running', icon: '⚙️', text: 'Deploy in corso' },
-		success: { cls: 'success', icon: '✓', text: 'Pubblicato' },
-		failure: { cls: 'failure', icon: '✗', text: 'Fallito' },
-		cancelled: { cls: 'cancelled', icon: '■', text: 'Annullato' },
-		timed_out: { cls: 'failure', icon: '⏱', text: 'Timeout' },
+		queued: { cls: 'bg-blue-50 text-blue-600', icon: '⏳', text: 'In coda' },
+		in_progress: { cls: 'bg-blue-50 text-blue-600', icon: '⚙️', text: 'Deploy in corso' },
+		success: { cls: 'bg-emerald-100 text-emerald-700', icon: '✓', text: 'Pubblicato' },
+		failure: { cls: 'bg-red-100 text-red-700', icon: '✗', text: 'Fallito' },
+		cancelled: { cls: 'bg-gray-100 text-gray-500', icon: '■', text: 'Annullato' },
+		timed_out: { cls: 'bg-red-100 text-red-700', icon: '⏱', text: 'Timeout' },
 	};
 
 	const key = rs.status === 'completed' ? (rs.conclusion || 'failure') : rs.status;
 	const m = MAP[key];
 	if (!m) return '';
 
-	// Fix XSS: attributi protetti
-	return `<span class="deploy-badge deploy-badge--${m.cls}" data-run="${escHtml(rs.run_id)}">${m.icon} ${m.text}</span>`;
+	return `<span class="deploy-badge mt-[3px] inline-flex items-center gap-1 whitespace-nowrap rounded px-1.5 py-[3px] text-[11px] font-semibold ${m.cls}" data-run="${escHtml(rs.run_id)}">${m.icon} ${m.text}</span>`;
 }
 
 function renderClientRows(arr) {
@@ -204,24 +205,30 @@ function renderClientRows(arr) {
 		const badge = renderDeployBadge(rs);
 
 		const urlCols = safeUrl
-			? `<a href="${safeUrl}" target="_blank" rel="noopener">${safeUrl} ↗</a>
-         <button class="btn-copy" data-copy="${safeUrl}" data-copy-label="URL" aria-label="Copia URL sito">⎘</button>
-         <a href="${safeUrl.replace(/\/$/, '')}/admin/" target="_blank" rel="noopener" class="cms-link">CMS ↗</a>
-         <button class="btn-copy" data-copy="${safeUrl.replace(/\/$/, '')}/admin/" data-copy-label="CMS" aria-label="Copia URL CMS">⎘</button>`
-			: '<span style="color:var(--text-light)">—</span>';
+			? `<a href="${safeUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[13px] text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">${safeUrl} ↗</a>
+         <button class="btn-copy ml-1.5 inline-block rounded border border-gray-200 px-1 py-0.5 text-xs text-gray-400 align-middle transition hover:border-indigo-500 hover:text-indigo-500 [&.btn-copy--ok]:border-emerald-500 [&.btn-copy--ok]:text-emerald-600" data-copy="${safeUrl}" data-copy-label="URL" aria-label="Copia URL">⎘</button>
+         <a href="${safeUrl.replace(/\/$/, '')}/admin/" target="_blank" rel="noopener" class="cms-link ml-3 inline-flex items-center gap-1 text-[13px] text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">CMS ↗</a>
+         <button class="btn-copy ml-1.5 inline-block rounded border border-gray-200 px-1 py-0.5 text-xs text-gray-400 align-middle transition hover:border-indigo-500 hover:text-indigo-500 [&.btn-copy--ok]:border-emerald-500 [&.btn-copy--ok]:text-emerald-600" data-copy="${safeUrl.replace(/\/$/, '')}/admin/" data-copy-label="CMS" aria-label="Copia CMS">⎘</button>`
+			: '<span class="text-gray-400">—</span>';
 
 		const deleteDisabled = PROTECTED_SLUGS.includes(c.slug) ? ' disabled title="Landing protetta"' : '';
 
-		return `<tr data-slug="${safeSlug}" data-site-url="${safeUrl}">
-      <td><span class="client-name">${safeName}</span><span class="slug-chip">${safeSlug}</span>${badge ? `<br>${badge}` : ''}</td>
-      <td><span class="tpl-badge">${tplLabel}</span></td>
-      <td>${langFlag}</td>
-      <td>${urlCols}</td>
-      <td>
-        <div class="table-actions">
-          <button class="btn-steps" data-slug="${safeSlug}" data-site-url="${safeUrl}" aria-label="Prossimi passi: ${safeSlug}">🚀</button>
-          <button class="btn-edit" data-slug="${safeSlug}" aria-label="Modifica ${safeSlug}">Modifica</button>
-          <button class="btn-delete" data-slug="${safeSlug}" aria-label="Elimina ${safeSlug}"${deleteDisabled}>Elimina</button>
+		return `<tr data-slug="${safeSlug}" data-site-url="${safeUrl}" class="transition-colors hover:bg-gray-50/80">
+      <td class="border-b border-gray-200 p-3 align-middle">
+          <span class="client-name mb-[3px] block text-[13px] font-semibold text-[#1e2035]">${safeName}</span>
+          <span class="slug-chip inline-flex items-center gap-1 rounded-[5px] bg-[#f0f2ff] px-2 py-0.5 font-mono text-xs font-semibold text-indigo-700">${safeSlug}</span>
+          ${badge ? `<br>${badge}` : ''}
+      </td>
+      <td class="hidden border-b border-gray-200 p-3 align-middle sm:table-cell">
+          <span class="tpl-badge inline-block whitespace-nowrap rounded-[4px] bg-[#f0f2ff] px-2 py-0.5 text-[11px] font-semibold text-indigo-700">${tplLabel}</span>
+      </td>
+      <td class="hidden border-b border-gray-200 p-3 align-middle min-[400px]:table-cell">${langFlag}</td>
+      <td class="hidden border-b border-gray-200 p-3 align-middle sm:table-cell">${urlCols}</td>
+      <td class="border-b border-gray-200 p-3 align-middle">
+        <div class="table-actions flex gap-1.5">
+          <button class="btn-steps rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-500 transition hover:border-indigo-500 hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" data-site-url="${safeUrl}" aria-label="Prossimi passi">🚀</button>
+          <button class="btn-edit whitespace-nowrap rounded-md border border-indigo-100 bg-transparent px-2.5 py-[5px] text-xs text-indigo-600 transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:opacity-45" data-slug="${safeSlug}">Modifica</button>
+          <button class="btn-delete whitespace-nowrap rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 disabled:opacity-45"${deleteDisabled} data-slug="${safeSlug}">Elimina</button>
         </div>
       </td>
     </tr>`;
@@ -292,16 +299,16 @@ const DrawerManager = {
 			const first = focusable[0];
 			const last = focusable[focusable.length - 1];
 
-		  if (e.shiftKey && document.activeElement === first) {
-			  e.preventDefault();
-			  last.focus();
-		  } else if (!e.shiftKey && document.activeElement === last) {
-			  e.preventDefault();
-			  first.focus();
-		  }
+			if (e.shiftKey && document.activeElement === first) {
+				e.preventDefault();
+				last.focus();
+			} else if (!e.shiftKey && document.activeElement === last) {
+				e.preventDefault();
+				first.focus();
+			}
 		};
 		drawer.addEventListener('keydown', DrawerManager.activeTrap);
-  }
+	}
 };
 
 // Event Listeners globali per i Drawer
@@ -354,24 +361,24 @@ const SlugValidator = {
 		SlugValidator.controller = new AbortController();
 
 		try {
-		  const res = await fetch("/api/validate-slug?slug=" + encodeURIComponent(val), {
-			  headers: { Authorization: "Bearer " + State.authToken },
-			  signal: SlugValidator.controller.signal
-		  });
-		  const data = await res.json();
+			const res = await fetch("/api/validate-slug?slug=" + encodeURIComponent(val), {
+				headers: { Authorization: "Bearer " + State.authToken },
+				signal: SlugValidator.controller.signal
+			});
+			const data = await res.json();
 
-		  if (data.valid) {
-			SlugValidator.valid = true;
-			SlugValidator.setHint("ok", "✓ Slug disponibile");
-		} else {
-			SlugValidator.valid = false;
-			SlugValidator.setHint("error", "✗ " + (data.errors?.join(" — ") || data.error));
-		}
-	  } catch (e) {
-		  if (e.name !== 'AbortError') {
-			  SlugValidator.setHint("", "");
-			  SlugValidator.valid = false;
-		  }
+			if (data.valid) {
+				SlugValidator.valid = true;
+				SlugValidator.setHint("ok", "✓ Slug disponibile");
+			} else {
+				SlugValidator.valid = false;
+				SlugValidator.setHint("error", "✗ " + (data.errors?.join(" — ") || data.error));
+			}
+		} catch (e) {
+			if (e.name !== 'AbortError') {
+				SlugValidator.setHint("", "");
+				SlugValidator.valid = false;
+			}
 		}
 	}, 400) // 400ms di debounce
 };
@@ -417,46 +424,46 @@ if (createForm) {
 		status.textContent = "";
 
 		try {
-		  const formData = new FormData(this);
-		  const res = await fetch("/api/onboarding", {
-			  method: "POST",
-			  headers: { Authorization: "Bearer " + State.authToken },
-			  body: formData,
-		  });
+			const formData = new FormData(this);
+			const res = await fetch("/api/onboarding", {
+				method: "POST",
+				headers: { Authorization: "Bearer " + State.authToken },
+				body: formData,
+			});
 
-		  const json = await res.json();
-		  if (!res.ok) throw new Error(json.error || res.statusText);
+			const json = await res.json();
+			if (!res.ok) throw new Error(json.error || res.statusText);
 
-		  const newSlug = formData.get("client_slug");
-		  const siteUrl = json.site_url || "";
+			const newSlug = formData.get("client_slug");
+			const siteUrl = json.site_url || "";
 
-		  status.className = "success";
-		  status.innerHTML = `<span>✓</span> <span>Landing <strong>${escHtml(newSlug)}</strong> creata</span>`;
-		  showToast(`Landing "${newSlug}" creata!`, "success");
+			status.className = "success";
+			status.innerHTML = `<span>✓</span> <span>Landing <strong>${escHtml(newSlug)}</strong> creata</span>`;
+			showToast(`Landing "${newSlug}" creata!`, "success");
 
-		  this.reset();
-		  setTemplatePicker('tpicker-main', 'template-01');
-		  SlugValidator.setHint("", "");
-		  SlugValidator.valid = false;
+			this.reset();
+			setTemplatePicker('tpicker-main', 'template-01');
+			SlugValidator.setHint("", "");
+			SlugValidator.valid = false;
 
-		  DrawerManager.close('create');
+			DrawerManager.close('create');
 
-		  if (json.run_id) {
-			Storage.set(KEYS.PENDING, { run_id: json.run_id, slug: newSlug, site_url: siteUrl, started_at: Date.now() });
-			// Utilizziamo il nuovo Poller invece di startPolling (che definirò nell'ultimo blocco)
-			initActionPolling(json.run_id, newSlug, siteUrl);
+			if (json.run_id) {
+				Storage.set(KEYS.PENDING, { run_id: json.run_id, slug: newSlug, site_url: siteUrl, started_at: Date.now() });
+				// Utilizziamo il nuovo Poller invece di startPolling (che definirò nell'ultimo blocco)
+				initActionPolling(json.run_id, newSlug, siteUrl);
+			}
+			setTimeout(() => loadClients(State.authToken), 10000);
+
+		} catch (err) {
+			status.className = "error";
+			status.innerHTML = `<span>✗</span> <span>${escHtml(err.message)}</span>`;
+		} finally {
+			State.submitting = false;
+			btn.disabled = false;
+			btn.innerHTML = '✦ Crea cliente';
 		}
-		  setTimeout(() => loadClients(State.authToken), 10000);
-
-	  } catch (err) {
-		  status.className = "error";
-		  status.innerHTML = `<span>✗</span> <span>${escHtml(err.message)}</span>`;
-	  } finally {
-		  State.submitting = false;
-		  btn.disabled = false;
-		  btn.innerHTML = '✦ Crea cliente';
-	  }
-  });
+	});
 
 	createForm.addEventListener('change', () => { State.drawerDirty.create = true; });
 }
@@ -854,15 +861,15 @@ function updateCountBadge(n) {
 
 function emptyRow(msg, withCta = false) {
 	const cta = withCta
-		? `<button type="button" class="btn-empty-cta" onclick="DrawerManager.open('create')">+ Crea il primo cliente</button>`
+		? `<button type="button" onclick="DrawerManager.open('create')" class="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">+ Crea il primo cliente</button>`
 		: '';
 	return `<tr><td colspan="5">
-    <div class="empty-state">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="3" y="3" width="18" height="18" rx="3"/>
-        <path d="M9 12h6M12 9v6"/>
+    <div class="py-10 text-center text-gray-500">
+      <svg class="mx-auto mb-3 opacity-25" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 12h8M12 8v8"></path>
       </svg>
-      <p>${escHtml(msg)}</p>
+      <p class="text-[13px]">${escHtml(msg)}</p>
       ${cta}
     </div>
   </td></tr>`;
@@ -873,27 +880,35 @@ function emptyRow(msg, withCta = false) {
 function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
 	const container = document.getElementById(pickerId);
 	if (!container) return;
-
 	const val = defaultValue || TEMPLATES[0].value;
 	const first = TEMPLATES.find(t => t.value === val) || TEMPLATES[0];
 
+	// container div ha già class="tpicker relative" e [&.open]
 	container.innerHTML = `
-    <button type="button" class="tpicker-btn" aria-haspopup="listbox" aria-expanded="false">
-      <img class="tpicker-thumb" src="${escHtml(first.thumb)}" alt="" />
-      <span class="tpicker-label">${escHtml(first.label)}</span>
-      <svg class="tpicker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg>
+    <button type="button" class="flex w-full items-center gap-2 rounded-md border border-gray-200 bg-white px-2.5 py-[7px] text-left text-[13px] text-gray-900 transition hover:border-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 group-[.open]/picker:border-indigo-500 group-[.open]/picker:ring-4 group-[.open]/picker:ring-indigo-500/10" aria-haspopup="listbox" aria-expanded="false">
+      <img class="tpicker-thumb h-[22px] w-[36px] shrink-0 rounded-[2px] border border-gray-200 object-cover" src="${escHtml(first.thumb)}" alt="" />
+      <span class="tpicker-label flex-1 font-medium">${escHtml(first.label)}</span>
+      <svg class="tpicker-chevron shrink-0 text-gray-400 transition-transform duration-200 group-[.open]/picker:rotate-180" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg>
     </button>
-    <ul class="tpicker-list" role="listbox">
+    <ul class="tpicker-list absolute left-0 top-[calc(100%+4px)] z-50 hidden min-w-full m-0 list-none rounded-md border border-gray-200 bg-white p-1 shadow-lg group-[.open]/picker:block" role="listbox">
       ${TEMPLATES.map(t => `
-        <li class="tpicker-item${t.value === val ? ' selected' : ''}" data-value="${escHtml(t.value)}" data-label="${escHtml(t.label)}" role="option">
-          <img class="tpicker-item-thumb" src="${escHtml(t.thumb)}" alt="" />
-          <div class="tpicker-item-text"><strong>${escHtml(t.label.split(' — ')[0])}</strong><em>${escHtml(t.desc)}</em></div>
-          <div class="tpicker-item-preview"><img src="${escHtml(t.thumb)}" alt="Preview" /><p>${escHtml(t.label)}</p></div>
+        <li class="tpicker-item group flex cursor-pointer items-center gap-2.5 rounded-[4px] px-2.5 py-2 transition hover:bg-gray-50 [&.selected]:bg-indigo-50" data-value="${escHtml(t.value)}" data-label="${escHtml(t.label)}" role="option">
+          <img class="h-[30px] w-[48px] shrink-0 rounded-[2px] border border-gray-200 object-cover" src="${escHtml(t.thumb)}" alt="" />
+          <div class="flex flex-col">
+              <strong class="text-xs font-semibold">${escHtml(t.label.split(' — ')[0])}</strong>
+              <em class="text-[11px] not-italic text-gray-500">${escHtml(t.desc)}</em>
+          </div>
+          <div class="absolute left-[calc(100%+10px)] top-1/2 hidden w-[260px] -translate-y-1/2 animate-[fadeIn_0.15s_ease] overflow-hidden rounded-md border border-gray-200 bg-white shadow-xl group-hover:block max-md:!hidden [[id='tpicker-edit']_&]:left-auto [[id='tpicker-edit']_&]:right-[calc(100%+10px)]">
+             <img src="${escHtml(t.thumb)}" alt="Preview" class="block w-full" />
+             <p class="m-0 border-t border-gray-200 bg-white px-2.5 py-[5px] text-[11px] font-semibold text-gray-500">${escHtml(t.label)}</p>
+          </div>
         </li>
       `).join('')}
     </ul>
     <input type="hidden" id="${escHtml(hiddenId)}" name="${escHtml(hiddenName)}" value="${escHtml(val)}" />
   `;
+	// Aggiungo la classe group al parent per gestire il group-hover e group-open
+	container.classList.add('group/picker');
 }
 
 function setTemplatePicker(pickerId, value) {
@@ -927,13 +942,15 @@ function initTemplatePickers() {
 	renderTemplatePicker('tpicker-edit', 'template', 'edit-template', 'template-01');
 
 	document.querySelectorAll('.tpicker').forEach(picker => {
-		const trigger = picker.querySelector('.tpicker-btn');
+		const trigger = picker.querySelector('.tpicker button');
 		const list = picker.querySelector('.tpicker-list');
 
 		if (!trigger || !list) return;
 
 		trigger.addEventListener('click', e => {
+			console.log('Trigger clicked:', picker.id);
 			e.stopPropagation();
+			console.log('Trigger clicked:', picker.id);
 			const isOpen = picker.classList.toggle('open');
 			trigger.setAttribute('aria-expanded', String(isOpen));
 		});

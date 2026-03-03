@@ -3,3 +3,5 @@ doc/
 
 # Directory temporanee di build generate dai workflow GitHub Actions
 build-*/
+# Local Netlify folder
+.netlify
