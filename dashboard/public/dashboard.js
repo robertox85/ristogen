@@ -825,6 +825,345 @@ function initSearchFilter() {
 	}, 200));
 }
 
+// ── 15. Costanti e Helper UI ──────────────────────────────────
+
+const TEMPLATES = [
+	{ value: 'template-01', label: 'Template 01 — Dark', desc: 'Dark — ristorante moderno', thumb: '/templates/template-01.png' },
+	{ value: 'template-02', label: 'Template 02 — Light', desc: 'Light — elegante e chiaro', thumb: '/templates/template-02.png' }
+];
+
+const LANG_FLAGS = { it: '🇮🇹', en: '🇬🇧' };
+const PROTECTED_SLUGS = ['burger-demo'];
+
+function showToast(msg, type = "") {
+	const el = document.createElement("div");
+	el.className = "toast" + (type ? " " + type : "");
+	el.textContent = msg;
+	document.getElementById("toast-container")?.appendChild(el);
+	setTimeout(() => el.remove(), 4000);
+}
+
+function updateCountBadge(n) {
+	if (DOM.clientsCount) DOM.clientsCount.textContent = n > 0 ? n + " landing" : "";
+}
+
+function emptyRow(msg, withCta = false) {
+	const cta = withCta
+		? `<button type="button" class="btn-empty-cta" onclick="DrawerManager.open('create')">+ Crea il primo cliente</button>`
+		: '';
+	return `<tr><td colspan="5">
+    <div class="empty-state">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <path d="M9 12h6M12 9v6"/>
+      </svg>
+      <p>${escHtml(msg)}</p>
+      ${cta}
+    </div>
+  </td></tr>`;
+}
+
+// ── 16. Template Picker (Optimized con Event Delegation) ──────
+
+function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
+	const container = document.getElementById(pickerId);
+	if (!container) return;
+
+	const val = defaultValue || TEMPLATES[0].value;
+	const first = TEMPLATES.find(t => t.value === val) || TEMPLATES[0];
+
+	container.innerHTML = `
+    <button type="button" class="tpicker-btn" aria-haspopup="listbox" aria-expanded="false">
+      <img class="tpicker-thumb" src="${escHtml(first.thumb)}" alt="" />
+      <span class="tpicker-label">${escHtml(first.label)}</span>
+      <svg class="tpicker-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <ul class="tpicker-list" role="listbox">
+      ${TEMPLATES.map(t => `
+        <li class="tpicker-item${t.value === val ? ' selected' : ''}" data-value="${escHtml(t.value)}" data-label="${escHtml(t.label)}" role="option">
+          <img class="tpicker-item-thumb" src="${escHtml(t.thumb)}" alt="" />
+          <div class="tpicker-item-text"><strong>${escHtml(t.label.split(' — ')[0])}</strong><em>${escHtml(t.desc)}</em></div>
+          <div class="tpicker-item-preview"><img src="${escHtml(t.thumb)}" alt="Preview" /><p>${escHtml(t.label)}</p></div>
+        </li>
+      `).join('')}
+    </ul>
+    <input type="hidden" id="${escHtml(hiddenId)}" name="${escHtml(hiddenName)}" value="${escHtml(val)}" />
+  `;
+}
+
+function setTemplatePicker(pickerId, value) {
+	const picker = document.getElementById(pickerId);
+	if (!picker) return;
+
+	const input = picker.querySelector('input[type="hidden"]');
+	const item = picker.querySelector(`.tpicker-item[data-value="${value}"]`);
+	if (!item) return;
+
+	if (input) {
+		input.value = value;
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+	}
+
+	const label = item.dataset.label || '';
+	const thumbSrc = item.querySelector('.tpicker-item-thumb')?.src || '';
+	const trigger = picker.querySelector('.tpicker-btn');
+
+	if (trigger) {
+		trigger.querySelector('.tpicker-label').textContent = label;
+		const t = trigger.querySelector('.tpicker-thumb');
+		if (t && thumbSrc) t.src = thumbSrc;
+	}
+
+	picker.querySelectorAll('.tpicker-item').forEach(i => i.classList.toggle('selected', i === item));
+}
+
+function initTemplatePickers() {
+	renderTemplatePicker('tpicker-main', 'template', 'template', 'template-01');
+	renderTemplatePicker('tpicker-edit', 'template', 'edit-template', 'template-01');
+
+	document.querySelectorAll('.tpicker').forEach(picker => {
+		const trigger = picker.querySelector('.tpicker-btn');
+		const list = picker.querySelector('.tpicker-list');
+
+		if (!trigger || !list) return;
+
+		trigger.addEventListener('click', e => {
+			e.stopPropagation();
+			const isOpen = picker.classList.toggle('open');
+			trigger.setAttribute('aria-expanded', String(isOpen));
+		});
+
+		// Event Delegation invece di N listener sui singoli <li>
+		list.addEventListener('click', e => {
+			const item = e.target.closest('.tpicker-item');
+			if (!item) return;
+			setTemplatePicker(picker.id, item.dataset.value);
+			picker.classList.remove('open');
+			trigger.setAttribute('aria-expanded', 'false');
+		});
+	});
+
+	document.addEventListener('click', e => {
+		document.querySelectorAll('.tpicker.open').forEach(picker => {
+			if (!picker.contains(e.target)) {
+				picker.classList.remove('open');
+				picker.querySelector('.tpicker-btn')?.setAttribute('aria-expanded', 'false');
+			}
+		});
+	});
+}
+
+// ── 17. Core: Caricamento Dati (loadClients) ──────────────────
+
+async function loadClients(token) {
+	if (token) State.authToken = token;
+	if (!State.authToken) return;
+
+	State.loadStarted = true;
+
+	if (DOM.tbody) {
+		DOM.tbody.innerHTML = Array(3).fill(null).map(() =>
+			`<tr>
+        <td><span class="skeleton" style="width:90px"></span></td>
+        <td><span class="skeleton" style="width:70px"></span></td>
+        <td><span class="skeleton" style="width:40px"></span></td>
+        <td><span class="skeleton" style="width:140px"></span></td>
+        <td><span class="skeleton" style="width:60px"></span></td>
+      </tr>`
+		).join('');
+	}
+
+	try {
+		const r = await fetch("/api/clients", {
+			headers: { Authorization: "Bearer " + State.authToken },
+		});
+
+		if (r.status === 401) {
+			showToast('Sessione scaduta — effettua di nuovo il login', 'error');
+			State.authToken = null;
+			showLoginScreen();
+			window.netlifyIdentity?.open();
+			return;
+		}
+
+		if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
+
+		const { clients } = await r.json();
+
+		if (!clients || clients.length === 0) {
+			if (DOM.tbody) DOM.tbody.innerHTML = emptyRow("Nessuna landing ancora creata", true);
+			updateCountBadge(0);
+			State.clients = [];
+			return;
+		}
+
+		State.clients = clients;
+		updateCountBadge(clients.length);
+		renderClientRows(State.clients);
+
+	} catch (e) {
+		if (DOM.tbody) DOM.tbody.innerHTML = emptyRow("Errore caricamento: " + e.message);
+		updateCountBadge(0);
+	}
+}
+
+// ── 18. Pannello Next Steps (Optimized via Event Delegation) ──
+
+function showNextSteps(slug, siteUrl) {
+	const box = document.getElementById("next-steps-box");
+	if (!box) return;
+
+	const adminUrl = siteUrl ? siteUrl.replace(/\/$/, "") + "/admin/" : "/" + slug + "/admin/";
+
+	document.getElementById("ns-slug").textContent = escHtml(slug);
+	document.getElementById("ns-admin-url").textContent = escHtml(adminUrl);
+
+	const netlifyLink = document.getElementById("ns-netlify-link");
+	if (netlifyLink) {
+		netlifyLink.href = `https://app.netlify.com/projects/ristogen-${escHtml(slug)}/integrations/identity`;
+		netlifyLink.textContent = `pannello Netlify`;
+	}
+
+	const siteLink = document.getElementById("ns-site-url");
+	if (siteLink && siteUrl) {
+		siteLink.href = escHtml(siteUrl);
+		siteLink.textContent = escHtml(siteUrl);
+	}
+
+	const cmsLink = document.getElementById("ns-cms-url");
+	if (cmsLink) cmsLink.href = escHtml(adminUrl);
+
+	const savedSteps = Storage.get(KEYS.NS_STEPS + slug, []);
+
+	box.querySelectorAll(".step-item").forEach((li, i) => {
+		if (savedSteps[i]) {
+			li.classList.add("done");
+			li.querySelector(".step-num").textContent = "✓";
+		} else {
+			li.classList.remove("done");
+			li.querySelector(".step-num").textContent = li.dataset.step;
+		}
+	});
+
+	box.classList.add("visible");
+	box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+	Storage.set(KEYS.NS, { slug, site_url: siteUrl });
+}
+
+// Event Delegation per i check degli step (eseguito una volta sola)
+document.getElementById("next-steps-box")?.addEventListener("click", function (e) {
+	const checkBtn = e.target.closest('.step-check');
+	if (checkBtn) {
+		const li = checkBtn.closest(".step-item");
+		const done = li.classList.toggle("done");
+		li.querySelector(".step-num").textContent = done ? "✓" : li.dataset.step;
+
+		const slug = document.getElementById('ns-slug')?.textContent;
+		if (slug) {
+			const stepsState = Array.from(this.querySelectorAll('.step-item')).map(el => el.classList.contains('done'));
+			Storage.set(KEYS.NS_STEPS + slug, stepsState);
+		}
+		return;
+	}
+
+	const dismissBtn = e.target.closest('#ns-dismiss');
+	if (dismissBtn) {
+		this.classList.remove("visible");
+		Storage.del(KEYS.NS);
+	}
+});
+
+// ── 19. Ripristino Stato al Reload (Pending, Terminal, Next Steps) ──
+
+function restoreNextSteps() {
+	const data = Storage.get(KEYS.NS);
+	if (data?.slug) showNextSteps(data.slug, data.site_url || '');
+}
+
+function resumePendingRun(authToken) {
+	const data = Storage.get(KEYS.PENDING);
+	if (!data || !data.run_id) return;
+
+	// Scarta se più vecchio di 2 ore
+	if (Date.now() - (data.started_at || 0) > 7200000) {
+		Storage.del(KEYS.PENDING);
+		return;
+	}
+
+	showToast(`↻ Monitoraggio ripreso per "${data.slug}"`, 'info');
+
+	const nsData = Storage.get(KEYS.NS);
+	if (nsData?.slug === data.slug) {
+		showNextSteps(data.slug, data.site_url || '');
+	}
+
+	initActionPolling(data.run_id, data.slug, data.site_url || '');
+}
+
+function restoreTerminalLog() {
+	const d = Storage.get(KEYS.TERM_LOG);
+	if (!d) return;
+
+	// TTL 24 ore
+	if (Date.now() - (d.saved_at || 0) > 86400000) {
+		Storage.del(KEYS.TERM_LOG);
+		return;
+	}
+
+	const els = {
+		box: document.getElementById('action-box'),
+		header: document.getElementById('action-header'),
+		icon: document.getElementById('action-icon'),
+		label: document.getElementById('action-label'),
+		link: document.getElementById('action-link'),
+		stepsList: document.getElementById('action-steps'),
+		errorsBox: document.getElementById('action-errors'),
+		errorsText: document.getElementById('action-errors-text'),
+		cancelBtn: document.getElementById('btn-cancel-run'),
+		body: document.querySelector('#action-box .terminal-body')
+	};
+
+	if (!els.box) return;
+
+	const ICONS = { queued: '⏳', in_progress: '<span class="spin">⚙</span>', success: '✅', failure: '❌', cancelled: '⚠️', timed_out: '⏱️' };
+	const LABELS = { queued: 'In coda…', in_progress: 'Deploy in esecuzione…', success: 'Deploy completato con successo', failure: 'Deploy fallito', cancelled: 'Annullato', timed_out: 'Timeout' };
+	const STEP_CLASS = { success: 'step-success', failure: 'step-failure', skipped: 'step-skipped', in_progress: 'step-in_progress' };
+
+	els.header.className = 'terminal-status-line ' + escHtml(d.status_key);
+	els.icon.innerHTML = ICONS[d.status_key] ?? '❓';
+	els.label.textContent = LABELS[d.status_key] ?? d.status_key;
+	if (d.gh_url) els.link.href = escHtml(d.gh_url);
+	if (els.cancelBtn) els.cancelBtn.style.display = 'none';
+
+	els.stepsList.innerHTML = (d.steps || []).map(s =>
+		`<li class="${STEP_CLASS[s.state] || ''}">${escHtml(s.name)}</li>`
+	).join('');
+
+	if (d.errors?.length) {
+		els.errorsBox.className = 'terminal-errors visible';
+		els.errorsText.textContent = d.errors.join('\n\n');
+	} else {
+		els.errorsBox.className = 'terminal-errors';
+	}
+
+	// Previeni duplicazione nota storico se il ripristino avviene più volte
+	const oldNote = els.box.querySelector('.terminal-log-note');
+	if (oldNote) oldNote.remove();
+
+	const note = document.createElement('div');
+	note.className = 'terminal-log-note';
+	const dateStr = new Date(d.saved_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+	note.textContent = `↑ ultimo deploy: ${d.slug} — ${dateStr}`;
+
+	if (els.body) {
+		els.body.appendChild(note);
+		els.body.scrollTop = els.body.scrollHeight;
+	}
+
+	els.box.classList.add('visible');
+}
+
 // ── 14. Bootstrap ─────────────────────────────────────────────
 
 function bootstrap() {
