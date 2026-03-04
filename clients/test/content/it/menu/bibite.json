@@ -1,0 +1,12 @@
+{
+	"name": "Bibite",
+	"items": [
+		{
+			"name": "Coca Cola",
+			"description": "33cl",
+			"price": "3.00",
+			"badge": null,
+			"allergeni": []
+		}
+	]
+}
