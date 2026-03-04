@@ -3,8 +3,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 ---
 
 <DashboardLayout title="Ristogen — Dashboard">
-	<div class="mx-auto flex max-w-[1980px] flex-col gap-6 px-5 py-8">
-
+	<div class="mx-auto flex max-w-495 flex-col gap-6 px-5 py-8">
 		<div
 			id="clients-section"
 			class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
@@ -27,9 +26,8 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 							fill="none"
 							stroke="currentColor"
 							stroke-width="2"
-							><circle cx="11" cy="11" r="8"
-							></circle><path d="m21 21-4.35-4.35"
-							></path></svg
+							><circle cx="11" cy="11" r="8"></circle><path
+								d="m21 21-4.35-4.35"></path></svg
 						>
 						<input
 							id="clients-search"
@@ -37,7 +35,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 							placeholder="Filtra per slug…"
 							aria-label="Filtra per slug"
 							autocomplete="off"
-							class="w-full min-w-[160px] rounded-md border border-gray-200 py-1.5 pl-7 pr-3 text-xs outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 sm:focus:w-[220px]"
+							class="w-full min-w-40 rounded-md border border-gray-200 py-1.5 pl-7 pr-3 text-xs outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 sm:focus:w-55"
 						/>
 					</div>
 					<span
@@ -59,21 +57,19 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 						id="btn-new-client"
 						class="whitespace-nowrap rounded-md bg-indigo-500 px-3 py-1.5 text-[13px] font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
 					>
-						+ <span class="hidden sm:inline"
-							>Nuova landing</span
-						>
+						+ <span class="hidden sm:inline">Nuova landing</span>
 					</button>
 					<div class="relative">
 						<button
 							id="btn-col-toggle"
 							class="flex items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-[13px] text-gray-400 transition hover:border-gray-400 hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-							title="Mostra/nascondi colonne"
-						>&#9881;</button
+							title="Mostra/nascondi colonne">&#9881;</button
 						>
 						<div
 							id="col-toggle-menu"
 							class="absolute right-0 z-20 mt-1 hidden min-w-[170px] rounded-lg border border-gray-200 bg-white py-1 shadow-xl"
-						></div>
+						>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -138,10 +134,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 				<h2 class="text-base font-bold text-gray-900">
 					Modifica landing
 				</h2>
-				<p
-					id="drawer-subtitle"
-					class="mt-0.5 text-xs text-gray-500"
-				>
+				<p id="drawer-subtitle" class="mt-0.5 text-xs text-gray-500">
 				</p>
 			</div>
 			<button
@@ -152,9 +145,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 		</div>
 		<div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
 			<div class="grid grid-cols-2 gap-3">
-				<div
-					class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
-				>
+				<div class="rounded-md border border-gray-200 bg-gray-50 p-2.5">
 					<span
 						class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
 						>URL landing</span
@@ -167,9 +158,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 						>—</a
 					>
 				</div>
-				<div
-					class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
-				>
+				<div class="rounded-md border border-gray-200 bg-gray-50 p-2.5">
 					<span
 						class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
 						>CMS Admin</span
@@ -211,6 +200,22 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 						id="tpicker-edit"
 					>
 					</div>
+					<div
+						id="tpl-preview-box"
+						class="hidden mb-2 overflow-hidden rounded-lg border border-gray-200 shadow-sm tpl-preview bg-white"
+					>
+						<img
+							id="tpl-preview-img"
+							src=""
+							alt=""
+							class="w-full object-cover"
+						/>
+						<p
+							id="tpl-preview-label"
+							class="px-2 py-1 text-[11px] text-gray-500 text-center"
+						>
+						</p>
+					</div>
 				</div>
 				<div class="mb-4">
 					<label
@@ -240,8 +245,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 						for="edit-domain"
 						class="mb-1 block text-sm font-semibold text-gray-900"
 						>Dominio personalizzato <span
-							class="font-normal text-gray-400"
-							>(opzionale)</span
+							class="font-normal text-gray-400">(opzionale)</span
 						></label
 					>
 					<input
@@ -257,8 +261,8 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 					id="edit-rebuild-note"
 					class="hidden mb-4 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700 [&.visible]:block"
 				>
-					⚠ Cambiare template o lingua avvierà un rebuild
-					della landing (~2 min).
+					⚠ Cambiare template o lingua avvierà un rebuild della
+					landing (~2 min).
 				</div>
 				<div
 					id="edit-status"
@@ -310,8 +314,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 			>
 		</div>
 		<div class="flex flex-1 flex-col overflow-y-auto p-5 gap-3">
-			<div id="menu-categories-list" class="flex flex-col gap-3">
-			</div>
+			<div id="menu-categories-list" class="flex flex-col gap-3"></div>
 			<button
 				id="btn-add-category"
 				type="button"
@@ -337,12 +340,12 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 
 	<div
 		id="create-backdrop"
-		class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
+		class="fixed inset-0 z-100 hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
 	>
 	</div>
 	<aside
 		id="create-drawer"
-		class="fixed inset-y-0 right-0 z-[101] flex w-[460px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
+		class="fixed inset-y-0 right-0 z-101 flex w-115 max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out [&.open]:translate-x-0"
 	>
 		<div
 			class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
@@ -357,25 +360,44 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 			</div>
 			<button
 				id="create-drawer-close"
-				class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+				class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600  focus-visible:outline focus-visible:outline-indigo-500"
 				>✕</button
 			>
 		</div>
 		<div class="flex flex-1 flex-col overflow-y-auto p-5">
 			<form id="onboarding-form" enctype="multipart/form-data">
 				<div class="mb-4">
-					<label class="mb-1 block text-sm font-semibold text-gray-900">
-						Importa menu da PDF <span class="font-normal text-gray-400 text-[11px]">(opzionale)</span>
+					<label
+						class="mb-1 block text-sm font-semibold text-gray-900"
+					>
+						Importa menu da PDF <span
+							class="font-normal text-gray-400 text-[11px]"
+							>(opzionale)</span
+						>
 					</label>
 					<div
 						id="drawer-dropzone"
 						class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-gray-200 px-3 py-2.5 text-xs text-gray-500 transition hover:border-indigo-400 hover:bg-indigo-50/30 [&.drag-over]:border-indigo-500"
 					>
 						<span id="drawer-dz-icon" class="text-base">📄</span>
-						<span id="drawer-dz-text">Trascina un PDF o <span class="text-indigo-600 underline">seleziona file</span></span>
-						<input type="file" id="dropzone-input" accept=".pdf" class="hidden" />
+						<span id="drawer-dz-text"
+							>Trascina un PDF o <span
+								class="text-indigo-600 underline"
+								>seleziona file</span
+							></span
+						>
+						<input
+							type="file"
+							id="dropzone-input"
+							accept=".pdf"
+							class="hidden"
+						/>
 					</div>
-					<p id="drawer-dz-status" class="hidden mt-1 text-[11px] text-red-500"></p>
+					<p
+						id="drawer-dz-status"
+						class="hidden mt-1 text-[11px] text-red-500"
+					>
+					</p>
 				</div>
 				<hr class="mb-4 border-gray-100" />
 				<p
@@ -441,11 +463,19 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 						id="tpl-preview-box"
 						class="hidden mb-2 overflow-hidden rounded-lg border border-gray-200 shadow-sm tpl-preview bg-white"
 					>
-						<img id="tpl-preview-img" src="" alt="" class="w-full object-cover" />
-						<p id="tpl-preview-label" class="px-2 py-1 text-[11px] text-gray-500 text-center"></p>
+						<img
+							id="tpl-preview-img"
+							src=""
+							alt=""
+							class="w-full object-cover"
+						/>
+						<p
+							id="tpl-preview-label"
+							class="px-2 py-1 text-[11px] text-gray-500 text-center"
+						>
+						</p>
 					</div>
-					<div class="tpicker relative" id="tpicker-main">
-					</div>
+					<div class="tpicker relative" id="tpicker-main"></div>
 				</div>
 				<div class="mb-3">
 					<label
@@ -474,7 +504,8 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 					<p class="mb-2 text-sm font-semibold text-gray-900">
 						Lingue attive <span
 							class="font-normal text-gray-400 text-[11px]"
-							>— seleziona tutte le lingue del sito</span>
+							>— seleziona tutte le lingue del sito</span
+						>
 					</p>
 					<div class="grid grid-cols-3 gap-1.5">
 						<label
@@ -488,8 +519,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								checked
 							/>
 							<span
-								>🇮🇹 <b
-									class="font-mono font-semibold text-xs"
+								>🇮🇹 <b class="font-mono font-semibold text-xs"
 									>it</b
 								></span
 							>
@@ -504,8 +534,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇬🇧 <b
-									class="font-mono font-semibold text-xs"
+								>🇬🇧 <b class="font-mono font-semibold text-xs"
 									>en</b
 								></span
 							>
@@ -520,8 +549,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇫🇷 <b
-									class="font-mono font-semibold text-xs"
+								>🇫🇷 <b class="font-mono font-semibold text-xs"
 									>fr</b
 								></span
 							>
@@ -536,8 +564,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇩🇪 <b
-									class="font-mono font-semibold text-xs"
+								>🇩🇪 <b class="font-mono font-semibold text-xs"
 									>de</b
 								></span
 							>
@@ -552,8 +579,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇪🇸 <b
-									class="font-mono font-semibold text-xs"
+								>🇪🇸 <b class="font-mono font-semibold text-xs"
 									>es</b
 								></span
 							>
@@ -568,8 +594,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇵🇹 <b
-									class="font-mono font-semibold text-xs"
+								>🇵🇹 <b class="font-mono font-semibold text-xs"
 									>pt</b
 								></span
 							>
@@ -584,8 +609,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇯🇵 <b
-									class="font-mono font-semibold text-xs"
+								>🇯🇵 <b class="font-mono font-semibold text-xs"
 									>ja</b
 								></span
 							>
@@ -600,8 +624,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇨🇳 <b
-									class="font-mono font-semibold text-xs"
+								>🇨🇳 <b class="font-mono font-semibold text-xs"
 									>zh</b
 								></span
 							>
@@ -616,8 +639,7 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
 							/>
 							<span
-								>🇸🇦 <b
-									class="font-mono font-semibold text-xs"
+								>🇸🇦 <b class="font-mono font-semibold text-xs"
 									>ar</b
 								></span
 							>
@@ -718,251 +740,318 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 		class="fixed right-0 z-[50] flex flex-col w-[400px] max-w-full border-l border-gray-200 bg-white shadow-xl translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
 		style="top:56px;bottom:0"
 	>
-		<div class="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
-			<span class="text-[13px] font-semibold text-gray-900">Deploy & configurazione</span>
+		<div
+			class="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3"
+		>
+			<span class="text-[13px] font-semibold text-gray-900"
+				>Deploy & configurazione</span
+			>
 			<button
 				id="btn-close-deploy-panel"
 				class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-				title="Chiudi pannello">✕</button>
+				title="Chiudi pannello">✕</button
+			>
 		</div>
 		<div class="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
-
-		<div
-			id="action-box"
-			class="hidden animate-[slideDown_0.25s_ease] overflow-hidden rounded-xl border border-[#2d2d2d] shadow-lg [&.visible]:block"
-		>
 			<div
-				class="flex min-h-[36px] items-center gap-2.5 border-b border-[#ccc] bg-[#e8e6e3] px-3 py-2"
-			>
-				<div class="flex shrink-0 gap-1.5">
-					<span class="h-3 w-3 rounded-full bg-[#ff5f57]"
-					></span>
-					<span class="h-3 w-3 rounded-full bg-[#febc2e]"
-					></span>
-					<span class="h-3 w-3 rounded-full bg-[#28c840]"
-					></span>
-				</div>
-				<span
-					class="flex-1 text-center font-mono text-xs font-medium text-gray-600"
-					>deploy — ristogen</span
-				>
-				<button
-					id="btn-cancel-run"
-					class="shrink-0 rounded bg-red-400/10 border border-red-400/35 px-2.5 py-0.5 font-mono text-xs text-[#e06c75] transition hover:border-[#e06c75] hover:bg-red-400/25 disabled:opacity-50"
-					style="display:none">✕ Annulla</button
-				>
-				<a
-					id="action-link"
-					href="#"
-					target="_blank"
-					rel="noopener"
-					class="shrink-0 text-xs text-gray-500 transition hover:text-gray-900 hover:underline"
-					>GitHub ↗</a
-				>
-			</div>
-			<div
-				class="terminal-body max-h-[260px] overflow-y-auto bg-[#1e1e2e] p-4 font-mono text-sm leading-relaxed text-[#cdd6f4]"
+				id="action-box"
+				class="hidden animate-[slideDown_0.25s_ease] overflow-hidden rounded-xl border border-[#2d2d2d] shadow-lg [&.visible]:block"
 			>
 				<div
-					id="action-header"
-					class="mb-2 flex items-center gap-2 font-semibold [&.queued]:text-[#a6adc8] [&.in_progress]:text-[#89b4fa] [&.success]:text-[#a6e3a1] [&.failure]:text-[#f38ba8] [&.cancelled]:text-[#fab387] [&.timed_out]:text-[#fab387]"
+					class="flex min-h-[36px] items-center gap-2.5 border-b border-[#ccc] bg-[#e8e6e3] px-3 py-2"
 				>
-					<span id="action-icon"></span>
-					<span id="action-label">In attesa…</span>
-				</div>
-				<ul
-					id="action-steps"
-					class="m-0 list-none p-0 [&>li]:flex [&>li]:items-center [&>li]:gap-2 [&>li]:py-0.5 [&>li]:text-xs [&>li]:text-[#a6adc8] [&>li.step-success]:text-[#a6e3a1] [&>li.step-failure]:text-[#f38ba8] [&>li.step-in_progress]:text-[#89b4fa]"
-				>
-				</ul>
-				<div
-					id="action-errors"
-					class="hidden mt-2 rounded border border-[#f38ba8]/30 bg-[#f38ba8]/10 px-3 py-2.5 [&.visible]:block"
-				>
+					<div class="flex shrink-0 gap-1.5">
+						<span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
+						<span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
+						<span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+					</div>
 					<span
-						class="mb-1 block text-xs font-bold text-[#f38ba8]"
-						>ERR!</span
+						class="flex-1 text-center font-mono text-xs font-medium text-gray-600"
+						>deploy — ristogen</span
 					>
-					<pre
-						id="action-errors-text"
-						class="m-0 whitespace-pre-wrap break-words font-mono text-[11px] text-[#fca5a5]">
-					</pre>
+					<button
+						id="btn-cancel-run"
+						class="shrink-0 rounded bg-red-400/10 border border-red-400/35 px-2.5 py-0.5 font-mono text-xs text-[#e06c75] transition hover:border-[#e06c75] hover:bg-red-400/25 disabled:opacity-50"
+						style="display:none">✕ Annulla</button
+					>
+					<a
+						id="action-link"
+						href="#"
+						target="_blank"
+						rel="noopener"
+						class="shrink-0 text-xs text-gray-500 transition hover:text-gray-900 hover:underline"
+						>GitHub ↗</a
+					>
 				</div>
-			</div>
-		</div>
-
-		<div
-			id="next-steps-box"
-			class="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm [&.visible]:block"
-		>
-			<div
-				class="flex items-start justify-between border-b border-gray-200 p-4"
-			>
-				<div class="flex items-center gap-3">
+				<div
+					class="terminal-body max-h-[260px] overflow-y-auto bg-[#1e1e2e] p-4 font-mono text-sm leading-relaxed text-[#cdd6f4]"
+				>
 					<div
-						class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500"
+						id="action-header"
+						class="mb-2 flex items-center gap-2 font-semibold [&.queued]:text-[#a6adc8] [&.in_progress]:text-[#89b4fa] [&.success]:text-[#a6e3a1] [&.failure]:text-[#f38ba8] [&.cancelled]:text-[#fab387] [&.timed_out]:text-[#fab387]"
 					>
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+						<span id="action-icon"></span>
+						<span id="action-label">In attesa…</span>
 					</div>
-					<div>
-						<h2
-							class="text-[15px] font-semibold tracking-tight"
+					<ul
+						id="action-steps"
+						class="m-0 list-none p-0 [&>li]:flex [&>li]:items-center [&>li]:gap-2 [&>li]:py-0.5 [&>li]:text-xs [&>li]:text-[#a6adc8] [&>li.step-success]:text-[#a6e3a1] [&>li.step-failure]:text-[#f38ba8] [&>li.step-in_progress]:text-[#89b4fa]"
+					>
+					</ul>
+					<div
+						id="action-errors"
+						class="hidden mt-2 rounded border border-[#f38ba8]/30 bg-[#f38ba8]/10 px-3 py-2.5 [&.visible]:block"
+					>
+						<span
+							class="mb-1 block text-xs font-bold text-[#f38ba8]"
+							>ERR!</span
 						>
-							Prossimi passi
-						</h2>
-						<p class="mt-0.5 text-xs text-gray-500">
-							Completa la configurazione della landing <strong
-								id="ns-slug"
-								class="text-gray-900"></strong>
-						</p>
+						<pre
+							id="action-errors-text"
+							class="m-0 whitespace-pre-wrap break-words font-mono text-[11px] text-[#fca5a5]">
+						</pre>
 					</div>
 				</div>
-				<button
-					id="ns-dismiss"
-					class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-					title="Chiudi">✕</button
-				>
 			</div>
+
 			<div
-				class="flex items-start gap-3 border-b border-emerald-200 bg-emerald-50 px-5 py-3.5"
+				id="next-steps-box"
+				class="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm [&.visible]:block"
 			>
-				<span
-					class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white"
-					>✓</span
+				<div
+					class="flex items-start justify-between border-b border-gray-200 p-4"
 				>
-				<div>
-					<strong
-						class="mb-0.5 block text-[13px] text-emerald-700"
-						>Configurazione automatica completata</strong
-					>
-					<p
-						class="m-0 text-[13px] leading-relaxed text-gray-600"
-					>
-						Sito Netlify, repo, Identity, Git Gateway e
-						primo deploy sono stati configurati.
-					</p>
-				</div>
-			</div>
-			<ul class="m-0 list-none px-5 py-2">
-				<li
-					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
-					data-step="1"
-				>
-					<span
-						class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
-						>1</span
-					>
-					<div class="flex-1 text-[13px]">
-						<strong class="mb-1 block text-gray-900">Verifica la landing pubblicata</strong>
-						<p class="leading-relaxed text-gray-500">
-							Apri <a
-								id="ns-site-url"
-								href="#"
-								target="_blank"
-								class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-								>l'URL del sito</a
-							> e controlla che tutto sia visibile.
-						</p>
-					</div>
-				</li>
-				<li
-					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
-					data-step="2"
-				>
-					<span
-						class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
-						>2</span
-					>
-					<div class="flex-1 text-[13px]">
-						<strong class="mb-1 block text-gray-900">Compila il contenuto nel CMS</strong>
-						<p class="leading-relaxed text-gray-500">
-							Accedi a <a
-								id="ns-cms-url"
-								href="#"
-								target="_blank"
-								class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-								><code id="ns-admin-url" class="rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px]"></code></a
-							> e aggiorna testi, menu e immagini.
-						</p>
-					</div>
-				</li>
-				<li
-					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
-					data-step="3"
-				>
-					<span
-						class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
-						>3</span
-					>
-					<div class="flex-1 text-[13px]">
-						<strong class="mb-1 block text-gray-900">Configura i DNS del dominio</strong>
-						<p class="mb-2 leading-relaxed text-gray-500">
-							Vai nel pannello DNS del tuo registrar e aggiungi questi record:
-						</p>
-						<div class="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 text-[11px]">
-							<table class="w-full">
-								<thead>
-									<tr class="border-b border-gray-200 bg-gray-100">
-										<th class="px-2.5 py-1.5 text-left font-semibold text-gray-600">Host</th>
-										<th class="px-2.5 py-1.5 text-left font-semibold text-gray-600">Tipo</th>
-										<th class="px-2.5 py-1.5 text-left font-semibold text-gray-600">Valore</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr class="border-b border-gray-100">
-										<td class="px-2.5 py-1.5 font-mono text-gray-700">www</td>
-										<td class="px-2.5 py-1.5"><span class="rounded bg-blue-100 px-1 py-0.5 font-mono text-blue-700">CNAME</span></td>
-										<td class="px-2.5 py-1.5 font-mono text-gray-700" id="ns-cname-target">ristogen-slug.netlify.app</td>
-									</tr>
-									<tr>
-										<td class="px-2.5 py-1.5 font-mono text-gray-700">@</td>
-										<td class="px-2.5 py-1.5"><span class="rounded bg-purple-100 px-1 py-0.5 font-mono text-purple-700">A</span></td>
-										<td class="px-2.5 py-1.5 font-mono text-gray-700">75.2.60.5</td>
-									</tr>
-								</tbody>
-							</table>
+					<div class="flex items-center gap-3">
+						<div
+							class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500"
+						>
+							<svg
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								><path d="M9 11l3 3L22 4"></path><path
+									d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+								></path></svg
+							>
 						</div>
-						<p class="mt-2 text-[11px] text-gray-400">⏱ La propagazione DNS può richiedere fino a 24 ore.</p>
+						<div>
+							<h2
+								class="text-[15px] font-semibold tracking-tight"
+							>
+								Prossimi passi
+							</h2>
+							<p class="mt-0.5 text-xs text-gray-500">
+								Completa la configurazione della landing <strong
+									id="ns-slug"
+									class="text-gray-900"></strong>
+							</p>
+						</div>
 					</div>
-				</li>
-				<li
-					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
-					data-step="4"
+					<button
+						id="ns-dismiss"
+						class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+						title="Chiudi">✕</button
+					>
+				</div>
+				<div
+					class="flex items-start gap-3 border-b border-emerald-200 bg-emerald-50 px-5 py-3.5"
 				>
 					<span
-						class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
-						>4</span
+						class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white"
+						>✓</span
 					>
-					<div class="flex-1 text-[13px]">
-						<strong class="mb-1 block text-gray-900">Controlla l'accesso al CMS</strong>
-						<p class="leading-relaxed text-gray-500">
-							Apri il <a
-								id="ns-netlify-link"
-								href="#"
-								target="_blank"
-								class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-								>pannello Netlify Identity</a
-							> — l'invito è stato inviato automaticamente. Se non è arrivato, invialo di nuovo.
+					<div>
+						<strong
+							class="mb-0.5 block text-[13px] text-emerald-700"
+							>Configurazione automatica completata</strong
+						>
+						<p
+							class="m-0 text-[13px] leading-relaxed text-gray-600"
+						>
+							Sito Netlify, repo, Identity, Git Gateway e primo
+							deploy sono stati configurati.
 						</p>
 					</div>
-				</li>
-			</ul>
-		</div>
+				</div>
+				<ul class="m-0 list-none px-5 py-2">
+					<li
+						class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
+						data-step="1"
+					>
+						<span
+							class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+							>1</span
+						>
+						<div class="flex-1 text-[13px]">
+							<strong class="mb-1 block text-gray-900"
+								>Verifica la landing pubblicata</strong
+							>
+							<p class="leading-relaxed text-gray-500">
+								Apri <a
+									id="ns-site-url"
+									href="#"
+									target="_blank"
+									class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+									>l'URL del sito</a
+								> e controlla che tutto sia visibile.
+							</p>
+						</div>
+					</li>
+					<li
+						class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
+						data-step="2"
+					>
+						<span
+							class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+							>2</span
+						>
+						<div class="flex-1 text-[13px]">
+							<strong class="mb-1 block text-gray-900"
+								>Compila il contenuto nel CMS</strong
+							>
+							<p class="leading-relaxed text-gray-500">
+								Accedi a <a
+									id="ns-cms-url"
+									href="#"
+									target="_blank"
+									class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+									><code
+										id="ns-admin-url"
+										class="rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px]"
+									></code></a
+								> e aggiorna testi, menu e immagini.
+							</p>
+						</div>
+					</li>
+					<li
+						class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
+						data-step="3"
+					>
+						<span
+							class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+							>3</span
+						>
+						<div class="flex-1 text-[13px]">
+							<strong class="mb-1 block text-gray-900"
+								>Configura i DNS del dominio</strong
+							>
+							<p class="mb-2 leading-relaxed text-gray-500">
+								Vai nel pannello DNS del tuo registrar e
+								aggiungi questi record:
+							</p>
+							<div
+								class="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 text-[11px]"
+							>
+								<table class="w-full">
+									<thead>
+										<tr
+											class="border-b border-gray-200 bg-gray-100"
+										>
+											<th
+												class="px-2.5 py-1.5 text-left font-semibold text-gray-600"
+												>Host</th
+											>
+											<th
+												class="px-2.5 py-1.5 text-left font-semibold text-gray-600"
+												>Tipo</th
+											>
+											<th
+												class="px-2.5 py-1.5 text-left font-semibold text-gray-600"
+												>Valore</th
+											>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="border-b border-gray-100">
+											<td
+												class="px-2.5 py-1.5 font-mono text-gray-700"
+												>www</td
+											>
+											<td class="px-2.5 py-1.5"
+												><span
+													class="rounded bg-blue-100 px-1 py-0.5 font-mono text-blue-700"
+													>CNAME</span
+												></td
+											>
+											<td
+												class="px-2.5 py-1.5 font-mono text-gray-700"
+												id="ns-cname-target"
+												>ristogen-slug.netlify.app</td
+											>
+										</tr>
+										<tr>
+											<td
+												class="px-2.5 py-1.5 font-mono text-gray-700"
+												>@</td
+											>
+											<td class="px-2.5 py-1.5"
+												><span
+													class="rounded bg-purple-100 px-1 py-0.5 font-mono text-purple-700"
+													>A</span
+												></td
+											>
+											<td
+												class="px-2.5 py-1.5 font-mono text-gray-700"
+												>75.2.60.5</td
+											>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<p class="mt-2 text-[11px] text-gray-400">
+								⏱ La propagazione DNS può richiedere fino a 24
+								ore.
+							</p>
+						</div>
+					</li>
+					<li
+						class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
+						data-step="4"
+					>
+						<span
+							class="step-num flex h-[26px] min-w-[26px] items-center justify-center rounded-full bg-indigo-50 text-[13px] font-bold text-indigo-600 transition-colors"
+							>4</span
+						>
+						<div class="flex-1 text-[13px]">
+							<strong class="mb-1 block text-gray-900"
+								>Controlla l'accesso al CMS</strong
+							>
+							<p class="leading-relaxed text-gray-500">
+								Apri il <a
+									id="ns-netlify-link"
+									href="#"
+									target="_blank"
+									class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+									>pannello Netlify Identity</a
+								> — l'invito è stato inviato automaticamente. Se non
+								è arrivato, invialo di nuovo.
+							</p>
+						</div>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</div>
 
 	<div
 		id="panel-backdrop"
 		class="fixed inset-0 z-[49] hidden bg-black/20 backdrop-blur-[2px]"
-	></div>
+	>
+	</div>
 	<div
 		id="drag-overlay"
 		class="pointer-events-none fixed inset-0 z-[60] hidden items-center justify-center bg-indigo-900/60 backdrop-blur-sm"
 	>
-		<div class="flex flex-col items-center gap-3 rounded-2xl bg-white/90 px-12 py-10 shadow-2xl">
+		<div
+			class="flex flex-col items-center gap-3 rounded-2xl bg-white/90 px-12 py-10 shadow-2xl"
+		>
 			<span class="text-5xl">&#128196;</span>
-			<p class="text-lg font-semibold text-indigo-800">Rilascia il PDF per creare una nuova landing</p>
+			<p class="text-lg font-semibold text-indigo-800">
+				Rilascia il PDF per creare una nuova landing
+			</p>
 		</div>
 	</div>
-
 </DashboardLayout>

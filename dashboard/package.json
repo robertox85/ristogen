@@ -6,12 +6,14 @@
     "dev": "astro dev --port 4322",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+	"astro": "astro",
+	"templates:build": "node public/scripts/process-templates.js"
   },
   "dependencies": {
     "@astrojs/netlify": "^6.6.4",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "^5.17.1",
-    "tailwindcss": "^4.2.1"
+	"tailwindcss": "^4.2.1",
+	"cheerio": "^1.0.0-rc.12"
   }
 }

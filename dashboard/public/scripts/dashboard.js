@@ -606,6 +606,7 @@ async function loadEditDrawer(slug) {
 	DrawerManager.open('edit');
 	openPanelBackdrop();
 
+
 	if (!State.authToken) {
 		showToast('Token non disponibile', 'error');
 		return;
@@ -637,6 +638,7 @@ async function loadEditDrawer(slug) {
 			els.cmsUrl.className = 'drawer-info-value plain';
 		}
 
+		// Aggiorna il template picker e la preview-box con il template del client
 		setTemplatePicker('tpicker-edit', data.template || 'template-01');
 		els.name.value = data.client_name || '';
 		els.lang.value = data.default_lang || 'it';
