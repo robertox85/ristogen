@@ -18,15 +18,44 @@ on:
         type: choice
         options: ['template-01', 'template-02']
       default_lang:
-        description: 'Lingua principale (es. it, en, fr, ja)'
+        description: 'Lingua principale'
         required: true
         default: 'it'
-        type: string
+        type: choice
+        options:
+          - it
+          - en
+          - fr
+          - de
+          - es
+          - pt
+          - ja
+          - zh
+          - ar
       languages:
-        description: 'Lingue abilitate separate da + (es. it+en, it+en+fr, it+ja)'
+        description: 'Lingue attive (separate da +)'
         required: true
         default: 'it'
-        type: string
+        type: choice
+        options:
+          - it
+          - en
+          - fr
+          - de
+          - es
+          - pt
+          - ja
+          - zh
+          - it+en
+          - it+fr
+          - it+de
+          - it+es
+          - en+fr
+          - en+de
+          - en+es
+          - it+en+fr
+          - it+en+de
+          - it+en+es
       custom_domain:
         description: 'Dominio personalizzato (es. www.ristoranteprati.it)'
         required: false
