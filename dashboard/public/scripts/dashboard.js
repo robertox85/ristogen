@@ -70,6 +70,18 @@ const Poller = {
 	}
 };
 
+// ── 4b. Deploy Panel ──────────────────────────────────────────
+function openDeployPanel() {
+	document.getElementById('deploy-panel')?.classList.add('open');
+}
+function closeDeployPanel() {
+	const panel = document.getElementById('deploy-panel');
+	if (!panel) return;
+	panel.classList.remove('open');
+	document.getElementById('action-box')?.classList.remove('visible');
+	document.getElementById('next-steps-box')?.classList.remove('visible');
+}
+
 // ── 5. Netlify Identity (Event-Driven, Nessun Polling) ────────
 
 function initIdentity() {
@@ -121,7 +133,6 @@ function bootDashboard(token) {
 
 	if (!Storage.get(KEYS.PENDING)) {
 		restoreNextSteps();
-		restoreTerminalLog();
 	}
 }
 
@@ -226,7 +237,8 @@ function renderClientRows(arr) {
       <td class="hidden border-b border-gray-200 p-3 align-middle sm:table-cell">${urlCols}</td>
       <td class="border-b border-gray-200 p-3 align-middle">
         <div class="table-actions flex gap-1.5">
-          <button class="btn-steps rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-500 transition hover:border-indigo-500 hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" data-site-url="${safeUrl}" aria-label="Prossimi passi">🚀</button>
+          <button class="btn-steps rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-500 transition hover:border-indigo-500 hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" data-site-url="${safeUrl}" aria-label="Prossimi passi" title="Prossimi passi">📋</button>
+          <button class="btn-show-log rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-400 transition hover:border-gray-400 hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" aria-label="Mostra log" title="Mostra log deploy">🖥</button>
           <button class="btn-edit whitespace-nowrap rounded-md border border-indigo-100 bg-transparent px-2.5 py-[5px] text-xs text-indigo-600 transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:opacity-45" data-slug="${safeSlug}">Modifica</button>
           <button class="btn-delete whitespace-nowrap rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 disabled:opacity-45"${deleteDisabled} data-slug="${safeSlug}">Elimina</button>
         </div>
@@ -340,7 +352,8 @@ const SlugValidator = {
 	format: (str) => str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-'),
 
 	setHint: (cls, text) => {
-		SlugValidator.hint.className = cls;
+		SlugValidator.hint.classList.remove('ok', 'error', 'checking');
+		if (cls) SlugValidator.hint.classList.add(cls);
 		SlugValidator.hint.textContent = text;
 	},
 
@@ -636,7 +649,7 @@ function initActionPolling(runId, slug, siteUrl, prevSettings) {
 	};
 
 	els.box.classList.add("visible");
-	els.box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+	openDeployPanel();
 	Storage.del(KEYS.TERM_LOG);
 
 	const ICONS = { queued: "⏳", in_progress: '<span class="spin">⚙</span>', success: "✅", failure: "❌", cancelled: "⚠️", timed_out: "⏱️" };
@@ -793,6 +806,14 @@ function initTableDelegation() {
 
 		if (btn.classList.contains('btn-steps')) {
 			showNextSteps(slug, btn.dataset.siteUrl || '');
+		} else if (btn.classList.contains('btn-show-log')) {
+			const log = Storage.get(KEYS.TERM_LOG);
+			if (log && log.slug === slug) {
+				restoreTerminalLog();
+				openDeployPanel();
+			} else {
+				showToast('Nessun log disponibile per ' + slug, 'info');
+			}
 		} else if (btn.classList.contains('btn-copy')) {
 			const text = btn.dataset.copy || '';
 			const label = btn.dataset.copyLabel || 'testo';
@@ -902,7 +923,7 @@ function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
               <strong class="text-xs font-semibold">${escHtml(t.label.split(' — ')[0])}</strong>
               <em class="text-[11px] not-italic text-gray-500">${escHtml(t.desc)}</em>
           </div>
-          <div class="absolute left-[calc(100%+10px)] top-1/2 hidden w-[260px] -translate-y-1/2 animate-[fadeIn_0.15s_ease] overflow-hidden rounded-md border border-gray-200 bg-white shadow-xl group-hover:block max-md:!hidden [[id='tpicker-edit']_&]:left-auto [[id='tpicker-edit']_&]:right-[calc(100%+10px)]">
+          <div class="absolute left-[calc(100%+10px)] top-0 hidden w-[260px] animate-[fadeIn_0.15s_ease] overflow-hidden rounded-md border border-gray-200 bg-white shadow-xl group-hover:block max-md:!hidden [[id='tpicker-edit']_&]:left-auto [[id='tpicker-edit']_&]:right-[calc(100%+10px)]">
              <img src="${escHtml(t.thumb)}" alt="Preview" class="block w-full" />
              <p class="m-0 border-t border-gray-200 bg-white px-2.5 py-[5px] text-[11px] font-semibold text-gray-500">${escHtml(t.label)}</p>
           </div>
@@ -1059,40 +1080,19 @@ function showNextSteps(slug, siteUrl) {
 	const cmsLink = document.getElementById("ns-cms-url");
 	if (cmsLink) cmsLink.href = escHtml(adminUrl);
 
-	const savedSteps = Storage.get(KEYS.NS_STEPS + slug, []);
+	const cnameTarget = document.getElementById("ns-cname-target");
+	if (cnameTarget) cnameTarget.textContent = `ristogen-${escHtml(slug)}.netlify.app`;
 
-	box.querySelectorAll(".step-item").forEach((li, i) => {
-		if (savedSteps[i]) {
-			li.classList.add("done");
-			li.querySelector(".step-num").textContent = "✓";
-		} else {
-			li.classList.remove("done");
-			li.querySelector(".step-num").textContent = li.dataset.step;
-		}
-	});
+
 
 	box.classList.add("visible");
-	box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+	openDeployPanel();
 
 	Storage.set(KEYS.NS, { slug, site_url: siteUrl });
 }
 
 // Event Delegation per i check degli step (eseguito una volta sola)
 document.getElementById("next-steps-box")?.addEventListener("click", function (e) {
-	const checkBtn = e.target.closest('.step-check');
-	if (checkBtn) {
-		const li = checkBtn.closest(".step-item");
-		const done = li.classList.toggle("done");
-		li.querySelector(".step-num").textContent = done ? "✓" : li.dataset.step;
-
-		const slug = document.getElementById('ns-slug')?.textContent;
-		if (slug) {
-			const stepsState = Array.from(this.querySelectorAll('.step-item')).map(el => el.classList.contains('done'));
-			Storage.set(KEYS.NS_STEPS + slug, stepsState);
-		}
-		return;
-	}
-
 	const dismissBtn = e.target.closest('#ns-dismiss');
 	if (dismissBtn) {
 		this.classList.remove("visible");
@@ -1464,10 +1464,13 @@ function onConfirmMenu() {
 		}
 	}
 
-	// Pre-seleziona lingua
+	// Pre-seleziona lingua e checkbox corrispondente
 	if (MenuExtractor.currentMenu?.lang) {
 		const langSel = document.getElementById('lang');
-		if (langSel) langSel.value = MenuExtractor.currentMenu.lang;
+		if (langSel) {
+			langSel.value = MenuExtractor.currentMenu.lang;
+			syncLangCheckbox(MenuExtractor.currentMenu.lang);
+		}
 	}
 
 	DrawerManager.close('menu');
@@ -1477,55 +1480,53 @@ function onConfirmMenu() {
 // ── 23. Dropzone Init ─────────────────────────────────────────
 
 function initDropzone() {
-	const dz = document.getElementById('pdf-dropzone');
+	const dz = document.getElementById('drawer-dropzone');
 	const input = document.getElementById('dropzone-input');
-	if (!dz || !input) return;
 
-	// Click → file picker
-	dz.addEventListener('click', e => {
-		if (e.target.closest('#dropzone-retry') || e.target.closest('#dropzone-skip')) return;
-		input.click();
-	});
+	function dzSetState(state, text) {
+		const icon = document.getElementById('drawer-dz-icon');
+		const label = document.getElementById('drawer-dz-text');
+		const status = document.getElementById('drawer-dz-status');
+		if (!dz) return;
+		dz.classList.remove('drag-over');
+		if (icon) icon.textContent = state === 'loading' ? '⏳' : state === 'done' ? '✅' : '📄';
+		if (label) label.textContent = text || (state === 'loading' ? 'Estrazione menu in corso…' : 'Trascina un PDF o seleziona file');
+		if (status) {
+			if (state === 'error' && text) {
+				status.textContent = text;
+				status.classList.remove('hidden');
+			} else {
+				status.classList.add('hidden');
+			}
+		}
+	}
 
-	input.addEventListener('change', () => {
-		const file = input.files?.[0];
-		if (file) MenuExtractor.extractFromFile(file);
-		input.value = '';
-	});
+	if (dz && input) {
+		dz.addEventListener('click', e => {
+			if (dz.classList.contains('loading')) return;
+			input.click();
+		});
+		input.addEventListener('change', () => {
+			const file = input.files?.[0];
+			if (file) MenuExtractor.extractFromFile(file);
+			input.value = '';
+		});
+	}
 
-	// Retry button
-	document.getElementById('dropzone-retry')?.addEventListener('click', e => {
-		e.stopPropagation();
-		MenuExtractor.showIdle();
-	});
-
-	// Skip button on error → open create drawer directly
-	document.getElementById('dropzone-skip')?.addEventListener('click', e => {
-		e.stopPropagation();
-		MenuExtractor.showIdle();
-		DrawerManager.open('create');
-	});
-
-	// Drag & drop
+	// Global drag & drop: dropping on page opens create drawer and extracts
 	let dragCounter = 0;
 	document.addEventListener('dragenter', e => {
 		const hasFiles = Array.from(e.dataTransfer?.items || []).some(i => i.kind === 'file');
 		if (!hasFiles) return;
 		dragCounter++;
-		dz.classList.add('drag-over');
-		dz.querySelector('#dropzone-idle').classList.add('hidden');
-		dz.querySelector('#dropzone-drag').classList.remove('hidden');
-		dz.querySelector('#dropzone-drag').classList.add('flex');
+		if (dz) dz.classList.add('drag-over');
 	});
 
 	document.addEventListener('dragleave', e => {
 		dragCounter--;
 		if (dragCounter <= 0) {
 			dragCounter = 0;
-			dz.classList.remove('drag-over');
-			dz.querySelector('#dropzone-drag').classList.add('hidden');
-			dz.querySelector('#dropzone-drag').classList.remove('flex');
-			dz.querySelector('#dropzone-idle').classList.remove('hidden');
+			if (dz) dz.classList.remove('drag-over');
 		}
 	});
 
@@ -1534,17 +1535,18 @@ function initDropzone() {
 	document.addEventListener('drop', e => {
 		e.preventDefault();
 		dragCounter = 0;
-		dz.classList.remove('drag-over');
-		dz.querySelector('#dropzone-drag').classList.add('hidden');
-		dz.querySelector('#dropzone-drag').classList.remove('flex');
-		dz.querySelector('#dropzone-idle').classList.remove('hidden');
-
+		if (dz) dz.classList.remove('drag-over');
 		const file = Array.from(e.dataTransfer?.files || []).find(f => f.type === 'application/pdf');
-		if (file) MenuExtractor.extractFromFile(file);
-		else if (e.dataTransfer?.files?.length) {
-			MenuExtractor.showError('Rilascia un file PDF');
+		if (file) {
+			DrawerManager.open('create');
+			MenuExtractor.extractFromFile(file);
+		} else if (e.dataTransfer?.files?.length) {
+			showToast('Rilascia un file PDF', 'error');
 		}
 	});
+
+	// Expose to MenuExtractor for state updates
+	window._dzSetState = dzSetState;
 
 	// Menu drawer footer buttons
 	document.getElementById('btn-confirm-menu')?.addEventListener('click', onConfirmMenu);
@@ -1576,6 +1578,13 @@ function initDropzone() {
 	});
 }
 
+// ── Helper: sync default_lang select → language checkboxes ─────
+
+function syncLangCheckbox(lang) {
+	const cb = document.querySelector(`input[name="languages"][value="${lang}"]`);
+	if (cb && !cb.checked) cb.checked = true;
+}
+
 // ── 14. Bootstrap ─────────────────────────────────────────────
 
 
@@ -1587,6 +1596,11 @@ function bootstrap() {
 	initDropzone();
 	initIdentity();
 
+	// Lingua principale → auto-check language checkbox
+	document.getElementById('lang')?.addEventListener('change', function () {
+		syncLangCheckbox(this.value);
+	});
+
 	document.getElementById("btn-refresh-clients")?.addEventListener("click", function () {
 		if (!State.authToken) return;
 		this.classList.add("spinning");
@@ -1597,6 +1611,30 @@ function bootstrap() {
 	document.getElementById('btn-login').addEventListener('click', () => {
 		window.netlifyIdentity && window.netlifyIdentity.open();
 	});
+
+	document.getElementById('btn-close-deploy-panel')?.addEventListener('click', closeDeployPanel);
+
+	// Auto-slug from restaurant name
+	const nameInput = document.getElementById('client-name');
+	const slugInput = document.getElementById('slug');
+	if (nameInput && slugInput) {
+		nameInput.addEventListener('input', function () {
+			if (slugInput.dataset.manual === 'true') return;
+			const slug = this.value
+				.toLowerCase()
+				.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/, '');
+			slugInput.value = slug;
+			slugInput.dispatchEvent(new Event('input'));
+		});
+		slugInput.addEventListener('keydown', function () {
+			this.dataset.manual = 'true';
+		});
+		nameInput.addEventListener('change', function () {
+			if (!this.value) delete slugInput.dataset.manual;
+		});
+	}
 }
 
 if (document.readyState === "loading") {

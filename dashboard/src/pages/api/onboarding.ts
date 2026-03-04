@@ -1,3 +1,4 @@
+/// <reference types="astro/client" />
 import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -26,7 +27,8 @@ export const POST: APIRoute = async ({ request }) => {
 	const clientName = (formData.get('client_name') as string | null)?.trim() ?? '';
 	const template = (formData.get('template') as string | null) ?? 'template-01';
 	const defaultLang = (formData.get('default_lang') as string | null) ?? 'it';
-	const languages = (formData.get('languages') as string | null)?.trim() || defaultLang;
+	const langValues = formData.getAll('languages') as string[];
+	const languages = langValues.length > 0 ? langValues.join('+') : defaultLang;
 	const customDomain = (formData.get('custom_domain') as string | null)?.trim() ?? '';
 	const clientEmail = (formData.get('client_email') as string | null)?.trim() ?? '';
 	const menuJson = (formData.get('menu_json') as string | null)?.trim() ?? '';
