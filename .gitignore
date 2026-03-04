@@ -5,3 +5,4 @@ doc/
 build-*/
 # Local Netlify folder
 .netlify
+CLAUDE.md

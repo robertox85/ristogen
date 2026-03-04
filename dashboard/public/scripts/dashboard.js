@@ -52,6 +52,63 @@ const KEYS = {
 	TERM_LOG: 'ristogen_terminal_log'
 };
 
+const COL_DEFS = [
+	{ id: 'col-name', label: 'Nome ristorante' },
+	{ id: 'col-slug', label: 'Slug' },
+	{ id: 'col-template', label: 'Template' },
+	{ id: 'col-lang', label: 'Lingua' },
+	{ id: 'col-url', label: 'URL' },
+	{ id: 'col-actions', label: 'Azioni' }
+];
+
+function applyColumnVisibility() {
+	const vis = Storage.get('ristogen_col_visibility') || {};
+	COL_DEFS.forEach(col => {
+		const hide = vis[col.id] === false;
+		document.querySelectorAll('.' + col.id).forEach(el => {
+			el.classList.toggle('!hidden', hide);
+			if (hide) el.style.display = 'none';
+			else el.style.display = '';
+		});
+	});
+}
+
+function initColumnToggle() {
+	const btn = document.getElementById('btn-col-toggle');
+	const menu = document.getElementById('col-toggle-menu');
+	if (!btn || !menu) return;
+
+	const STORAGE_KEY = 'ristogen_col_visibility';
+	const vis = Storage.get(STORAGE_KEY) || {};
+
+	menu.innerHTML = COL_DEFS.map(col => {
+		const checked = vis[col.id] !== false ? 'checked' : '';
+		return `<label class="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"><input type="checkbox" class="rounded" data-col="${col.id}" ${checked} />${col.label}</label>`;
+	}).join('');
+
+	applyColumnVisibility();
+
+	menu.addEventListener('change', e => {
+		const cb = e.target.closest('[data-col]');
+		if (!cb) return;
+		const saved = Storage.get(STORAGE_KEY) || {};
+		saved[cb.dataset.col] = cb.checked;
+		Storage.set(STORAGE_KEY, saved);
+		applyColumnVisibility();
+	});
+
+	btn.addEventListener('click', e => {
+		e.stopPropagation();
+		menu.classList.toggle('hidden');
+	});
+
+	document.addEventListener('click', e => {
+		if (!btn.contains(e.target) && !menu.contains(e.target)) {
+			menu.classList.add('hidden');
+		}
+	});
+}
+
 // ── 4. Polling Manager (Risolve il memory leak dei timer orfani) ──
 const Poller = {
 	start: (slug, fn, delay) => {
@@ -73,6 +130,7 @@ const Poller = {
 // ── 4b. Deploy Panel ──────────────────────────────────────────
 function openDeployPanel() {
 	document.getElementById('deploy-panel')?.classList.add('open');
+	openPanelBackdrop();
 }
 function closeDeployPanel() {
 	const panel = document.getElementById('deploy-panel');
@@ -80,6 +138,20 @@ function closeDeployPanel() {
 	panel.classList.remove('open');
 	document.getElementById('action-box')?.classList.remove('visible');
 	document.getElementById('next-steps-box')?.classList.remove('visible');
+	closePanelBackdrop();
+}
+
+function openPanelBackdrop() {
+	document.getElementById('panel-backdrop')?.classList.remove('hidden');
+}
+function closePanelBackdrop() {
+	document.getElementById('panel-backdrop')?.classList.add('hidden');
+}
+
+function showInPanel(which) {
+	document.getElementById('action-box')?.classList.toggle('visible', which === 'action');
+	document.getElementById('next-steps-box')?.classList.toggle('visible', which === 'steps');
+	openDeployPanel();
 }
 
 // ── 5. Netlify Identity (Event-Driven, Nessun Polling) ────────
@@ -128,11 +200,12 @@ function tryLoadClients(user) {
 function bootDashboard(token) {
 	if (!token) return;
 	State.authToken = token;
-	loadClients(token);
-	resumePendingRun(token);
-
-	if (!Storage.get(KEYS.PENDING)) {
-		restoreNextSteps();
+	if (DOM.tbody) {
+		loadClients(token);
+		resumePendingRun(token);
+		if (!Storage.get(KEYS.PENDING)) {
+			restoreNextSteps();
+		}
 	}
 }
 
@@ -225,22 +298,29 @@ function renderClientRows(arr) {
 		const deleteDisabled = PROTECTED_SLUGS.includes(c.slug) ? ' disabled title="Landing protetta"' : '';
 
 		return `<tr data-slug="${safeSlug}" data-site-url="${safeUrl}" class="transition-colors hover:bg-gray-50/80">
-      <td class="border-b border-gray-200 p-3 align-middle">
-          <span class="client-name mb-[3px] block text-[13px] font-semibold text-[#1e2035]">${safeName}</span>
-          <span class="slug-chip inline-flex items-center gap-1 rounded-[5px] bg-[#f0f2ff] px-2 py-0.5 font-mono text-xs font-semibold text-indigo-700">${safeSlug}</span>
+      <td class="col-name border-b border-gray-200 p-3 align-middle">
+          <span class="client-name block text-[13px] font-semibold text-[#1e2035]">${safeName}</span>
           ${badge ? `<br>${badge}` : ''}
       </td>
-      <td class="hidden border-b border-gray-200 p-3 align-middle sm:table-cell">
+      <td class="col-slug border-b border-gray-200 p-3 align-middle">
+          <span class="slug-chip inline-flex items-center gap-1 rounded-[5px] bg-[#f0f2ff] px-2 py-0.5 font-mono text-xs font-semibold text-indigo-700">${safeSlug}</span>
+      </td>
+      <td class="col-template hidden border-b border-gray-200 p-3 align-middle sm:table-cell">
           <span class="tpl-badge inline-block whitespace-nowrap rounded-[4px] bg-[#f0f2ff] px-2 py-0.5 text-[11px] font-semibold text-indigo-700">${tplLabel}</span>
       </td>
-      <td class="hidden border-b border-gray-200 p-3 align-middle min-[400px]:table-cell">${langFlag}</td>
-      <td class="hidden border-b border-gray-200 p-3 align-middle sm:table-cell">${urlCols}</td>
-      <td class="border-b border-gray-200 p-3 align-middle">
+      <td class="col-lang hidden border-b border-gray-200 p-3 align-middle min-[400px]:table-cell">${langFlag}</td>
+      <td class="col-url hidden border-b border-gray-200 p-3 align-middle sm:table-cell">${urlCols}</td>
+      <td class="col-actions border-b border-gray-200 p-3 align-middle">
         <div class="table-actions flex gap-1.5">
-          <button class="btn-steps rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-500 transition hover:border-indigo-500 hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" data-site-url="${safeUrl}" aria-label="Prossimi passi" title="Prossimi passi">📋</button>
-          <button class="btn-show-log rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-400 transition hover:border-gray-400 hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" aria-label="Mostra log" title="Mostra log deploy">🖥</button>
+          <div class="relative kebab-wrap">
+            <button class="btn-kebab rounded-md border border-gray-200 bg-transparent px-2 py-[5px] text-gray-400 transition hover:border-gray-400 hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" data-slug="${safeSlug}" data-site-url="${safeUrl}" title="Azioni">⋯</button>
+            <div class="kebab-menu absolute right-0 z-30 mt-1 hidden min-w-[160px] rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+              <button class="kebab-show-steps w-full px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50" data-slug="${safeSlug}" data-site-url="${safeUrl}">Prossimi passi</button>
+              <button class="kebab-show-log w-full px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50" data-slug="${safeSlug}">Mostra log deploy</button>
+            </div>
+          </div>
           <button class="btn-edit whitespace-nowrap rounded-md border border-indigo-100 bg-transparent px-2.5 py-[5px] text-xs text-indigo-600 transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:opacity-45" data-slug="${safeSlug}">Modifica</button>
-          <button class="btn-delete whitespace-nowrap rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 disabled:opacity-45"${deleteDisabled} data-slug="${safeSlug}">Elimina</button>
+          <button class="btn-delete whitespace-nowrap rounded-md border border-gray-200 bg-transparent px-2.5 py-[5px] text-xs text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 [&:disabled]:cursor-not-allowed [&:disabled]:opacity-40 [&:disabled]:pointer-events-none"${deleteDisabled} data-slug="${safeSlug}">Elimina</button>
         </div>
       </td>
     </tr>`;
@@ -251,6 +331,7 @@ function renderClientRows(arr) {
 		if (th.dataset.sort === State.sort.key) th.setAttribute('aria-sort', State.sort.asc ? 'ascending' : 'descending');
 		else th.removeAttribute('aria-sort');
 	});
+	applyColumnVisibility();
 }
 
 // ── 7. Utility: Debounce ──────────────────────────────────────
@@ -329,6 +410,14 @@ document.addEventListener('keydown', e => {
 		if (document.getElementById('menu-drawer')?.classList.contains('open')) DrawerManager.close('menu');
 		else if (document.getElementById('create-drawer')?.classList.contains('open')) DrawerManager.close('create');
 		else if (document.getElementById('edit-drawer')?.classList.contains('open')) DrawerManager.close('edit');
+		else if (document.getElementById('deploy-panel')?.classList.contains('open')) closeDeployPanel();
+	}
+});
+
+// Close kebab menus on outside click
+document.addEventListener('click', e => {
+	if (!e.target.closest('.kebab-wrap')) {
+		document.querySelectorAll('.kebab-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
 	}
 });
 
@@ -341,6 +430,11 @@ document.getElementById('drawer-backdrop')?.addEventListener('click', () => Draw
 
 document.getElementById('menu-drawer-close')?.addEventListener('click', () => DrawerManager.close('menu'));
 document.getElementById('menu-backdrop')?.addEventListener('click', () => DrawerManager.close('menu'));
+
+document.getElementById('panel-backdrop')?.addEventListener('click', () => {
+	closeDeployPanel();
+	DrawerManager.close('edit');
+});
 
 // ── 9. Validazione Slug Reattiva e Sicura (No Race Conditions) ──
 const SlugValidator = {
@@ -463,6 +557,7 @@ if (createForm) {
 			SlugValidator.setHint("", "");
 			SlugValidator.valid = false;
 
+			State.drawerDirty.create = false;
 			DrawerManager.close('create');
 
 			if (json.run_id) {
@@ -509,6 +604,7 @@ async function loadEditDrawer(slug) {
 	els.rebuildNote.classList.remove('visible');
 
 	DrawerManager.open('edit');
+	openPanelBackdrop();
 
 	if (!State.authToken) {
 		showToast('Token non disponibile', 'error');
@@ -648,8 +744,7 @@ function initActionPolling(runId, slug, siteUrl, prevSettings) {
 		cancelBtn: document.getElementById("btn-cancel-run")
 	};
 
-	els.box.classList.add("visible");
-	openDeployPanel();
+	showInPanel('action');
 	Storage.del(KEYS.TERM_LOG);
 
 	const ICONS = { queued: "⏳", in_progress: '<span class="spin">⚙</span>', success: "✅", failure: "❌", cancelled: "⚠️", timed_out: "⏱️" };
@@ -804,13 +899,27 @@ function initTableDelegation() {
 		if (!btn) return;
 		const slug = btn.dataset.slug;
 
-		if (btn.classList.contains('btn-steps')) {
+		if (btn.classList.contains('btn-kebab')) {
+			const menu = btn.nextElementSibling;
+			const isOpen = !menu?.classList.contains('hidden');
+			document.querySelectorAll('.kebab-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
+			if (!isOpen && menu) {
+				const rect = btn.getBoundingClientRect();
+				menu.style.position = 'fixed';
+				menu.style.top = `${rect.bottom + 4}px`;
+				menu.style.right = `${window.innerWidth - rect.right}px`;
+				menu.style.zIndex = '200';
+				menu.classList.remove('hidden');
+			}
+		} else if (btn.classList.contains('kebab-show-steps')) {
+			document.querySelectorAll('.kebab-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
 			showNextSteps(slug, btn.dataset.siteUrl || '');
-		} else if (btn.classList.contains('btn-show-log')) {
+		} else if (btn.classList.contains('kebab-show-log')) {
+			document.querySelectorAll('.kebab-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
 			const log = Storage.get(KEYS.TERM_LOG);
 			if (log && log.slug === slug) {
 				restoreTerminalLog();
-				openDeployPanel();
+				showInPanel('action');
 			} else {
 				showToast('Nessun log disponibile per ' + slug, 'info');
 			}
@@ -888,7 +997,7 @@ function emptyRow(msg, withCta = false) {
 	const cta = withCta
 		? `<button type="button" onclick="DrawerManager.open('create')" class="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">+ Crea il primo cliente</button>`
 		: '';
-	return `<tr><td colspan="5">
+	return `<tr><td colspan="6">
     <div class="py-10 text-center text-gray-500">
       <svg class="mx-auto mb-3 opacity-25" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="12" cy="12" r="10"></circle>
@@ -923,10 +1032,7 @@ function renderTemplatePicker(pickerId, hiddenName, hiddenId, defaultValue) {
               <strong class="text-xs font-semibold">${escHtml(t.label.split(' — ')[0])}</strong>
               <em class="text-[11px] not-italic text-gray-500">${escHtml(t.desc)}</em>
           </div>
-          <div class="absolute left-[calc(100%+10px)] top-0 hidden w-[260px] animate-[fadeIn_0.15s_ease] overflow-hidden rounded-md border border-gray-200 bg-white shadow-xl group-hover:block max-md:!hidden [[id='tpicker-edit']_&]:left-auto [[id='tpicker-edit']_&]:right-[calc(100%+10px)]">
-             <img src="${escHtml(t.thumb)}" alt="Preview" class="block w-full" />
-             <p class="m-0 border-t border-gray-200 bg-white px-2.5 py-[5px] text-[11px] font-semibold text-gray-500">${escHtml(t.label)}</p>
-          </div>
+
         </li>
       `).join('')}
     </ul>
@@ -987,6 +1093,35 @@ function initTemplatePickers() {
 			setTemplatePicker(picker.id, item.dataset.value);
 			picker.classList.remove('open');
 			trigger.setAttribute('aria-expanded', 'false');
+			const pb = document.getElementById('tpl-preview-box');
+			if (pb) { pb.classList.add('hidden'); pb.style.cssText = ''; }
+		});
+
+		list.addEventListener('mouseover', e => {
+			const item = e.target.closest('.tpicker-item');
+			if (!item) return;
+			const t = TEMPLATES.find(tpl => tpl.value === item.dataset.value);
+			if (!t) return;
+			const previewBox = document.getElementById('tpl-preview-box');
+			const previewImg = document.getElementById('tpl-preview-img');
+			const previewLabel = document.getElementById('tpl-preview-label');
+			if (previewImg) { previewImg.src = t.thumb; previewImg.alt = t.label; }
+			if (previewLabel) previewLabel.textContent = t.label;
+			if (previewBox) {
+				const listRect = list.getBoundingClientRect();
+				previewBox.style.position = 'fixed';
+				previewBox.style.width = `${listRect.width}px`;
+
+				previewBox.style.top = '';
+				previewBox.style.bottom = `${window.innerHeight - listRect.top + 40}px`;
+				previewBox.style.zIndex = '999';
+				previewBox.classList.remove('hidden');
+			}
+		});
+
+		list.addEventListener('mouseleave', () => {
+			const previewBox = document.getElementById('tpl-preview-box');
+			if (previewBox) { previewBox.classList.add('hidden'); previewBox.style.cssText = ''; }
 		});
 	});
 
@@ -995,6 +1130,8 @@ function initTemplatePickers() {
 			if (!picker.contains(e.target)) {
 				picker.classList.remove('open');
 				picker.querySelector('.tpicker-btn')?.setAttribute('aria-expanded', 'false');
+				const pb = document.getElementById('tpl-preview-box');
+				if (pb) { pb.classList.add('hidden'); pb.style.cssText = ''; }
 			}
 		});
 	});
@@ -1056,7 +1193,7 @@ async function loadClients(token) {
 
 // ── 18. Pannello Next Steps (Optimized via Event Delegation) ──
 
-function showNextSteps(slug, siteUrl) {
+function _populateNextSteps(slug, siteUrl) {
 	const box = document.getElementById("next-steps-box");
 	if (!box) return;
 
@@ -1082,12 +1219,11 @@ function showNextSteps(slug, siteUrl) {
 
 	const cnameTarget = document.getElementById("ns-cname-target");
 	if (cnameTarget) cnameTarget.textContent = `ristogen-${escHtml(slug)}.netlify.app`;
+}
 
-
-
-	box.classList.add("visible");
-	openDeployPanel();
-
+function showNextSteps(slug, siteUrl) {
+	_populateNextSteps(slug, siteUrl);
+	showInPanel('steps');
 	Storage.set(KEYS.NS, { slug, site_url: siteUrl });
 }
 
@@ -1104,7 +1240,7 @@ document.getElementById("next-steps-box")?.addEventListener("click", function (e
 
 function restoreNextSteps() {
 	const data = Storage.get(KEYS.NS);
-	if (data?.slug) showNextSteps(data.slug, data.site_url || '');
+	if (data?.slug) _populateNextSteps(data.slug, data.site_url || '');
 }
 
 function resumePendingRun(authToken) {
@@ -1187,7 +1323,7 @@ function restoreTerminalLog() {
 		els.body.scrollTop = els.body.scrollHeight;
 	}
 
-	els.box.classList.add('visible');
+	showInPanel('action');
 }
 
 // ── 20. Menu Extractor ────────────────────────────────────────
@@ -1233,39 +1369,36 @@ const MenuExtractor = {
 	},
 
 	showLoading() {
-		const dz = document.getElementById('pdf-dropzone');
-		if (!dz) return;
-		dz.querySelector('#dropzone-idle').classList.add('hidden');
-		dz.querySelector('#dropzone-drag').classList.add('hidden');
-		dz.querySelector('#dropzone-loading').classList.remove('hidden');
-		dz.querySelector('#dropzone-loading').classList.add('flex');
-		dz.querySelector('#dropzone-error').classList.add('hidden');
-		dz.querySelector('#dropzone-error').classList.remove('flex');
+		const dz = document.getElementById('drawer-dropzone');
+		const icon = document.getElementById('drawer-dz-icon');
+		const text = document.getElementById('drawer-dz-text');
+		const status = document.getElementById('drawer-dz-status');
+		dz?.classList.add('loading');
+		if (icon) icon.innerHTML = '<svg class="inline-block animate-spin" style="width:1em;height:1em;vertical-align:-0.125em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
+		if (text) text.textContent = 'Elaborazione PDF in corso…';
+		if (status) status.classList.add('hidden');
 	},
 
 	showError(msg) {
-		const dz = document.getElementById('pdf-dropzone');
-		if (!dz) return;
-		dz.querySelector('#dropzone-idle').classList.add('hidden');
-		dz.querySelector('#dropzone-drag').classList.add('hidden');
-		dz.querySelector('#dropzone-loading').classList.add('hidden');
-		dz.querySelector('#dropzone-loading').classList.remove('flex');
-		const errEl = dz.querySelector('#dropzone-error');
-		errEl.classList.remove('hidden');
-		errEl.classList.add('flex');
-		const msgEl = dz.querySelector('#dropzone-error-msg');
-		if (msgEl) msgEl.textContent = msg;
+		const dz = document.getElementById('drawer-dropzone');
+		const icon = document.getElementById('drawer-dz-icon');
+		const text = document.getElementById('drawer-dz-text');
+		const status = document.getElementById('drawer-dz-status');
+		dz?.classList.remove('loading');
+		if (icon) icon.textContent = '⚠';
+		if (text) text.innerHTML = 'Trascina un PDF o <span class="text-indigo-600 underline">seleziona file</span>';
+		if (status) { status.textContent = msg; status.classList.remove('hidden'); }
 	},
 
 	showIdle() {
-		const dz = document.getElementById('pdf-dropzone');
-		if (!dz) return;
-		dz.querySelector('#dropzone-idle').classList.remove('hidden');
-		dz.querySelector('#dropzone-drag').classList.add('hidden');
-		dz.querySelector('#dropzone-loading').classList.add('hidden');
-		dz.querySelector('#dropzone-loading').classList.remove('flex');
-		dz.querySelector('#dropzone-error').classList.add('hidden');
-		dz.querySelector('#dropzone-error').classList.remove('flex');
+		const dz = document.getElementById('drawer-dropzone');
+		const icon = document.getElementById('drawer-dz-icon');
+		const text = document.getElementById('drawer-dz-text');
+		const status = document.getElementById('drawer-dz-status');
+		dz?.classList.remove('loading');
+		if (icon) icon.textContent = '📄';
+		if (text) text.innerHTML = 'Trascina un PDF o <span class="text-indigo-600 underline">seleziona file</span>';
+		if (status) status.classList.add('hidden');
 	}
 };
 
@@ -1519,14 +1652,16 @@ function initDropzone() {
 		const hasFiles = Array.from(e.dataTransfer?.items || []).some(i => i.kind === 'file');
 		if (!hasFiles) return;
 		dragCounter++;
-		if (dz) dz.classList.add('drag-over');
+		const overlay = document.getElementById('drag-overlay');
+		if (overlay) { overlay.classList.remove('hidden'); overlay.classList.add('flex'); }
 	});
 
 	document.addEventListener('dragleave', e => {
 		dragCounter--;
 		if (dragCounter <= 0) {
 			dragCounter = 0;
-			if (dz) dz.classList.remove('drag-over');
+			const overlay = document.getElementById('drag-overlay');
+			if (overlay) { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
 		}
 	});
 
@@ -1535,7 +1670,8 @@ function initDropzone() {
 	document.addEventListener('drop', e => {
 		e.preventDefault();
 		dragCounter = 0;
-		if (dz) dz.classList.remove('drag-over');
+		const overlay = document.getElementById('drag-overlay');
+		if (overlay) { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
 		const file = Array.from(e.dataTransfer?.files || []).find(f => f.type === 'application/pdf');
 		if (file) {
 			DrawerManager.open('create');
@@ -1594,6 +1730,7 @@ function bootstrap() {
 	initTableDelegation();
 	initSearchFilter();
 	initDropzone();
+	initColumnToggle();
 	initIdentity();
 
 	// Lingua principale → auto-check language checkbox

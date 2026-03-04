@@ -1,756 +1,717 @@
 ---
-import "../styles/global.css";
-// Dashboard Ristogen — protetta da Netlify Identity (Invite Only)
-// CSS ora processato tramite Tailwind/PostCSS
+import DashboardLayout from "../layouts/DashboardLayout.astro";
 ---
 
-<!doctype html>
-<html lang="it" class="h-full bg-gray-50">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Ristogen — Dashboard</title>
-		<script
-			src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
-		></script>
-	</head>
-	<body class="h-full min-h-full text-gray-900 antialiased">
-		<header
-			class="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-gray-200 bg-white px-6 shadow-sm"
+<DashboardLayout title="Ristogen — Dashboard">
+	<div class="mx-auto flex max-w-[1980px] flex-col gap-6 px-5 py-8">
+
+		<div
+			id="clients-section"
+			class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
 		>
 			<div
-				class="flex items-center gap-2 text-lg font-bold tracking-tight text-gray-900"
+				class="flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
 			>
-				<span>🍽</span> Ristogen
-				<span
-					class="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-					>Beta</span
+				<h2
+					class="text-[15px] font-semibold tracking-tight text-gray-900"
 				>
-			</div>
-			<div
-				id="user-info"
-				class="ml-auto flex items-center gap-2 text-sm text-gray-500"
-			>
-			</div>
-		</header>
-
-		<section
-			id="login-screen"
-			class="flex min-h-[calc(100vh-56px)] items-center justify-center p-8"
-		>
-			<div
-				class="flex w-full max-w-sm flex-col items-center gap-5 rounded-xl border border-gray-200 bg-white p-10 text-center shadow-md"
-			>
-				<div
-					class="flex items-center gap-2 text-2xl font-extrabold tracking-tight"
-				>
-					<span>🍽</span> Ristogen
-					<span
-						class="rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white"
-						>Beta</span
-					>
-				</div>
-				<p class="max-w-[260px] text-sm leading-relaxed text-gray-500">
-					Accedi per gestire le landing dei tuoi clienti.
-				</p>
-				<button
-					id="btn-login"
-					class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-3 text-[15px] font-semibold tracking-wide text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-				>
-					<span>🔑</span> Accedi
-				</button>
-			</div>
-		</section>
-
-		<main id="main-content" class="hidden [&.active]:block">
-			<div class="mx-auto flex max-w-[1280px] flex-col gap-6 px-5 py-8">
-
-
-				<div
-					id="clients-section"
-					class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-				>
-					<div
-						class="flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
-					>
-						<h2
-							class="text-[15px] font-semibold tracking-tight text-gray-900"
+					Landing create
+				</h2>
+				<div class="flex items-center gap-2">
+					<div class="relative flex items-center">
+						<svg
+							class="absolute left-2.5 text-gray-400"
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							><circle cx="11" cy="11" r="8"
+							></circle><path d="m21 21-4.35-4.35"
+							></path></svg
 						>
-							Landing create
-						</h2>
-						<div class="flex items-center gap-2">
-							<div class="relative flex items-center">
-								<svg
-									class="absolute left-2.5 text-gray-400"
-									width="14"
-									height="14"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									><circle cx="11" cy="11" r="8"
-									></circle><path d="m21 21-4.35-4.35"
-									></path></svg
-								>
-								<input
-									id="clients-search"
-									type="text"
-									placeholder="Filtra per slug…"
-									aria-label="Filtra per slug"
-									autocomplete="off"
-									class="w-full min-w-[160px] rounded-md border border-gray-200 py-1.5 pl-7 pr-3 text-xs outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 sm:focus:w-[220px]"
-								/>
-							</div>
-							<span
-								id="clients-count"
-								class="hidden rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-600 sm:inline-block"
-							></span>
-							<button
-								id="btn-refresh-clients"
-								class="group flex items-center gap-1.5 rounded-md border border-gray-200 px-2.5 py-1.5 text-[13px] text-gray-500 transition hover:border-indigo-500 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-								title="Aggiorna lista"
-							>
-								<span
-									class="inline-block transition-transform duration-500 group-[.spinning]:animate-[spin_0.7s_linear_infinite]"
-									>↻</span
-								>
-								<span class="hidden sm:inline">Aggiorna</span>
-							</button>
-							<button
-								id="btn-new-client"
-								class="whitespace-nowrap rounded-md bg-indigo-500 px-3 py-1.5 text-[13px] font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-							>
-								+ <span class="hidden sm:inline"
-									>Nuova landing</span
-								>
-							</button>
-						</div>
-					</div>
-					<div class="overflow-x-auto">
-						<table
-							id="clients-table"
-							class="w-full min-w-[480px] table-fixed border-collapse text-left text-[13px]"
-						>
-							<thead
-								class="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500"
-							>
-								<tr>
-									<th
-										data-sort="slug"
-										class="w-[30%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:w-[22%] [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
-										title="Ordina per slug">Slug</th
-									>
-									<th
-										data-sort="template"
-										class="hidden w-[18%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:table-cell [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
-										title="Ordina per template">Template</th
-									>
-									<th
-										data-sort="lang"
-										class="hidden w-[8%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 min-[400px]:table-cell [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
-										title="Ordina per lingua">Lingua</th
-									>
-									<th
-										class="hidden w-[36%] border-b border-gray-200 p-3 sm:table-cell"
-										>URL</th
-									>
-									<th
-										class="w-[35%] border-b border-gray-200 p-3 sm:w-[16%]"
-										>Azioni</th
-									>
-								</tr>
-							</thead>
-							<tbody id="clients-tbody"> </tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-
-			<div
-				id="drawer-backdrop"
-				class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
-			>
-			</div>
-			<aside
-				id="edit-drawer"
-				class="fixed inset-y-0 right-0 z-[101] flex w-[420px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
-			>
-				<div
-					class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
-				>
-					<div>
-						<h2 class="text-base font-bold text-gray-900">
-							Modifica landing
-						</h2>
-						<p
-							id="drawer-subtitle"
-							class="mt-0.5 text-xs text-gray-500"
-						>
-						</p>
-					</div>
-					<button
-						id="drawer-close"
-						class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-						>✕</button
-					>
-				</div>
-				<div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
-					<div class="grid grid-cols-2 gap-3">
-						<div
-							class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
-						>
-							<span
-								class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
-								>URL landing</span
-							>
-							<a
-								id="di-site-url"
-								href="#"
-								target="_blank"
-								class="text-xs font-semibold text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 [&.plain]:text-gray-500 [&.plain]:no-underline"
-								>—</a
-							>
-						</div>
-						<div
-							class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
-						>
-							<span
-								class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
-								>CMS Admin</span
-							>
-							<a
-								id="di-cms-url"
-								href="#"
-								target="_blank"
-								class="text-xs font-semibold text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 [&.plain]:text-gray-500 [&.plain]:no-underline"
-								>—</a
-							>
-						</div>
-					</div>
-					<hr class="border-gray-200" />
-					<form id="edit-form">
-						<input type="hidden" id="edit-slug" name="slug" />
-						<div class="mb-4">
-							<label
-								for="edit-name"
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Nome ristorante</label
-							>
-							<input
-								id="edit-name"
-								name="client_name"
-								type="text"
-								placeholder="Burger Prati"
-								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								autocomplete="off"
-							/>
-						</div>
-						<div class="mb-4">
-							<label
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Template</label
-							>
-							<div
-								class="tpicker tpicker--preview-left relative"
-								id="tpicker-edit"
-							>
-							</div>
-						</div>
-						<div class="mb-4">
-							<label
-								for="edit-lang"
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Lingua principale</label
-							>
-							<select
-								id="edit-lang"
-								name="default_lang"
-								class="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 pr-8 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center;"
-							>
-								<option value="it">🇮🇹 Italiano</option>
-								<option value="en">🇬🇧 English</option>
-								<option value="fr">🇫🇷 Français</option>
-								<option value="de">🇩🇪 Deutsch</option>
-								<option value="es">🇪🇸 Español</option>
-								<option value="pt">🇵🇹 Português</option>
-								<option value="ja">🇯🇵 日本語</option>
-								<option value="zh">🇨🇳 中文</option>
-								<option value="ar">🇸🇦 العربية</option>
-							</select>
-						</div>
-						<div class="mb-4">
-							<label
-								for="edit-domain"
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Dominio personalizzato <span
-									class="font-normal text-gray-400"
-									>(opzionale)</span
-								></label
-							>
-							<input
-								id="edit-domain"
-								name="custom_domain"
-								placeholder="www.ristoranteprati.it"
-								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								autocomplete="off"
-							/>
-						</div>
-
-						<div
-							id="edit-rebuild-note"
-							class="hidden mb-4 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700 [&.visible]:block"
-						>
-							⚠ Cambiare template o lingua avvierà un rebuild
-							della landing (~2 min).
-						</div>
-						<div
-							id="edit-status"
-							class="hidden mb-4 rounded-md border p-2.5 text-sm font-medium [&.success]:flex [&.success]:items-start [&.success]:gap-2 [&.success]:border-emerald-200 [&.success]:bg-emerald-50 [&.success]:text-emerald-700 [&.error]:flex [&.error]:items-start [&.error]:gap-2 [&.error]:border-red-200 [&.error]:bg-red-50 [&.error]:text-red-700"
-							role="alert"
-						>
-						</div>
-
-						<button
-							type="submit"
-							id="edit-submit-btn"
-							class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[15px] font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"
-						>
-							<span id="edit-submit-icon">💾</span>
-							<span id="edit-submit-text">Salva modifiche</span>
-						</button>
-					</form>
-				</div>
-			</aside>
-
-			<div
-				id="menu-backdrop"
-				class="fixed inset-0 z-[102] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
-			>
-			</div>
-			<aside
-				id="menu-drawer"
-				role="dialog"
-				aria-modal="true"
-				class="fixed inset-y-0 right-0 z-[103] flex w-[560px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
-			>
-				<div
-					class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
-				>
-					<div>
-						<h2 class="text-base font-bold text-gray-900">
-							Revisione Menu
-						</h2>
-						<p
-							id="menu-drawer-subtitle"
-							class="mt-0.5 text-xs text-gray-500"
-						>
-						</p>
-					</div>
-					<button
-						id="menu-drawer-close"
-						class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-						>✕</button
-					>
-				</div>
-				<div class="flex flex-1 flex-col overflow-y-auto p-5 gap-3">
-					<div id="menu-categories-list" class="flex flex-col gap-3">
-					</div>
-					<button
-						id="btn-add-category"
-						type="button"
-						class="flex items-center gap-1.5 rounded-md border border-dashed border-gray-300 px-3 py-2 text-[13px] text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600"
-						>+ Aggiungi categoria</button
-					>
-				</div>
-				<div class="flex shrink-0 gap-2 border-t border-gray-200 p-4">
-					<button
-						id="btn-confirm-menu"
-						type="button"
-						class="flex flex-1 items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[14px] font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-						>✓ Conferma e continua</button
-					>
-					<button
-						id="btn-skip-menu"
-						type="button"
-						class="rounded-md border border-gray-200 px-4 py-2.5 text-[13px] text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
-						>Continua senza menu</button
-					>
-				</div>
-			</aside>
-
-			<div
-				id="create-backdrop"
-				class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
-			>
-			</div>
-			<aside
-				id="create-drawer"
-				class="fixed inset-y-0 right-0 z-[101] flex w-[460px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
-			>
-				<div
-					class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
-				>
-					<div>
-						<h2 class="text-base font-bold text-gray-900">
-							Nuova landing ristorante
-						</h2>
-						<p class="mt-0.5 text-xs text-gray-500">
-							Compila il form per avviare il deploy automatico
-						</p>
-					</div>
-					<button
-						id="create-drawer-close"
-						class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
-						>✕</button
-					>
-				</div>
-				<div class="flex flex-1 flex-col overflow-y-auto p-5">
-					<form id="onboarding-form" enctype="multipart/form-data">
-						<div class="mb-4">
-							<label class="mb-1 block text-sm font-semibold text-gray-900">
-								Importa menu da PDF <span class="font-normal text-gray-400 text-[11px]">(opzionale)</span>
-							</label>
-							<div
-								id="drawer-dropzone"
-								class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-gray-200 px-3 py-2.5 text-xs text-gray-500 transition hover:border-indigo-400 hover:bg-indigo-50/30 [&.drag-over]:border-indigo-500"
-							>
-								<span id="drawer-dz-icon" class="text-base">📄</span>
-								<span id="drawer-dz-text">Trascina un PDF o <span class="text-indigo-600 underline">seleziona file</span></span>
-								<input type="file" id="dropzone-input" accept=".pdf" class="hidden" />
-							</div>
-							<p id="drawer-dz-status" class="hidden mt-1 text-[11px] text-red-500"></p>
-						</div>
-						<hr class="mb-4 border-gray-100" />
-						<p
-							class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400"
-						>
-							Ristorante
-						</p>
-						<div class="mb-3">
-							<label
-								for="client-name"
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Nome</label
-							>
-							<input
-								id="client-name"
-								name="client_name"
-								type="text"
-								placeholder="Burger Prati"
-								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								required
-								autocomplete="off"
-							/>
-						</div>
-						<div class="mb-5">
-							<label
-								for="slug"
-								class="mb-1 block text-sm font-semibold text-gray-900"
-							>
-								Slug <span
-									class="ml-1 font-normal text-gray-400 text-[11px]"
-									>es. burger-prati</span
-								>
-							</label>
-							<input
-								id="slug"
-								name="client_slug"
-								placeholder="burger-prati"
-								class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								required
-								autocomplete="off"
-								spellcheck="false"
-								pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
-								title="Solo lettere minuscole, numeri e trattini"
-							/>
-							<div
-								id="slug-hint"
-								class="mt-1.5 flex items-center gap-1.5 rounded px-2 py-1 min-h-[1.4em] text-[11px] transition-colors empty:p-0 [&.checking]:text-gray-500 [&.ok]:bg-emerald-100 [&.ok]:text-emerald-700 [&.error]:bg-red-100 [&.error]:text-red-700"
-							>
-							</div>
-						</div>
-						<hr class="my-5 border-gray-100" />
-						<p
-							class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400"
-						>
-							Configurazione
-						</p>
-						<div class="mb-3">
-							<label
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Template</label
-							>
-							<div class="tpicker relative" id="tpicker-main">
-							</div>
-						</div>
-						<div class="mb-3">
-							<label
-								for="lang"
-								class="mb-1 block text-sm font-semibold text-gray-900"
-								>Lingua principale</label
-							>
-							<select
-								id="lang"
-								name="default_lang"
-								class="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 pr-8 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center;"
-							>
-								<option value="it">🇮🇹 Italiano</option>
-								<option value="en">🇬🇧 English</option>
-								<option value="fr">🇫🇷 Français</option>
-								<option value="de">🇩🇪 Deutsch</option>
-								<option value="es">🇪🇸 Español</option>
-								<option value="pt">🇵🇹 Português</option>
-								<option value="ja">🇯🇵 日本語</option>
-								<option value="zh">🇨🇳 中文</option>
-								<option value="ar">🇸🇦 العربية</option>
-							</select>
-						</div>
-						<div class="mb-5">
-							<p class="mb-2 text-sm font-semibold text-gray-900">
-								Lingue attive <span
-									class="font-normal text-gray-400 text-[11px]"
-									>— seleziona tutte le lingue del sito</span>
-							</p>
-							<div class="grid grid-cols-3 gap-1.5">
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="it"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-										checked
-									/>
-									<span
-										>🇮🇹 <b
-											class="font-mono font-semibold text-xs"
-											>it</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="en"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇬🇧 <b
-											class="font-mono font-semibold text-xs"
-											>en</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="fr"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇫🇷 <b
-											class="font-mono font-semibold text-xs"
-											>fr</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="de"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇩🇪 <b
-											class="font-mono font-semibold text-xs"
-											>de</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="es"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇪🇸 <b
-											class="font-mono font-semibold text-xs"
-											>es</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="pt"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇵🇹 <b
-											class="font-mono font-semibold text-xs"
-											>pt</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="ja"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇯🇵 <b
-											class="font-mono font-semibold text-xs"
-											>ja</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="zh"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇨🇳 <b
-											class="font-mono font-semibold text-xs"
-											>zh</b
-										></span
-									>
-								</label>
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
-								>
-									<input
-										type="checkbox"
-										name="languages"
-										value="ar"
-										class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
-									/>
-									<span
-										>🇸🇦 <b
-											class="font-mono font-semibold text-xs"
-											>ar</b
-										></span
-									>
-								</label>
-							</div>
-						</div>
-						<hr class="mb-5 border-gray-100" />
-						<p
-							class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400"
-						>
-							Opzionale
-						</p>
-						<div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-1">
-							<div>
-								<label
-									for="domain"
-									class="mb-1 block text-sm font-semibold text-gray-900"
-									>Dominio</label
-								>
-								<input
-									id="domain"
-									name="custom_domain"
-									placeholder="www.ristoranteprati.it"
-									class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								/>
-							</div>
-							<div>
-								<label
-									for="client-email"
-									class="mb-1 block text-sm font-semibold text-gray-900"
-								>
-									Email cliente
-									<span
-										class="block mt-0.5 font-normal text-gray-400 text-[11px]"
-										>Potrà accedere al CMS</span
-									>
-								</label>
-								<input
-									id="client-email"
-									name="client_email"
-									type="email"
-									placeholder="mario@ristorante.it"
-									class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
-								/>
-							</div>
-						</div>
 						<input
-							type="hidden"
-							id="menu-json-input"
-							name="menu_json"
-							value=""
+							id="clients-search"
+							type="text"
+							placeholder="Filtra per slug…"
+							aria-label="Filtra per slug"
+							autocomplete="off"
+							class="w-full min-w-[160px] rounded-md border border-gray-200 py-1.5 pl-7 pr-3 text-xs outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 sm:focus:w-[220px]"
 						/>
-
-						<div
-							id="menu-status-row"
-							class="hidden mb-4 flex items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px]"
+					</div>
+					<span
+						id="clients-count"
+						class="hidden rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-600 sm:inline-block"
+					></span>
+					<button
+						id="btn-refresh-clients"
+						class="group flex items-center gap-1.5 rounded-md border border-gray-200 px-2.5 py-1.5 text-[13px] text-gray-500 transition hover:border-indigo-500 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+						title="Aggiorna lista"
+					>
+						<span
+							class="inline-block transition-transform duration-500 group-[.spinning]:animate-[spin_0.7s_linear_infinite]"
+							>↻</span
 						>
-							<span
-								id="menu-status-text"
-								class="font-medium text-emerald-700"></span>
-							<div class="flex gap-2 shrink-0">
-								<button
-									type="button"
-									id="btn-edit-menu"
-									class="rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600"
-									>Modifica menu</button
-								>
-								<button
-									type="button"
-									id="btn-clear-menu"
-									class="rounded border border-red-200 px-2 py-1 text-xs text-red-500 transition hover:bg-red-50"
-									>✕</button
-								>
-							</div>
-						</div>
-
-						<div
-							id="status"
-							class="hidden mb-4 rounded-md border p-2.5 text-sm font-medium [&.success]:flex [&.success]:items-start [&.success]:gap-2 [&.success]:border-emerald-200 [&.success]:bg-emerald-50 [&.success]:text-emerald-700 [&.error]:flex [&.error]:items-start [&.error]:gap-2 [&.error]:border-red-200 [&.error]:bg-red-50 [&.error]:text-red-700"
-							role="alert"
+						<span class="hidden sm:inline">Aggiorna</span>
+					</button>
+					<button
+						id="btn-new-client"
+						class="whitespace-nowrap rounded-md bg-indigo-500 px-3 py-1.5 text-[13px] font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+					>
+						+ <span class="hidden sm:inline"
+							>Nuova landing</span
 						>
-						</div>
-
+					</button>
+					<div class="relative">
 						<button
-							type="submit"
-							id="submit-btn"
-							class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[15px] font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"
+							id="btn-col-toggle"
+							class="flex items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-[13px] text-gray-400 transition hover:border-gray-400 hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+							title="Mostra/nascondi colonne"
+						>&#9881;</button
 						>
-							<span id="submit-icon">✦</span>
-							<span id="submit-text">Crea cliente</span>
-						</button>
-					</form>
+						<div
+							id="col-toggle-menu"
+							class="absolute right-0 z-20 mt-1 hidden min-w-[170px] rounded-lg border border-gray-200 bg-white py-1 shadow-xl"
+						></div>
+					</div>
 				</div>
-			</aside>
-		</main>
+			</div>
+			<div class="overflow-x-auto">
+				<table
+					id="clients-table"
+					class="w-full min-w-[480px] table-fixed border-collapse text-left text-[13px]"
+				>
+					<thead
+						class="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500"
+					>
+						<tr>
+							<th
+								data-sort="client_name"
+								class="col-name w-[25%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:w-[18%] [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
+								title="Ordina per nome">Nome ristorante</th
+							>
+							<th
+								data-sort="slug"
+								class="col-slug w-[20%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:w-[14%] [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
+								title="Ordina per slug">Slug</th
+							>
+							<th
+								data-sort="template"
+								class="col-template hidden w-[18%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 sm:table-cell [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
+								title="Ordina per template">Template</th
+							>
+							<th
+								data-sort="lang"
+								class="col-lang hidden w-[8%] cursor-pointer border-b border-gray-200 p-3 hover:bg-gray-100 hover:text-indigo-600 min-[400px]:table-cell [&[aria-sort=ascending]]:after:content-['_↑'] [&[aria-sort=descending]]:after:content-['_↓']"
+								title="Ordina per lingua">Lingua</th
+							>
+							<th
+								class="col-url hidden w-[30%] border-b border-gray-200 p-3 sm:table-cell"
+								>URL</th
+							>
+							<th
+								class="col-actions w-[35%] border-b border-gray-200 p-3 sm:w-[16%]"
+								>Azioni</th
+							>
+						</tr>
+					</thead>
+					<tbody id="clients-tbody"> </tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 
+	<div
+		id="drawer-backdrop"
+		class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
+	>
+	</div>
+	<aside
+		id="edit-drawer"
+		class="fixed inset-y-0 right-0 z-[101] flex w-[420px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
+	>
+		<div
+			class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
+		>
+			<div>
+				<h2 class="text-base font-bold text-gray-900">
+					Modifica landing
+				</h2>
+				<p
+					id="drawer-subtitle"
+					class="mt-0.5 text-xs text-gray-500"
+				>
+				</p>
+			</div>
+			<button
+				id="drawer-close"
+				class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+				>✕</button
+			>
+		</div>
+		<div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+			<div class="grid grid-cols-2 gap-3">
+				<div
+					class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
+				>
+					<span
+						class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
+						>URL landing</span
+					>
+					<a
+						id="di-site-url"
+						href="#"
+						target="_blank"
+						class="text-xs font-semibold text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 [&.plain]:text-gray-500 [&.plain]:no-underline"
+						>—</a
+					>
+				</div>
+				<div
+					class="rounded-md border border-gray-200 bg-gray-50 p-2.5"
+				>
+					<span
+						class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-gray-400"
+						>CMS Admin</span
+					>
+					<a
+						id="di-cms-url"
+						href="#"
+						target="_blank"
+						class="text-xs font-semibold text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 [&.plain]:text-gray-500 [&.plain]:no-underline"
+						>—</a
+					>
+				</div>
+			</div>
+			<hr class="border-gray-200" />
+			<form id="edit-form">
+				<input type="hidden" id="edit-slug" name="slug" />
+				<div class="mb-4">
+					<label
+						for="edit-name"
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Nome ristorante</label
+					>
+					<input
+						id="edit-name"
+						name="client_name"
+						type="text"
+						placeholder="Burger Prati"
+						class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						autocomplete="off"
+					/>
+				</div>
+				<div class="mb-4">
+					<label
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Template</label
+					>
+					<div
+						class="tpicker tpicker--preview-left relative"
+						id="tpicker-edit"
+					>
+					</div>
+				</div>
+				<div class="mb-4">
+					<label
+						for="edit-lang"
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Lingua principale</label
+					>
+					<select
+						id="edit-lang"
+						name="default_lang"
+						class="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 pr-8 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center;"
+					>
+						<option value="it">🇮🇹 Italiano</option>
+						<option value="en">🇬🇧 English</option>
+						<option value="fr">🇫🇷 Français</option>
+						<option value="de">🇩🇪 Deutsch</option>
+						<option value="es">🇪🇸 Español</option>
+						<option value="pt">🇵🇹 Português</option>
+						<option value="ja">🇯🇵 日本語</option>
+						<option value="zh">🇨🇳 中文</option>
+						<option value="ar">🇸🇦 العربية</option>
+					</select>
+				</div>
+				<div class="mb-4">
+					<label
+						for="edit-domain"
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Dominio personalizzato <span
+							class="font-normal text-gray-400"
+							>(opzionale)</span
+						></label
+					>
+					<input
+						id="edit-domain"
+						name="custom_domain"
+						placeholder="www.ristoranteprati.it"
+						class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						autocomplete="off"
+					/>
+				</div>
+
+				<div
+					id="edit-rebuild-note"
+					class="hidden mb-4 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700 [&.visible]:block"
+				>
+					⚠ Cambiare template o lingua avvierà un rebuild
+					della landing (~2 min).
+				</div>
+				<div
+					id="edit-status"
+					class="hidden mb-4 rounded-md border p-2.5 text-sm font-medium [&.success]:flex [&.success]:items-start [&.success]:gap-2 [&.success]:border-emerald-200 [&.success]:bg-emerald-50 [&.success]:text-emerald-700 [&.error]:flex [&.error]:items-start [&.error]:gap-2 [&.error]:border-red-200 [&.error]:bg-red-50 [&.error]:text-red-700"
+					role="alert"
+				>
+				</div>
+
+				<button
+					type="submit"
+					id="edit-submit-btn"
+					class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[15px] font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"
+				>
+					<span id="edit-submit-icon">💾</span>
+					<span id="edit-submit-text">Salva modifiche</span>
+				</button>
+			</form>
+		</div>
+	</aside>
+
+	<div
+		id="menu-backdrop"
+		class="fixed inset-0 z-[102] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
+	>
+	</div>
+	<aside
+		id="menu-drawer"
+		role="dialog"
+		aria-modal="true"
+		class="fixed inset-y-0 right-0 z-[103] flex w-[560px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
+	>
+		<div
+			class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
+		>
+			<div>
+				<h2 class="text-base font-bold text-gray-900">
+					Revisione Menu
+				</h2>
+				<p
+					id="menu-drawer-subtitle"
+					class="mt-0.5 text-xs text-gray-500"
+				>
+				</p>
+			</div>
+			<button
+				id="menu-drawer-close"
+				class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+				>✕</button
+			>
+		</div>
+		<div class="flex flex-1 flex-col overflow-y-auto p-5 gap-3">
+			<div id="menu-categories-list" class="flex flex-col gap-3">
+			</div>
+			<button
+				id="btn-add-category"
+				type="button"
+				class="flex items-center gap-1.5 rounded-md border border-dashed border-gray-300 px-3 py-2 text-[13px] text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600"
+				>+ Aggiungi categoria</button
+			>
+		</div>
+		<div class="flex shrink-0 gap-2 border-t border-gray-200 p-4">
+			<button
+				id="btn-confirm-menu"
+				type="button"
+				class="flex flex-1 items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[14px] font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+				>✓ Conferma e continua</button
+			>
+			<button
+				id="btn-skip-menu"
+				type="button"
+				class="rounded-md border border-gray-200 px-4 py-2.5 text-[13px] text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
+				>Continua senza menu</button
+			>
+		</div>
+	</aside>
+
+	<div
+		id="create-backdrop"
+		class="fixed inset-0 z-[100] hidden animate-[fadeIn_0.2s_ease] bg-black/35 [&.open]:block"
+	>
+	</div>
+	<aside
+		id="create-drawer"
+		class="fixed inset-y-0 right-0 z-[101] flex w-[460px] max-w-full translate-x-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [&.open]:translate-x-0"
+	>
+		<div
+			class="flex shrink-0 items-start justify-between border-b border-gray-200 p-5"
+		>
+			<div>
+				<h2 class="text-base font-bold text-gray-900">
+					Nuova landing ristorante
+				</h2>
+				<p class="mt-0.5 text-xs text-gray-500">
+					Compila il form per avviare il deploy automatico
+				</p>
+			</div>
+			<button
+				id="create-drawer-close"
+				class="rounded px-2 py-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+				>✕</button
+			>
+		</div>
+		<div class="flex flex-1 flex-col overflow-y-auto p-5">
+			<form id="onboarding-form" enctype="multipart/form-data">
+				<div class="mb-4">
+					<label class="mb-1 block text-sm font-semibold text-gray-900">
+						Importa menu da PDF <span class="font-normal text-gray-400 text-[11px]">(opzionale)</span>
+					</label>
+					<div
+						id="drawer-dropzone"
+						class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed border-gray-200 px-3 py-2.5 text-xs text-gray-500 transition hover:border-indigo-400 hover:bg-indigo-50/30 [&.drag-over]:border-indigo-500"
+					>
+						<span id="drawer-dz-icon" class="text-base">📄</span>
+						<span id="drawer-dz-text">Trascina un PDF o <span class="text-indigo-600 underline">seleziona file</span></span>
+						<input type="file" id="dropzone-input" accept=".pdf" class="hidden" />
+					</div>
+					<p id="drawer-dz-status" class="hidden mt-1 text-[11px] text-red-500"></p>
+				</div>
+				<hr class="mb-4 border-gray-100" />
+				<p
+					class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400"
+				>
+					Ristorante
+				</p>
+				<div class="mb-3">
+					<label
+						for="client-name"
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Nome</label
+					>
+					<input
+						id="client-name"
+						name="client_name"
+						type="text"
+						placeholder="Burger Prati"
+						class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						required
+						autocomplete="off"
+					/>
+				</div>
+				<div class="mb-5">
+					<label
+						for="slug"
+						class="mb-1 block text-sm font-semibold text-gray-900"
+					>
+						Slug <span
+							class="ml-1 font-normal text-gray-400 text-[11px]"
+							>es. burger-prati</span
+						>
+					</label>
+					<input
+						id="slug"
+						name="client_slug"
+						placeholder="burger-prati"
+						class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						required
+						autocomplete="off"
+						spellcheck="false"
+						pattern="[a-z0-9]+([a-z0-9-]*[a-z0-9]+)*"
+						title="Solo lettere minuscole, numeri e trattini"
+					/>
+					<div
+						id="slug-hint"
+						class="mt-1.5 flex items-center gap-1.5 rounded px-2 py-1 min-h-[1.4em] text-[11px] transition-colors empty:p-0 [&.checking]:text-gray-500 [&.ok]:bg-emerald-100 [&.ok]:text-emerald-700 [&.error]:bg-red-100 [&.error]:text-red-700"
+					>
+					</div>
+				</div>
+				<hr class="my-5 border-gray-100" />
+				<p
+					class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400"
+				>
+					Configurazione
+				</p>
+				<div class="mb-3">
+					<label
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Template</label
+					>
+					<div
+						id="tpl-preview-box"
+						class="hidden mb-2 overflow-hidden rounded-lg border border-gray-200 shadow-sm tpl-preview bg-white"
+					>
+						<img id="tpl-preview-img" src="" alt="" class="w-full object-cover" />
+						<p id="tpl-preview-label" class="px-2 py-1 text-[11px] text-gray-500 text-center"></p>
+					</div>
+					<div class="tpicker relative" id="tpicker-main">
+					</div>
+				</div>
+				<div class="mb-3">
+					<label
+						for="lang"
+						class="mb-1 block text-sm font-semibold text-gray-900"
+						>Lingua principale</label
+					>
+					<select
+						id="lang"
+						name="default_lang"
+						class="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 pr-8 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 8L1 3h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center;"
+					>
+						<option value="it">🇮🇹 Italiano</option>
+						<option value="en">🇬🇧 English</option>
+						<option value="fr">🇫🇷 Français</option>
+						<option value="de">🇩🇪 Deutsch</option>
+						<option value="es">🇪🇸 Español</option>
+						<option value="pt">🇵🇹 Português</option>
+						<option value="ja">🇯🇵 日本語</option>
+						<option value="zh">🇨🇳 中文</option>
+						<option value="ar">🇸🇦 العربية</option>
+					</select>
+				</div>
+				<div class="mb-5">
+					<p class="mb-2 text-sm font-semibold text-gray-900">
+						Lingue attive <span
+							class="font-normal text-gray-400 text-[11px]"
+							>— seleziona tutte le lingue del sito</span>
+					</p>
+					<div class="grid grid-cols-3 gap-1.5">
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="it"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+								checked
+							/>
+							<span
+								>🇮🇹 <b
+									class="font-mono font-semibold text-xs"
+									>it</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="en"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇬🇧 <b
+									class="font-mono font-semibold text-xs"
+									>en</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="fr"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇫🇷 <b
+									class="font-mono font-semibold text-xs"
+									>fr</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="de"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇩🇪 <b
+									class="font-mono font-semibold text-xs"
+									>de</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="es"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇪🇸 <b
+									class="font-mono font-semibold text-xs"
+									>es</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="pt"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇵🇹 <b
+									class="font-mono font-semibold text-xs"
+									>pt</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="ja"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇯🇵 <b
+									class="font-mono font-semibold text-xs"
+									>ja</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="zh"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇨🇳 <b
+									class="font-mono font-semibold text-xs"
+									>zh</b
+								></span
+							>
+						</label>
+						<label
+							class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[13px] transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700"
+						>
+							<input
+								type="checkbox"
+								name="languages"
+								value="ar"
+								class="h-3.5 w-3.5 shrink-0 accent-indigo-500"
+							/>
+							<span
+								>🇸🇦 <b
+									class="font-mono font-semibold text-xs"
+									>ar</b
+								></span
+							>
+						</label>
+					</div>
+				</div>
+				<hr class="mb-5 border-gray-100" />
+				<p
+					class="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400"
+				>
+					Opzionale
+				</p>
+				<div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-1">
+					<div>
+						<label
+							for="domain"
+							class="mb-1 block text-sm font-semibold text-gray-900"
+							>Dominio</label
+						>
+						<input
+							id="domain"
+							name="custom_domain"
+							placeholder="www.ristoranteprati.it"
+							class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						/>
+					</div>
+					<div>
+						<label
+							for="client-email"
+							class="mb-1 block text-sm font-semibold text-gray-900"
+						>
+							Email cliente
+							<span
+								class="block mt-0.5 font-normal text-gray-400 text-[11px]"
+								>Potrà accedere al CMS</span
+							>
+						</label>
+						<input
+							id="client-email"
+							name="client_email"
+							type="email"
+							placeholder="mario@ristorante.it"
+							class="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+						/>
+					</div>
+				</div>
+				<input
+					type="hidden"
+					id="menu-json-input"
+					name="menu_json"
+					value=""
+				/>
+
+				<div
+					id="menu-status-row"
+					class="hidden mb-4 flex items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px]"
+				>
+					<span
+						id="menu-status-text"
+						class="font-medium text-emerald-700"></span>
+					<div class="flex gap-2 shrink-0">
+						<button
+							type="button"
+							id="btn-edit-menu"
+							class="rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600"
+							>Modifica menu</button
+						>
+						<button
+							type="button"
+							id="btn-clear-menu"
+							class="rounded border border-red-200 px-2 py-1 text-xs text-red-500 transition hover:bg-red-50"
+							>✕</button
+						>
+					</div>
+				</div>
+
+				<div
+					id="status"
+					class="hidden mb-4 rounded-md border p-2.5 text-sm font-medium [&.success]:flex [&.success]:items-start [&.success]:gap-2 [&.success]:border-emerald-200 [&.success]:bg-emerald-50 [&.success]:text-emerald-700 [&.error]:flex [&.error]:items-start [&.error]:gap-2 [&.error]:border-red-200 [&.error]:bg-red-50 [&.error]:text-red-700"
+					role="alert"
+				>
+				</div>
+
+				<button
+					type="submit"
+					id="submit-btn"
+					class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-2.5 text-[15px] font-semibold text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"
+				>
+					<span id="submit-icon">✦</span>
+					<span id="submit-text">Crea cliente</span>
+				</button>
+			</form>
+		</div>
+	</aside>
 
 	<div
 		id="deploy-panel"
@@ -902,7 +863,8 @@ import "../styles/global.css";
 								>l'URL del sito</a
 							> e controlla che tutto sia visibile.
 						</p>
-					</div>				</li>
+					</div>
+				</li>
 				<li
 					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
 					data-step="2"
@@ -922,7 +884,8 @@ import "../styles/global.css";
 								><code id="ns-admin-url" class="rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px]"></code></a
 							> e aggiorna testi, menu e immagini.
 						</p>
-					</div>				</li>
+					</div>
+				</li>
 				<li
 					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
 					data-step="3"
@@ -960,7 +923,8 @@ import "../styles/global.css";
 							</table>
 						</div>
 						<p class="mt-2 text-[11px] text-gray-400">⏱ La propagazione DNS può richiedere fino a 24 ore.</p>
-					</div>				</li>
+					</div>
+				</li>
 				<li
 					class="step-item flex items-start gap-4 border-b border-gray-100 py-3.5 last:border-0"
 					data-step="4"
@@ -978,20 +942,27 @@ import "../styles/global.css";
 								target="_blank"
 								class="text-indigo-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
 								>pannello Netlify Identity</a
-							> — l\'invito è stato inviato automaticamente. Se non è arrivato, invialo di nuovo.
+							> — l'invito è stato inviato automaticamente. Se non è arrivato, invialo di nuovo.
 						</p>
-					</div>				</li>
+					</div>
+				</li>
 			</ul>
 		</div>
 		</div>
 	</div>
 
-		<div
-			id="toast-container"
-			aria-live="polite"
-			class="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col gap-2"
-		>
+	<div
+		id="panel-backdrop"
+		class="fixed inset-0 z-[49] hidden bg-black/20 backdrop-blur-[2px]"
+	></div>
+	<div
+		id="drag-overlay"
+		class="pointer-events-none fixed inset-0 z-[60] hidden items-center justify-center bg-indigo-900/60 backdrop-blur-sm"
+	>
+		<div class="flex flex-col items-center gap-3 rounded-2xl bg-white/90 px-12 py-10 shadow-2xl">
+			<span class="text-5xl">&#128196;</span>
+			<p class="text-lg font-semibold text-indigo-800">Rilascia il PDF per creare una nuova landing</p>
 		</div>
-		<script type="module" src="/scripts/dashboard.js"></script>
-	</body>
-</html>
+	</div>
+
+</DashboardLayout>

@@ -1,0 +1,112 @@
+---
+import "../styles/global.css";
+
+interface Props {
+	title?: string;
+}
+
+const { title = "Ristogen — Dashboard" } = Astro.props;
+const pathname = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="it" class="h-full bg-gray-50">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{title}</title>
+		<script
+			src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
+		></script>
+	</head>
+	<body class="h-full min-h-full text-gray-900 antialiased">
+		<header
+			class="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-gray-200 bg-white px-6 shadow-sm"
+		>
+			<div
+				class="flex items-center gap-2 text-lg font-bold tracking-tight text-gray-900"
+			>
+				<span>🍽</span> Ristogen
+				<span
+					class="rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+					>Beta</span
+				>
+			</div>
+			<div
+				id="user-info"
+				class="ml-auto flex items-center gap-2 text-sm text-gray-500"
+			>
+			</div>
+		</header>
+
+		<section
+			id="login-screen"
+			class="flex min-h-[calc(100vh-56px)] items-center justify-center p-8"
+		>
+			<div
+				class="flex w-full max-w-sm flex-col items-center gap-5 rounded-xl border border-gray-200 bg-white p-10 text-center shadow-md"
+			>
+				<div
+					class="flex items-center gap-2 text-2xl font-extrabold tracking-tight"
+				>
+					<span>🍽</span> Ristogen
+					<span
+						class="rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white"
+						>Beta</span
+					>
+				</div>
+				<p class="max-w-[260px] text-sm leading-relaxed text-gray-500">
+					Accedi per gestire le landing dei tuoi clienti.
+				</p>
+				<button
+					id="btn-login"
+					class="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-500 px-4 py-3 text-[15px] font-semibold tracking-wide text-white transition hover:-translate-y-[1px] hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+				>
+					<span>🔑</span> Accedi
+				</button>
+			</div>
+		</section>
+
+		<main
+			id="main-content"
+			class="hidden [&.active]:flex"
+			style="height: calc(100vh - 56px); overflow: hidden;"
+		>
+			<nav
+				class="flex w-52 shrink-0 flex-col border-r border-gray-200 bg-white py-4"
+			>
+				<p
+					class="mb-1 px-4 text-[10px] font-bold uppercase tracking-widest text-gray-400"
+				>
+					Navigazione
+				</p>
+				<a
+					href="/"
+					class={`flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium transition hover:bg-indigo-50 hover:text-indigo-700 ${pathname === "/" ? "bg-indigo-50 text-indigo-700 font-semibold" : "text-gray-600"}`}
+				>
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+					Landing Pages
+				</a>
+				<a
+					href="/templates"
+					class={`flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium transition hover:bg-indigo-50 hover:text-indigo-700 ${pathname === "/templates" ? "bg-indigo-50 text-indigo-700 font-semibold" : "text-gray-600"}`}
+				>
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+					Templates
+				</a>
+			</nav>
+
+			<div class="flex flex-1 flex-col overflow-y-auto">
+				<slot />
+			</div>
+		</main>
+
+		<div
+			id="toast-container"
+			aria-live="polite"
+			class="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col gap-2"
+		>
+		</div>
+		<script is:inline type="module" src="/scripts/dashboard.js"></script>
+	</body>
+</html>

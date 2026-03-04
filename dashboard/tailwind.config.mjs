@@ -20,7 +20,7 @@ export default {
 		{ pattern: /^group\[[^\]]+\]\/picker/ },
 		// classi esplicite usate dal tpicker (evita purge)
 		'tpicker',
-		'tpicker--preview-left',
+		'tpl-preview',
 		'tpicker-list',
 		'tpicker-item',
 		'tpicker-item--active',
