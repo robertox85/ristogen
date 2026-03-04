@@ -6,19 +6,21 @@ import type { ClientContent, Article } from '../schema/content.schema';
 interface Props {
   content: ClientContent;
   article: Article;
-  lang: 'it' | 'en';
+  lang: string;
 }
 
 const { content, article, lang } = Astro.props;
 const { site, theme } = content;
 
 const bodyHtml = marked(article.body);
-// URL articoli sempre espliciti — non dipendono da DEFAULT_LANG
-const itPath = `${site.meta.canonical}/it/articoli/${article.slug}`;
-const enPath = `${site.meta.canonical}/en/articles/${article.slug}`;
-const canonical = lang === 'it' ? itPath : enPath;
-const altLang = lang === 'it' ? 'en' : 'it';
-const altCanonical = lang === 'it' ? enPath : itPath;
+declare const __ENABLED_LANGS__: string[];
+const enabledLangs = __ENABLED_LANGS__;
+
+// URL articoli — path unificato /[lang]/blog/[slug]
+const canonical = `${site.meta.canonical}/${lang}/blog/${article.slug}`;
+
+const backLabels: Record<string, string> = { it: 'Torna alla home', fr: "Retour à l'accueil", en: 'Back to home' };
+const backLabel = backLabels[lang] ?? 'Back to home';
 ---
 
 <!DOCTYPE html>
@@ -34,8 +36,15 @@ const altCanonical = lang === 'it' ? enPath : itPath;
   <meta property="og:description" content={article.description}>
   {article.og_image && <meta property="og:image" content={article.og_image}>}
   <meta property="og:type" content="article">
-  <link rel="alternate" hreflang={altLang} href={altCanonical}>
-  <link rel="alternate" hreflang={lang} href={canonical}>
+  {enabledLangs.length > 1 && enabledLangs
+    .filter(l => l !== lang)
+    .map(l => (
+      <link rel="alternate" hreflang={l} href={`${site.meta.canonical}/${l}/blog/${article.slug}`} />
+    ))
+  }
+  {enabledLangs.length > 1 && (
+    <link rel="alternate" hreflang={lang} href={canonical} />
+  )}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href={`https://fonts.googleapis.com/css2?family=${theme.fonts.heading}:wght@400;700&family=${theme.fonts.body}:wght@400;500&display=swap`} rel="stylesheet">
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -65,7 +74,7 @@ const altCanonical = lang === 'it' ? enPath : itPath;
     </header>
     <div class="content" set:html={bodyHtml} />
     <footer>
-      <a href={lang === 'it' ? '/' : '/en/'}>← {lang === 'it' ? 'Torna alla home' : 'Back to home'}</a>
+      <a href={`/${lang}/`}>← {backLabel}</a>
     </footer>
   </article>
 

@@ -1,11 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 // Carica .env manualmente solo se esiste
 const envPath = join(process.cwd(), '.env');
@@ -25,6 +22,8 @@ const isDev = nodeEnv === 'development';
 
 const clientSlug = process.env.CLIENT_SLUG || 'burger-demo';
 const defaultLang = /** @type {'it'|'en'} */ (process.env.DEFAULT_LANG || 'it');
+const languages = process.env.LANGUAGES || defaultLang; // 'it' | 'en' | 'it+en'
+const enabledLangs = languages.split('+'); // ['it'] | ['en'] | ['it','en']
 
 // L'adapter Netlify viene caricato solo in produzione (build).
 // In dev la sua emulation intercetta le richieste statiche e blocca config.yml.
@@ -63,6 +62,7 @@ export default defineConfig({
 		define: {
 			'__CLIENT_SLUG__': JSON.stringify(clientSlug),
 			'__DEFAULT_LANG__': JSON.stringify(defaultLang),
+			'__ENABLED_LANGS__': JSON.stringify(enabledLangs),
 		},
 		plugins: [adminRedirectPlugin],
 	},

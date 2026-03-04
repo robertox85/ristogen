@@ -1,15 +1,22 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Menu from '../../components/Menu.astro';
-import { getContent } from '../../content';
+import { getContent, getAvailableLangs } from '../../content';
 
-const content = getContent('it');
+export function getStaticPaths() {
+  return getAvailableLangs().map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: string };
+const content = getContent(lang);
 const { site, sections } = content;
+
+const menuNames: Record<string, string> = { it: 'Menù', fr: 'Menu', en: 'Menu' };
 const menuJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Menu',
-  '@id': `${site.meta.canonical}/it/menu`,
-  'name': 'Menù',
+  '@id': `${site.meta.canonical}/${lang}/menu`,
+  'name': menuNames[lang] ?? 'Menu',
   'isPartOf': { '@id': `${site.meta.canonical}/#restaurant` },
   'hasMenuSection': sections.menu.categories.map(cat => ({
     '@type': 'MenuSection',
@@ -26,5 +33,5 @@ const menuJsonLd = {
 
 <Base {content}>
   <script type="application/ld+json" set:html={JSON.stringify(menuJsonLd)} slot="head-extra" />
-  <Menu sections={sections} lang="it" preview={false} />
+  <Menu sections={sections} lang={lang} preview={false} />
 </Base>

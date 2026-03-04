@@ -5,15 +5,20 @@ import About from '../../components/About.astro';
 import Menu from '../../components/Menu.astro';
 import Gallery from '../../components/Gallery.astro';
 import Contatti from '../../components/Contatti.astro';
-import { getContent } from '../../content';
+import { getContent, getAvailableLangs } from '../../content';
 
-const content = getContent('en');
+export function getStaticPaths() {
+  return getAvailableLangs().map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: string };
+const content = getContent(lang);
 ---
 
 <Base {content}>
   <Hero sections={content.sections} />
   <About sections={content.sections} />
-  <Menu sections={content.sections} lang="en" />
+  <Menu sections={content.sections} lang={lang} />
   <Gallery sections={content.sections} />
   <Contatti sections={content.sections} />
 </Base>

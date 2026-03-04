@@ -44,7 +44,17 @@ function getTheme(slug: string) {
 
 const slug = __CLIENT_SLUG__;
 
-export function getContent(lang: 'it' | 'en' = 'it'): ClientContent {
+declare const __ENABLED_LANGS__: string[];
+
+/** Restituisce solo le lingue che hanno effettivamente content files nel build */
+export function getAvailableLangs(): string[] {
+	return __ENABLED_LANGS__.filter(lang => {
+		const key = `../../clients/${slug}/content/${lang}/site.json`;
+		return key in allJson;
+	});
+}
+
+export function getContent(lang: string = 'it'): ClientContent {
 	const raw = {
 		site: getFile(slug, lang, 'site.json'),
 		theme: getTheme(slug),

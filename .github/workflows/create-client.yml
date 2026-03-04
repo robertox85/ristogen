@@ -22,7 +22,13 @@ on:
         required: true
         default: 'it'
         type: choice
-        options: ['it', 'en']
+        options: ['it', 'en', 'fr']
+      languages:
+        description: 'Lingue abilitate del sito'
+        required: true
+        default: 'it+en'
+        type: choice
+        options: ['it', 'en', 'fr', 'it+en', 'it+fr', 'en+fr', 'it+en+fr']
       custom_domain:
         description: 'Dominio personalizzato (es. www.ristoranteprati.it)'
         required: false
@@ -134,6 +140,11 @@ jobs:
                 \"key\": \"DEFAULT_LANG\",
                 \"scopes\": [\"builds\", \"functions\", \"runtime\", \"post_processing\"],
                 \"values\": [{\"context\": \"all\", \"value\": \"${{ inputs.default_lang }}\"}]
+              },
+              {
+                \"key\": \"LANGUAGES\",
+                \"scopes\": [\"builds\", \"functions\", \"runtime\", \"post_processing\"],
+                \"values\": [{\"context\": \"all\", \"value\": \"${{ inputs.languages }}\"}]
               }
             ]")
           [ "$RESULT" != "201" ] && { echo "::error::Env vars fallite (HTTP $RESULT)"; exit 1; }
