@@ -1,11 +1,4 @@
 {
-  "enabled": true,
-  "headline": "Il burger che cercavi",
-  "subheadline": "Solo ingredienti freschi, ogni giorno",
-  "image": "/images/image.png",
-  "image_alt": "Burger con ingredienti freschi",
-  "cta": {
-    "label": "Prenota un tavolo",
-    "url": "#contatti"
-  }
+  "title": "TEST",
+  "image": "/media/hero.jpg"
 }
