@@ -1,11 +1,6 @@
 {
-  "enabled": true,
-  "headline": "TEST!",
-  "subheadline": "Solo ingredienti freschi, ogni giorno",
-  "image": "/images/image.png",
-  "image_alt": "Burger con ingredienti freschi",
-  "cta": {
-    "label": "Prenota un tavolo",
-    "url": "#contatti"
-  }
+  "title": "Il miglior Burger in città",
+  "message": "Ingredienti freschi e carne di prima scelta ogni giorno.",
+  "cta": "Scopri il Menu",
+  "image": "/media/hero.jpg"
 }

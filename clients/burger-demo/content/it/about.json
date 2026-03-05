@@ -1,7 +1,5 @@
 {
-  "enabled": true,
-  "title": "Chi siamo",
-  "text": "Ciao",
-  "image": "/assets/about.jpg",
-  "image_alt": ""
+  "preTitle": "La nostra storia",
+  "text": "#f5f5f5",
+  "image": "/media/about.jpg"
 }
