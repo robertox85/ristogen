@@ -8,7 +8,7 @@ const GITHUB_API = 'https://api.github.com';
 const OWNER = import.meta.env.GITHUB_OWNER;
 const REPO = import.meta.env.GITHUB_REPO;
 const PAT = import.meta.env.GITHUB_PAT;
-const CLIENT_SLUG = __CLIENT_SLUG__;
+const CLIENT_SLUG = import.meta.env.CLIENT_SLUG;
 
 function deepMerge(target: any, source: any) {
 	for (const key of Object.keys(source)) {
@@ -47,11 +47,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		return new Response('Errore lettura contenuto attuale', { status: 500 });
 	}
 
-	// Prepara update per ogni sezione
-	const update: any = {
-		sections: {},
-		theme: {}
-	};
+	console.log('[CMS-SAVE] FormData ricevuto:', Array.from(formData.entries()));
 
 	// HERO
 	['title', 'message', 'cta'].forEach((field) => {
@@ -59,6 +55,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		if (val !== null && val !== "") update.sections.hero = { ...update.sections.hero, [field]: val };
 	});
 	const heroImage = formData.get('image') as File | null;
+	console.log('[CMS-SAVE] Hero image:', heroImage);
 
 	// ABOUT
 	['preTitle', 'text'].forEach((field) => {
@@ -66,14 +63,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		if (val !== null && val !== "") update.sections.about = { ...update.sections.about, [field]: val };
 	});
 	const aboutImage = formData.get('about_image') as File | null;
+	console.log('[CMS-SAVE] About image:', aboutImage);
 
 	// GALLERY
 	const galleryTitle = formData.get('title');
 	if (galleryTitle !== null && galleryTitle !== "") update.sections.gallery = { ...update.sections.gallery, title: galleryTitle };
 	const galleryImages = formData.getAll('images').filter((img) => img instanceof File && (img as File).size > 0) as File[];
+	console.log('[CMS-SAVE] Gallery images:', galleryImages);
 
 	// MENU
 	const menuPdf = formData.get('pdfLink') as File | null;
+	console.log('[CMS-SAVE] Menu PDF:', menuPdf);
 
 	// CONTATTI
 	['title', 'address', 'hours', 'phone', 'email', 'googleMapsEmbed'].forEach((field) => {
@@ -123,34 +123,47 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	// 3. Carica media come blob SOLO SE file.size > 0
 	const blobs: Record<string, string> = {};
 	if (heroImage && heroImage.size > 0) {
+		console.log('[CMS-SAVE] Uploading hero image...');
 		const imgBuf = await heroImage.arrayBuffer();
 		const imgBase64 = Buffer.from(imgBuf).toString('base64');
 		const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 			content: imgBase64,
 			encoding: 'base64'
 		});
-		const blobData = await blobRes.json();
-		blobs[`clients/${CLIENT_SLUG}/content/media/hero.jpg`] = blobData.sha;
-		update.sections.hero = { ...update.sections.hero, image: '/media/hero.jpg' };
+		console.log('[CMS-SAVE] Hero image upload response:', blobRes.status);
+		if (blobRes.ok) {
+			const blobData = await blobRes.json();
+			console.log('[CMS-SAVE] Hero image blob SHA:', blobData.sha);
+			blobs[`clients/${CLIENT_SLUG}/content/media/hero.jpg`] = blobData.sha;
+			update.sections.hero = { ...update.sections.hero, image: '/media/hero.jpg' };
+		}
 	} else if (currentContent.sections.hero.image) {
+		console.log('[CMS-SAVE] Hero image path mantenuto:', currentContent.sections.hero.image);
 		update.sections.hero = { ...update.sections.hero, image: currentContent.sections.hero.image };
 	}
 
 	if (aboutImage && aboutImage.size > 0) {
+		console.log('[CMS-SAVE] Uploading about image...');
 		const imgBuf = await aboutImage.arrayBuffer();
 		const imgBase64 = Buffer.from(imgBuf).toString('base64');
 		const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 			content: imgBase64,
 			encoding: 'base64'
 		});
-		const blobData = await blobRes.json();
-		blobs[`clients/${CLIENT_SLUG}/content/media/about.jpg`] = blobData.sha;
-		update.sections.about = { ...update.sections.about, image: '/media/about.jpg' };
+		console.log('[CMS-SAVE] About image upload response:', blobRes.status);
+		if (blobRes.ok) {
+			const blobData = await blobRes.json();
+			console.log('[CMS-SAVE] About image blob SHA:', blobData.sha);
+			blobs[`clients/${CLIENT_SLUG}/content/media/about.jpg`] = blobData.sha;
+			update.sections.about = { ...update.sections.about, image: '/media/about.jpg' };
+		}
 	} else if (currentContent.sections.about.image) {
+		console.log('[CMS-SAVE] About image path mantenuto:', currentContent.sections.about.image);
 		update.sections.about = { ...update.sections.about, image: currentContent.sections.about.image };
 	}
 
 	if (galleryImages.length > 0) {
+		console.log('[CMS-SAVE] Uploading gallery images...');
 		update.sections.gallery.images = [];
 		for (let i = 0; i < galleryImages.length; i++) {
 			const file = galleryImages[i];
@@ -160,39 +173,55 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 				content: imgBase64,
 				encoding: 'base64'
 			});
-			const blobData = await blobRes.json();
-			const imgPath = `/media/gallery-${i + 1}.jpg`;
-			blobs[`clients/${CLIENT_SLUG}/content/media/gallery-${i + 1}.jpg`] = blobData.sha;
-			update.sections.gallery.images.push(imgPath);
+			console.log(`[CMS-SAVE] Gallery image ${i} upload response:`, blobRes.status);
+			if (blobRes.ok) {
+				const blobData = await blobRes.json();
+				console.log(`[CMS-SAVE] Gallery image ${i} blob SHA:`, blobData.sha);
+				const imgPath = `/media/gallery-${i + 1}.jpg`;
+				blobs[`clients/${CLIENT_SLUG}/content/media/gallery-${i + 1}.jpg`] = blobData.sha;
+				update.sections.gallery.images.push(imgPath);
+			}
 		}
 	} else if (currentContent.sections.gallery.images) {
+		console.log('[CMS-SAVE] Gallery images path mantenuti:', currentContent.sections.gallery.images);
 		update.sections.gallery.images = currentContent.sections.gallery.images;
 	}
 
 	if (menuPdf && menuPdf.size > 0) {
+		console.log('[CMS-SAVE] Uploading menu PDF...');
 		const pdfBuf = await menuPdf.arrayBuffer();
 		const pdfBase64 = Buffer.from(pdfBuf).toString('base64');
 		const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 			content: pdfBase64,
 			encoding: 'base64'
 		});
-		const blobData = await blobRes.json();
-		blobs[`clients/${CLIENT_SLUG}/content/media/menu.pdf`] = blobData.sha;
-		update.sections.menu = { ...update.sections.menu, pdfLink: '/media/menu.pdf' };
+		console.log('[CMS-SAVE] Menu PDF upload response:', blobRes.status);
+		if (blobRes.ok) {
+			const blobData = await blobRes.json();
+			console.log('[CMS-SAVE] Menu PDF blob SHA:', blobData.sha);
+			blobs[`clients/${CLIENT_SLUG}/content/media/menu.pdf`] = blobData.sha;
+			update.sections.menu = { ...update.sections.menu, pdfLink: '/media/menu.pdf' };
+		}
 	} else if (currentContent.sections.menu.pdfLink) {
+		console.log('[CMS-SAVE] Menu PDF path mantenuto:', currentContent.sections.menu.pdfLink);
 		update.sections.menu = { ...update.sections.menu, pdfLink: currentContent.sections.menu.pdfLink };
 	}
 
+	console.log('[CMS-SAVE] Oggetto update finale:', update);
+
 	// Deep merge finale
 	const merged = deepMerge({ ...currentContent }, update);
+	console.log('[CMS-SAVE] Oggetto merged:', merged);
 
 	// Validazione finale
 	const result = ClientContentSchema.safeParse(merged);
 	if (!result.success) {
+		console.error('[CMS-SAVE] Validazione fallita:', result.error.errors);
 		return new Response('Validazione fallita: ' + JSON.stringify(result.error.errors), { status: 400 });
 	}
 
 	// 4. Crea blob JSON aggiornati per ogni file
+	console.log('[CMS-SAVE] Scrittura JSON modulari su GitHub...');
 	const blobsJson: Record<string, string> = {};
 	const files = [
 		{ name: 'hero', data: merged.sections.hero },
@@ -204,6 +233,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		{ name: 'theme', data: merged.theme }
 	];
 	for (const file of files) {
+		console.log(`[CMS-SAVE] Scrivo ${file.name}.json...`);
 		const res = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 			content: JSON.stringify(file.data, null, 2),
 			encoding: 'utf-8'
@@ -216,6 +246,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	}
 
 	// 5. Prepara tree atomico
+	console.log('[CMS-SAVE] Preparo tree atomico...');
 	const tree = [
 		...Object.entries(blobsJson).map(([path, sha]) => ({
 			path,
@@ -232,6 +263,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	];
 
 	// 6. Crea nuovo tree
+	console.log('[CMS-SAVE] Creo nuovo tree su GitHub...');
 	const treeRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/trees`, 'POST', {
 		base_tree: baseTreeSha,
 		tree
@@ -239,6 +271,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	const newTreeSha = (await treeRes.json()).sha;
 
 	// 7. Crea commit
+	console.log('[CMS-SAVE] Creo commit...');
 	const commitMsg = `Aggiornamento contenuti modulari admin SSR (${new Date().toISOString()})`;
 	const commitRes2 = await githubFetch(`/repos/${OWNER}/${REPO}/git/commits`, 'POST', {
 		message: commitMsg,
@@ -248,9 +281,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	const newCommitSha = (await commitRes2.json()).sha;
 
 	// 8. Aggiorna ref branch master
+	console.log('[CMS-SAVE] Aggiorno ref master...');
 	await githubFetch(`/repos/${OWNER}/${REPO}/git/refs/heads/master`, 'PATCH', {
 		sha: newCommitSha
 	});
 
+	console.log('[CMS-SAVE] Salvataggio completato!');
 	return new Response('OK', { status: 200 });
 };
