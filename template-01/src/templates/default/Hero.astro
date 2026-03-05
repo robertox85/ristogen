@@ -1,0 +1,26 @@
+---
+import type { ClientContent } from "../../schema/content.schema";
+
+interface Props {
+	sections: ClientContent["sections"];
+}
+const { hero } = Astro.props.sections;
+---
+
+{
+	hero.enabled && (
+		<section class="hero" style={`background-image: url(${hero.image})`}>
+			<div class="hero-content">
+				<h1>{hero.headline}</h1>
+				{hero.subheadline && (
+					<p class="subheadline">{hero.subheadline}</p>
+				)}
+				{hero.cta && (
+					<a href={hero.cta.url} class="cta-btn">
+						{hero.cta.label}
+					</a>
+				)}
+			</div>
+		</section>
+	)
+}

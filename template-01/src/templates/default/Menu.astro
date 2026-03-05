@@ -1,0 +1,86 @@
+---
+import type { ClientContent } from "../../schema/content.schema";
+
+interface Props {
+	sections: ClientContent["sections"];
+	lang?: "it" | "en";
+	preview?: boolean;
+}
+const { menu } = Astro.props.sections;
+const lang = Astro.props.lang ?? "it";
+const preview = Astro.props.preview ?? true;
+const PREVIEW_LIMIT = 4;
+const categories = preview
+	? menu.categories.slice(0, PREVIEW_LIMIT)
+	: menu.categories;
+const menuPath = lang === "en" ? "/en/menu" : "/it/menu";
+
+const ALLERGENI: Record<number, string> = {
+	1: "Glutine",
+	2: "Crostacei",
+	3: "Uova",
+	4: "Pesce",
+	5: "Arachidi",
+	6: "Soia",
+	7: "Latte",
+	8: "Frutta a guscio",
+	9: "Sedano",
+	10: "Senape",
+	11: "Sesamo",
+	12: "Anidride solforosa",
+	13: "Lupini",
+	14: "Molluschi",
+};
+---
+
+<section class="menu">
+	<h2>Menù</h2>
+	{
+		categories.map((cat) => (
+			<div class="category">
+				<h3 class="cat-title">{cat.name}</h3>
+				<ul class="items">
+					{cat.items.map((item) => (
+						<li class="item">
+							{item.image && (
+								<img
+									src={item.image}
+									alt={item.image_alt ?? item.name}
+									class="item-img"
+								/>
+							)}
+							<div class="item-info">
+								<div class="item-header">
+									<span class="item-name">{item.name}</span>
+									{item.badge && (
+										<span class="badge">{item.badge}</span>
+									)}
+									<span class="item-price">
+										€ {item.price}
+									</span>
+								</div>
+								<p class="item-desc">{item.description}</p>
+								{item.allergeni &&
+									item.allergeni.length > 0 && (
+										<p class="allergeni">
+											Allergeni:{" "}
+											{item.allergeni
+												.map(
+													(id) => ALLERGENI[id] ?? id,
+												)
+												.join(", ")}
+										</p>
+									)}
+							</div>
+						</li>
+					))}
+				</ul>
+			</div>
+		))
+	}
+	<div class="menu-cta">
+		<a href={menuPath} class="menu-cta-link">
+			{lang === "en" ? "View full menu →" : "Vedi menù completo →"}
+		</a>
+	</div>
+</section>

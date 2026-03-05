@@ -1,0 +1,16 @@
+---
+const { sections } = Astro.props;
+import Hero from "./Hero.astro";
+import About from "./About.astro";
+import Menu from "./Menu.astro";
+import Gallery from "./Gallery.astro";
+import Contatti from "./Contatti.astro";
+import Footer from "./Footer.astro";
+---
+
+<Hero sections={sections} />
+<About sections={sections} />
+<Menu sections={sections} />
+<Gallery sections={sections} />
+<Contatti sections={sections} />
+<Footer sections={sections} />

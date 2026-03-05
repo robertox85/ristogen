@@ -1,0 +1,21 @@
+---
+import type { ClientContent } from "../../schema/content.schema";
+
+interface Props {
+	sections: ClientContent["sections"];
+}
+const { gallery } = Astro.props.sections;
+---
+
+{
+	gallery.enabled && gallery.images.length > 0 && (
+		<section class="gallery">
+			<h2>Galleria</h2>
+			<div class="grid">
+				{gallery.images.map((img) => (
+					<img src={img.src} alt={img.alt} loading="lazy" />
+				))}
+			</div>
+		</section>
+	)
+}

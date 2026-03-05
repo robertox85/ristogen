@@ -1,0 +1,12 @@
+---
+import type { ClientContent } from "../../schema/content.schema";
+
+interface Props {
+	site: ClientContent["site"];
+	contatti: ClientContent["sections"]["contatti"];
+}
+const { site, contatti } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="py-12 bg-neutral-900"></footer>

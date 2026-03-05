@@ -24,6 +24,7 @@ const clientSlug = process.env.CLIENT_SLUG || 'burger-demo';
 const defaultLang = /** @type {'it'|'en'} */ (process.env.DEFAULT_LANG || 'it');
 const languages = process.env.LANGUAGES || defaultLang; // 'it' | 'en' | 'it+en'
 const enabledLangs = languages.split('+'); // ['it'] | ['en'] | ['it','en']
+const defaultTemplate = process.env.DEFAULT_TEMPLATE || 'default';
 
 // L'adapter Netlify viene caricato solo in produzione (build).
 // In dev la sua emulation intercetta le richieste statiche e blocca config.yml.
@@ -63,6 +64,8 @@ export default defineConfig({
 			'__CLIENT_SLUG__': JSON.stringify(clientSlug),
 			'__DEFAULT_LANG__': JSON.stringify(defaultLang),
 			'__ENABLED_LANGS__': JSON.stringify(enabledLangs),
+			'__DEFAULT_TEMPLATE__': JSON.stringify(defaultTemplate),
+
 		},
 		plugins: [adminRedirectPlugin],
 	},

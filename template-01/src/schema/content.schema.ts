@@ -146,6 +146,7 @@ export const ClientContentSchema = z.object({
 	site: SiteSchema,
 	theme: ThemeSchema,
 	sections: z.object({
+		template: z.string().optional(),
 		hero: HeroSchema,
 		about: AboutSchema,
 		contatti: ContattiSchema,

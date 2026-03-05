@@ -1,3 +1,19 @@
+// Estrae la lingua di default. Usa la variabile globale o la prima disponibile.
+export function getDefaultLang(): string {
+	return typeof __DEFAULT_LANG__ !== 'undefined' ? __DEFAULT_LANG__ : getAvailableLangs()[0];
+}
+
+// Genera i path per Astro in base al numero di lingue
+export function getI18nPaths() {
+	const langs = getAvailableLangs();
+	// Se c'è una sola lingua, restituiamo un array vuoto.
+	// Questo impedisce ad Astro di generare le cartelle /[lang]/
+	if (langs.length <= 1) {
+		return [];
+	}
+	// Se ci sono più lingue, le generiamo tutte
+	return langs.map(lang => ({ params: { lang } }));
+}
 import { ClientContentSchema, ArticleSchema, type ClientContent, type Article } from './schema/content.schema';
 
 declare const __CLIENT_SLUG__: string;

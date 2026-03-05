@@ -1,16 +1,16 @@
 ---
-import { getContent, getAvailableLangs } from '../../../content';
-import ArticleLayout from '../../../layouts/ArticleLayout.astro';
-import type { Article } from '../../../schema/content.schema';
+import { getContent, getI18nPaths } from "../../../content";
+import ArticleLayout from "../../../layouts/ArticleLayout.astro";
+import type { Article } from "../../../schema/content.schema";
 
 export function getStaticPaths() {
-  return getAvailableLangs().flatMap(lang => {
-    const content = getContent(lang);
-    return content.articles.map((article: Article) => ({
-      params: { lang, slug: article.slug },
-      props: { article, lang }
-    }));
-  });
+	return getI18nPaths().flatMap(({ params: { lang } }) => {
+		const content = getContent(lang);
+		return content.articles.map((article: Article) => ({
+			params: { lang, slug: article.slug },
+			props: { article, lang },
+		}));
+	});
 }
 
 const { article, lang } = Astro.props as { article: Article; lang: string };

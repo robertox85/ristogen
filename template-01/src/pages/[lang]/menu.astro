@@ -1,37 +1,70 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Menu from '../../components/Menu.astro';
-import { getContent, getAvailableLangs } from '../../content';
+import type { AstroComponentFactory } from "astro";
+import Base from "../../layouts/Base.astro";
+
+import { getContent, getI18nPaths } from "../../content";
 
 export function getStaticPaths() {
-  return getAvailableLangs().map(lang => ({ params: { lang } }));
+	return getI18nPaths();
 }
 
 const { lang } = Astro.params as { lang: string };
 const content = getContent(lang);
 const { site, sections } = content;
 
-const menuNames: Record<string, string> = { it: 'Menù', fr: 'Menu', en: 'Menu' };
-const menuJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Menu',
-  '@id': `${site.meta.canonical}/${lang}/menu`,
-  'name': menuNames[lang] ?? 'Menu',
-  'isPartOf': { '@id': `${site.meta.canonical}/#restaurant` },
-  'hasMenuSection': sections.menu.categories.map(cat => ({
-    '@type': 'MenuSection',
-    'name': cat.name,
-    'hasMenuItem': cat.items.map(item => ({
-      '@type': 'MenuItem',
-      'name': item.name,
-      'description': item.description,
-      'offers': { '@type': 'Offer', 'price': item.price, 'priceCurrency': 'EUR' }
-    }))
-  }))
+const menuNames: Record<string, string> = {
+	it: "Menù",
+	fr: "Menu",
+	en: "Menu",
 };
+const menuJsonLd = {
+	"@context": "https://schema.org",
+	"@type": "Menu",
+	"@id": `${site.meta.canonical}/${lang}/menu`,
+	name: menuNames[lang] ?? "Menu",
+	isPartOf: { "@id": `${site.meta.canonical}/#restaurant` },
+	hasMenuSection: sections.menu.categories.map((cat) => ({
+		"@type": "MenuSection",
+		name: cat.name,
+		hasMenuItem: cat.items.map((item) => ({
+			"@type": "MenuItem",
+			name: item.name,
+			description: item.description,
+			offers: {
+				"@type": "Offer",
+				price: item.price,
+				priceCurrency: "EUR",
+			},
+		})),
+	})),
+};
+
+// Routing dinamico del componente Menu
+const templateFiles = import.meta.glob("../../templates/*/Menu.astro", {
+	eager: true,
+});
+const selectedTemplateName = sections?.template || "default";
+const matchKey = Object.keys(templateFiles).find((path) =>
+	path.includes(`/${selectedTemplateName}/Menu.astro`),
+);
+const fallbackKey = Object.keys(templateFiles).find((path) =>
+	path.includes("/default/Menu.astro"),
+);
+const menuKey = matchKey || fallbackKey || Object.keys(templateFiles)[0];
+const MenuComponent = menuKey
+	? (templateFiles[menuKey] as { default: AstroComponentFactory }).default
+	: null;
 ---
 
 <Base {content}>
-  <script type="application/ld+json" set:html={JSON.stringify(menuJsonLd)} slot="head-extra" />
-  <Menu sections={sections} lang={lang} preview={false} />
+	<script
+		type="application/ld+json"
+		set:html={JSON.stringify(menuJsonLd)}
+		slot="head-extra"
+	/>
+	{
+		MenuComponent && (
+			<MenuComponent sections={sections} lang={lang} preview={false} />
+		)
+	}
 </Base>

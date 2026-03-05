@@ -1,0 +1,54 @@
+---
+import type { ClientContent } from "../../schema/content.schema";
+
+interface Props {
+	sections: ClientContent["sections"];
+}
+const { contatti } = Astro.props.sections;
+---
+
+{
+	contatti.enabled && (
+		<section class="contatti" id="contatti">
+			<h2>Contatti</h2>
+			<div class="info">
+				{contatti.indirizzo && (
+					<p>
+						<strong>📍 Indirizzo:</strong> {contatti.indirizzo}
+					</p>
+				)}
+				{contatti.telefono && (
+					<p>
+						<strong>📞 Telefono:</strong>{" "}
+						<a href={`tel:${contatti.telefono}`}>
+							{contatti.telefono}
+						</a>
+					</p>
+				)}
+				{contatti.email && (
+					<p>
+						<strong>✉️ Email:</strong>{" "}
+						<a href={`mailto:${contatti.email}`}>
+							{contatti.email}
+						</a>
+					</p>
+				)}
+				{contatti.orari && (
+					<p>
+						<strong>🕐 Orari:</strong> {contatti.orari}
+					</p>
+				)}
+				{contatti.google_maps_url && (
+					<a
+						href={contatti.google_maps_url}
+						target="_blank"
+						rel="noopener"
+						class="maps-btn"
+					>
+						Apri su Google Maps
+					</a>
+				)}
+			</div>
+		</section>
+	)
+}
