@@ -177,7 +177,9 @@ const content = getContent("it");
 								{
 									content.sections.hero.hero_image && (
 										<img
-											src={content.sections.hero.hero_image}
+											src={
+												content.sections.hero.hero_image
+											}
 											alt="Preview Hero"
 											class="mb-4 rounded-lg w-full max-w-xs text-gray-900"
 										/>
@@ -229,7 +231,10 @@ const content = getContent("it");
 								{
 									content.sections.about.about_image && (
 										<img
-											src={content.sections.about.about_image}
+											src={
+												content.sections.about
+													.about_image
+											}
 											alt="Preview About"
 											class="mb-4 rounded-lg w-full max-w-xs text-gray-900"
 										/>
@@ -244,7 +249,8 @@ const content = getContent("it");
 								<input
 									type="text"
 									name="about_preTitle"
-									value={content.sections.about.about_preTitle}
+									value={content.sections.about
+										.about_preTitle}
 									placeholder="Pre-titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
@@ -253,7 +259,9 @@ const content = getContent("it");
 									rows="5"
 									placeholder="Testo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
-									>{content.sections.about.about_text}</textarea
+									>{
+										content.sections.about.about_text
+									}</textarea
 								>
 								<button
 									type="submit"
@@ -274,7 +282,8 @@ const content = getContent("it");
 								<input
 									type="text"
 									name="gallery_title"
-									value={content.sections.gallery.gallery_title}
+									value={content.sections.gallery
+										.gallery_title}
 									placeholder="Titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
@@ -323,7 +332,10 @@ const content = getContent("it");
 								{
 									content.sections.menu.menu_pdfLink && (
 										<a
-											href={content.sections.menu.menu_pdfLink}
+											href={
+												content.sections.menu
+													.menu_pdfLink
+											}
 											target="_blank"
 											rel="noopener"
 											class="block mb-4 text-indigo-600 underline"
@@ -357,51 +369,59 @@ const content = getContent("it");
 								<input
 									type="text"
 									name="contatti_title"
-									value={content.sections.contatti.contatti_title}
+									value={content.sections.contatti
+										.contatti_title}
 									placeholder="Titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
 									name="contatti_address"
-									value={content.sections.contatti.contatti_address}
+									value={content.sections.contatti
+										.contatti_address}
 									placeholder="Indirizzo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
 									name="contatti_hours"
-									value={content.sections.contatti.contatti_hours}
+									value={content.sections.contatti
+										.contatti_hours}
 									placeholder="Orari"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
 									name="contatti_phone"
-									value={content.sections.contatti.contatti_phone}
+									value={content.sections.contatti
+										.contatti_phone}
 									placeholder="Telefono"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="email"
 									name="contatti_email"
-									value={content.sections.contatti.contatti_email}
+									value={content.sections.contatti
+										.contatti_email}
 									placeholder="Email"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
 									name="contatti_googleMapsEmbed"
-									value={content.sections.contatti.contatti_googleMapsEmbed}
+									value={content.sections.contatti
+										.contatti_googleMapsEmbed}
 									placeholder="Google Maps Embed"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								{
-									content.sections.contatti.contatti_googleMapsEmbed && (
+									content.sections.contatti
+										.contatti_googleMapsEmbed && (
 										<div class="mb-4">
 											<iframe
 												src={
-													content.sections.contatti.contatti_googleMapsEmbed
+													content.sections.contatti
+														.contatti_googleMapsEmbed
 												}
 												width="100%"
 												height="200"
@@ -445,14 +465,16 @@ const content = getContent("it");
 								<input
 									type="text"
 									name="footer_instagram"
-									value={content.sections.footer.socials.footer_instagram}
+									value={content.sections.footer.socials
+										.footer_instagram}
 									placeholder="Instagram"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
 									name="footer_facebook"
-									value={content.sections.footer.socials.footer_facebook}
+									value={content.sections.footer.socials
+										.footer_facebook}
 									placeholder="Facebook"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
@@ -460,10 +482,12 @@ const content = getContent("it");
 									/* Footer: preview social, logo, se previsti in futuro */
 								}
 								{
-									content.sections.footer.socials.footer_instagram && (
+									content.sections.footer.socials
+										.footer_instagram && (
 										<a
 											href={
-												content.sections.footer.socials.footer_instagram
+												content.sections.footer.socials
+													.footer_instagram
 											}
 											target="_blank"
 											rel="noopener"
@@ -474,10 +498,12 @@ const content = getContent("it");
 									)
 								}
 								{
-									content.sections.footer.socials.footer_facebook && (
+									content.sections.footer.socials
+										.footer_facebook && (
 										<a
 											href={
-												content.sections.footer.socials.footer_facebook
+												content.sections.footer.socials
+													.footer_facebook
 											}
 											target="_blank"
 											rel="noopener"
