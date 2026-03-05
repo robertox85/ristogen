@@ -1,6 +1,6 @@
 {
-"title": "Il miglior Burger in città",
-"message": "Ingredienti freschi e carne di prima scelta ogni giorno.",
-"cta": "Scopri il Menu",
-"image": "/media/hero.jpg"
+	"hero_title": "Il miglior Burger in città",
+	"hero_message": "Ingredienti freschi e carne di prima scelta ogni giorno.",
+	"hero_cta": "Scopri il Menu",
+	"hero_image": "/media/hero.jpg"
 }
