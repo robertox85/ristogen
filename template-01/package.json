@@ -3,7 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-"dev": "astro dev --port 4321",
+"sync:media": "node -e \"const s=process.env.CLIENT_SLUG||'burger-demo';const {cpSync,mkdirSync}=require('fs');mkdirSync('public/media',{recursive:true});try{cpSync('../clients/'+s+'/content/media','public/media',{recursive:true})}catch(e){}\"",
+"dev": "npm run sync:media && astro dev --port 4321",
 "build": "astro build",
 	"preview": "astro preview",
     "astro": "astro"
