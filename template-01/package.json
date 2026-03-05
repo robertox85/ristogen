@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-"sync:media": "node -e \"const s=process.env.CLIENT_SLUG||'burger-demo';const {cpSync,mkdirSync}=require('fs');mkdirSync('public/media',{recursive:true});try{cpSync('../clients/'+s+'/content/media','public/media',{recursive:true})}catch(e){}\"",
+"sync:media": "mkdir -p public/media && cp -r ../clients/${CLIENT_SLUG:-burger-demo}/content/media/. public/media/",
 "dev": "npm run sync:media && astro dev --port 4321",
 "build": "astro build",
 	"preview": "astro preview",
