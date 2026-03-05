@@ -19,7 +19,6 @@ if (existsSync(envPath)) {
 /** @type {string} */
 const nodeEnv = process.env.NODE_ENV ?? 'development';
 const isDev = nodeEnv === 'development';
-
 const clientSlug = process.env.CLIENT_SLUG || 'burger-demo';
 const defaultLang = /** @type {'it'|'en'} */ (process.env.DEFAULT_LANG || 'it');
 const languages = process.env.LANGUAGES || defaultLang; // 'it' | 'en' | 'it+en'
@@ -27,31 +26,12 @@ const enabledLangs = languages.split('+'); // ['it'] | ['en'] | ['it','en']
 const defaultTemplate = process.env.DEFAULT_TEMPLATE || 'default';
 
 // L'adapter Netlify viene caricato solo in produzione (build).
-// In dev la sua emulation intercetta le richieste statiche e blocca config.yml.
 /** @type {import('astro').AstroUserConfig['adapter']} */
 let adapter;
 if (!isDev) {
 	const { default: netlify } = await import('@astrojs/netlify');
 	adapter = netlify();
 }
-
-/** Plugin Vite: in dev, reindirizza /admin e /admin/ a /admin/index.html */
-const adminRedirectPlugin = {
-	name: 'admin-redirect',
-	configureServer(server) {
-		server.middlewares.use((req, res, next) => {
-			if (req.url === '/admin') {
-				res.writeHead(301, { Location: '/admin/' });
-				res.end();
-				return;
-			}
-			if (req.url === '/admin/') {
-				req.url = '/admin/index.html';
-			}
-			next();
-		});
-	},
-};
 
 // https://astro.build/config
 export default defineConfig({
@@ -67,6 +47,6 @@ export default defineConfig({
 			'__DEFAULT_TEMPLATE__': JSON.stringify(defaultTemplate),
 
 		},
-		plugins: [adminRedirectPlugin],
+		// plugins: [],
 	},
 });

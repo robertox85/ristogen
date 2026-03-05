@@ -1,9 +1,9 @@
 {
-  "primary": "#d4af37",
-  "secondary": "#1a1a1a",
-  "bg": "#df2020",
-  "text": "#f5f5f5",
-  "fontHeading": "'Playfair Display', serif",
-  "fontBody": "'Inter', sans-serif",
-  "radius": "0.5rem"
+	"primary": "#d4af37",
+	"secondary": "#1a1a1a",
+	"bg": "#df2020",
+	"text": "#f5f5f5",
+	"fontHeading": "'Playfair Display', serif",
+	"fontBody": "'Inter', sans-serif",
+	"radius": "0.5rem"
 }

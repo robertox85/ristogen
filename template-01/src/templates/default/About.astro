@@ -7,22 +7,16 @@ interface Props {
 const { about } = Astro.props.sections;
 ---
 
-{
-	about.enabled && (
-		<section class="about">
-			<div class="about-inner">
-				{about.image && (
-					<img
-						src={about.image}
-						alt={about.image_alt ?? ""}
-						class="about-img"
-					/>
-				)}
-				<div class="about-text">
-					<h2>{about.title}</h2>
-					<p>{about.text}</p>
-				</div>
-			</div>
-		</section>
-	)
-}
+<section class="about">
+	<div class="about-inner">
+		{
+			about.image && (
+				<img src={about.image} alt="Foto locale" class="about-img" />
+			)
+		}
+		<div class="about-text">
+			<h2>{about.preTitle}</h2>
+			<p>{about.text}</p>
+		</div>
+	</div>
+</section>

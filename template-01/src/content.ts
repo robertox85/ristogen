@@ -1,29 +1,19 @@
-// Estrae la lingua di default. Usa la variabile globale o la prima disponibile.
-export function getDefaultLang(): string {
-	return typeof __DEFAULT_LANG__ !== 'undefined' ? __DEFAULT_LANG__ : getAvailableLangs()[0];
-}
+import { ClientContentSchema, type ClientContent } from './schema/content.schema';
 
-// Genera i path per Astro in base al numero di lingue
-export function getI18nPaths() {
-	const langs = getAvailableLangs();
-	// Se c'è una sola lingua, restituiamo un array vuoto.
-	// Questo impedisce ad Astro di generare le cartelle /[lang]/
-	if (langs.length <= 1) {
-		return [];
-	}
-	// Se ci sono più lingue, le generiamo tutte
-	return langs.map(lang => ({ params: { lang } }));
-}
-import { ClientContentSchema, ArticleSchema, type ClientContent, type Article } from './schema/content.schema';
-
+// Variabili iniettate da Vite/Astro
 declare const __CLIENT_SLUG__: string;
+declare const __DEFAULT_LANG__: string;
+declare const __ENABLED_LANGS__: string[];
 
-// Vite risolve tutti i JSON a build time — nessuna lettura a runtime
+// Vite risolve tutti i JSON a build time
 const allJson = import.meta.glob(
 	'../../clients/**/content/**/*.json',
 	{ eager: true, import: 'default' }
 );
 
+const slug = __CLIENT_SLUG__;
+
+/** Helper per recuperare un file JSON specifico */
 function getFile<T>(slug: string, lang: string, file: string): T {
 	const key = `../../clients/${slug}/content/${lang}/${file}`;
 	const data = allJson[key];
@@ -31,62 +21,49 @@ function getFile<T>(slug: string, lang: string, file: string): T {
 	return data as T;
 }
 
-function getMenuCategories(slug: string, lang: string) {
-	const prefix = `../../clients/${slug}/content/${lang}/menu/`;
-	return Object.entries(allJson)
-		.filter(([key]) => key.startsWith(prefix))
-		.map(([, data]) => data);
-}
-
-function getArticles(slug: string, lang: string): Article[] {
-	const prefix = `../../clients/${slug}/content/${lang}/articles/`;
-	return Object.entries(allJson)
-		.filter(([key]) => key.startsWith(prefix))
-		.map(([, data]) => {
-			const result = ArticleSchema.safeParse(data);
-			return result.success ? result.data : null;
-		})
-		.filter((a): a is Article => a !== null)
-		.sort((a, b) => b.date.localeCompare(a.date));
-}
-
-// theme.json è condiviso tra le lingue — vive nella root del cliente
-function getTheme(slug: string) {
+/** Recupera il tema (comune a tutte le lingue) */
+function getTheme(slug: string): unknown {
 	const key = `../../clients/${slug}/content/theme.json`;
 	const data = allJson[key];
 	if (!data) throw new Error(`Missing: ${key}`);
 	return data;
 }
 
-const slug = __CLIENT_SLUG__;
-
-declare const __ENABLED_LANGS__: string[];
-
-/** Restituisce solo le lingue che hanno effettivamente content files nel build */
+/** Restituisce le lingue che hanno effettivamente i file nel build */
 export function getAvailableLangs(): string[] {
 	return __ENABLED_LANGS__.filter(lang => {
-		const key = `../../clients/${slug}/content/${lang}/site.json`;
+		const key = `../../clients/${slug}/content/${lang}/hero.json`;
 		return key in allJson;
 	});
 }
 
+/** Estrae la lingua di default. Usa la variabile globale o la prima disponibile. */
+export function getDefaultLang(): string {
+	return typeof __DEFAULT_LANG__ !== 'undefined' ? __DEFAULT_LANG__ : getAvailableLangs()[0];
+}
+
+/** Genera i path per Astro in base al numero di lingue */
+export function getI18nPaths(): unknown[] {
+	const langs = getAvailableLangs();
+	if (langs.length <= 1) {
+		return [];
+	}
+	return langs.map(lang => ({ params: { lang } }));
+}
+
+/** Funzione principale: assembla e valida tutto il contenuto */
 export function getContent(lang: string = 'it'): ClientContent {
 	const raw = {
-		site: getFile(slug, lang, 'site.json'),
 		theme: getTheme(slug),
 		sections: {
 			hero: getFile(slug, lang, 'hero.json'),
 			about: getFile(slug, lang, 'about.json'),
-			contatti: getFile(slug, lang, 'contatti.json'),
 			gallery: getFile(slug, lang, 'gallery.json'),
-			menu: {
-				categories: getMenuCategories(slug, lang)
-			}
-		},
-		articles: getArticles(slug, lang)
+			menu: getFile(slug, lang, 'menu.json'),
+			contatti: getFile(slug, lang, 'contatti.json'),
+			footer: getFile(slug, lang, 'footer.json')
+		}
 	};
-
-	// Validazione Zod — blocca il build se qualcosa non torna
 	const result = ClientContentSchema.safeParse(raw);
 	if (!result.success) {
 		console.error('ZOD ERRORS:', JSON.stringify(result.error.errors, null, 2));

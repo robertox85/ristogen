@@ -7,48 +7,52 @@ interface Props {
 const { contatti } = Astro.props.sections;
 ---
 
-{
-	contatti.enabled && (
-		<section class="contatti" id="contatti">
-			<h2>Contatti</h2>
-			<div class="info">
-				{contatti.indirizzo && (
-					<p>
-						<strong>📍 Indirizzo:</strong> {contatti.indirizzo}
-					</p>
-				)}
-				{contatti.telefono && (
-					<p>
-						<strong>📞 Telefono:</strong>{" "}
-						<a href={`tel:${contatti.telefono}`}>
-							{contatti.telefono}
-						</a>
-					</p>
-				)}
-				{contatti.email && (
-					<p>
-						<strong>✉️ Email:</strong>{" "}
-						<a href={`mailto:${contatti.email}`}>
-							{contatti.email}
-						</a>
-					</p>
-				)}
-				{contatti.orari && (
-					<p>
-						<strong>🕐 Orari:</strong> {contatti.orari}
-					</p>
-				)}
-				{contatti.google_maps_url && (
-					<a
-						href={contatti.google_maps_url}
-						target="_blank"
-						rel="noopener"
-						class="maps-btn"
-					>
-						Apri su Google Maps
-					</a>
-				)}
+<section class="contatti" id="contatti">
+	<h2>{contatti.title}</h2>
+	<div class="info">
+		{
+			contatti.address && (
+				<p>
+					<strong>📍 Indirizzo:</strong> {contatti.address}
+				</p>
+			)
+		}
+		{
+			contatti.phone && (
+				<p>
+					<strong>📞 Telefono:</strong>{" "}
+					<a href={`tel:${contatti.phone}`}>{contatti.phone}</a>
+				</p>
+			)
+		}
+		{
+			contatti.email && (
+				<p>
+					<strong>✉️ Email:</strong>{" "}
+					<a href={`mailto:${contatti.email}`}>{contatti.email}</a>
+				</p>
+			)
+		}
+		{
+			contatti.hours && (
+				<p>
+					<strong>🕐 Orari:</strong> {contatti.hours}
+				</p>
+			)
+		}
+	</div>
+	{
+		contatti.googleMapsEmbed && (
+			<div class="mt-4">
+				<iframe
+					src={contatti.googleMapsEmbed}
+					width="100%"
+					height="200"
+					style="border:0;"
+					allowfullscreen=""
+					loading="lazy"
+				/>
 			</div>
-		</section>
-	)
-}
+		)
+	}
+</section>

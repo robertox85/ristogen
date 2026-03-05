@@ -2,11 +2,38 @@
 import type { ClientContent } from "../../schema/content.schema";
 
 interface Props {
-	site: ClientContent["site"];
-	contatti: ClientContent["sections"]["contatti"];
+	sections: ClientContent["sections"];
 }
-const { site, contatti } = Astro.props;
-const year = new Date().getFullYear();
+const { footer } = Astro.props.sections;
 ---
 
-<footer class="py-12 bg-neutral-900"></footer>
+<footer class="py-12 bg-neutral-900 text-white text-center">
+	<div class="mb-2 font-bold text-lg">{footer.name}</div>
+	<div class="mb-2">{footer.copy}</div>
+	<div class="flex justify-center gap-4">
+		{
+			footer.socials.instagram && (
+				<a
+					href={footer.socials.instagram}
+					target="_blank"
+					rel="noopener"
+					class="hover:underline"
+				>
+					Instagram
+				</a>
+			)
+		}
+		{
+			footer.socials.facebook && (
+				<a
+					href={footer.socials.facebook}
+					target="_blank"
+					rel="noopener"
+					class="hover:underline"
+				>
+					Facebook
+				</a>
+			)
+		}
+	</div>
+</footer>

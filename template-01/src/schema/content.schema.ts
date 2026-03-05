@@ -1,161 +1,51 @@
 import { z } from 'zod';
 
-export const AnalyticsSchema = z.object({
-	ga4: z.string().optional(),
-	clarity: z.string().optional()
-}).optional();
-
-export const PostalAddressSchema = z.object({
-	streetAddress: z.string(),
-	addressLocality: z.string(),
-	postalCode: z.string(),
-	addressRegion: z.string().optional(),
-	addressCountry: z.string().optional()
-});
-
-export const OpeningHoursSpecificationSchema = z.object({
-	dayOfWeek: z.array(z.string()),
-	opens: z.string(),
-	closes: z.string()
-});
-
-export const SiteSchema = z.object({
-	name: z.string(),
-	lang: z.string().default('it'),
-	meta: z.object({
-		title: z.string(),
-		description: z.string(),
-		og_image: z.string(),
-		og_type: z.string().optional(),
-		og_locale: z.string().optional(),
-		og_site_name: z.string().optional(),
-		twitter_card: z.string().optional(),
-		canonical: z.union([z.string().url(), z.literal('')]).optional()
-	}),
-	schema_org: z.object({
-		type: z.string(),
-		name: z.string(),
-		description: z.string().optional(),
-		url: z.string().url().optional(),
-		logo: z.string().optional(),
-		image: z.array(z.string()).optional(),
-		address: PostalAddressSchema,
-		latitude: z.string().optional(),
-		longitude: z.string().optional(),
-		telephone: z.string(),
-		email: z.string().email().optional(),
-		servesCuisine: z.string(),
-		priceRange: z.string(),
-		currenciesAccepted: z.string().optional(),
-		paymentAccepted: z.string().optional(),
-		openingHours: z.array(OpeningHoursSpecificationSchema)
-	}),
-	seo: z.object({
-		llms_txt: z.boolean().default(false),
-		robots: z.string().optional()
-	}).optional(),
-	analytics: AnalyticsSchema
-});
-
 export const ThemeSchema = z.object({
-	template: z.string(),
-	colors: z.object({
-		primary: z.string(),
-		secondary: z.string(),
-		background: z.string(),
-		text: z.string()
-	}),
-	fonts: z.object({
-		heading: z.string(),
-		body: z.string()
-	})
+	primary: z.string().default('#d4af37'),
+	secondary: z.string().default('#1a1a1a'),
+	bg: z.string().default('#0a0a0a'),
+	text: z.string().default('#f5f5f5'),
+	fontHeading: z.string().default("'Playfair Display', serif"),
+	fontBody: z.string().default("'Inter', sans-serif"),
+	radius: z.string().default('0.5rem')
 });
 
-export const MenuItemSchema = z.object({
-	name: z.string(),
-	description: z.string(),
-	price: z.string(),
-	image: z.string().nullable().optional(),
-	image_alt: z.string().nullable().optional(),
-	badge: z.string().nullable().optional(),
-	allergeni: z.array(z.number()).default([])
-});
-
-export const MenuCategorySchema = z.object({
-	name: z.string(),
-	items: z.array(MenuItemSchema)
-});
-
-export const HeroSchema = z.object({
-	enabled: z.boolean().default(true),
-	headline: z.string(),
-	subheadline: z.string().optional(),
-	image: z.string(),
-	image_alt: z.string(),
-	cta: z.object({
-		label: z.string(),
-		url: z.string()
-	}).optional()
-});
-
-export const AboutSchema = z.object({
-	enabled: z.boolean().default(true),
-	title: z.string(),
-	text: z.string(),
-	image: z.string().optional(),
-	image_alt: z.string().optional()
-});
-
-export const ContattiSchema = z.object({
-	enabled: z.boolean().default(true),
-	indirizzo: z.string(),
-	telefono: z.string(),
-	email: z.string().email().optional(),
-	orari: z.string(),
-	google_maps_url: z.string().url().optional(),
-	social: z.object({
-		instagram: z.union([z.string().url(), z.literal('')]).optional(),
-		facebook: z.union([z.string().url(), z.literal('')]).optional()
-	}).optional()
-});
-
-export const GallerySchema = z.object({
-	enabled: z.boolean().default(true),
-	images: z.array(z.object({
-		src: z.string(),
-		alt: z.string()
-	}))
-});
-
-export const ArticleSchema = z.object({
-	slug: z.string(),
-	title: z.string(),
-	description: z.string(),
-	body: z.string(),
-	date: z.string(),
-	og_image: z.string().optional(),
-	noindex: z.boolean().default(false)
-});
-
-export type Article = z.infer<typeof ArticleSchema>;
-export type PostalAddress = z.infer<typeof PostalAddressSchema>;
-export type OpeningHoursSpecification = z.infer<typeof OpeningHoursSpecificationSchema>;
-
-// Schema completo dell'intero contenuto cliente
 export const ClientContentSchema = z.object({
-	site: SiteSchema,
 	theme: ThemeSchema,
 	sections: z.object({
-		template: z.string().optional(),
-		hero: HeroSchema,
-		about: AboutSchema,
-		contatti: ContattiSchema,
-		gallery: GallerySchema,
+		hero: z.object({
+			title: z.string(),
+			message: z.string(),
+			cta: z.string().optional(),
+			image: z.string()
+		}),
+		about: z.object({
+			preTitle: z.string(),
+			text: z.string(),
+			image: z.string()
+		}),
+		gallery: z.object({
+			title: z.string(),
+			images: z.array(z.string())
+		}),
 		menu: z.object({
-			categories: z.array(MenuCategorySchema)
+			pdfLink: z.string()
+		}),
+		contatti: z.object({
+			title: z.string(),
+			address: z.string(),
+			hours: z.string(),
+			phone: z.string(),
+			email: z.string(),
+			googleMapsEmbed: z.string().optional()
+		}),
+		footer: z.object({
+			name: z.string(),
+			copy: z.string(),
+			socials: z.object({
+				instagram: z.string().optional(),
+				facebook: z.string().optional()
+			})
 		})
-	}),
-	articles: z.array(ArticleSchema).default([])
+	})
 });
-
-export type ClientContent = z.infer<typeof ClientContentSchema>;

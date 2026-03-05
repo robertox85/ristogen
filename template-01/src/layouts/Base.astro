@@ -1,83 +1,70 @@
 ---
-import type { ClientContent } from '../schema/content.schema';
-import Analytics from '../components/Analytics.astro';
+import type { ClientContent } from "../schema/content.schema";
+import Analytics from "../components/Analytics.astro";
 
 declare const __ENABLED_LANGS__: string[];
 
-interface Props { content: ClientContent }
-const { site, theme } = Astro.props.content;
+interface Props {
+	content: ClientContent;
+}
+const { content } = Astro.props;
+const { theme } = content;
 const enabledLangs = __ENABLED_LANGS__;
 ---
 
-<!DOCTYPE html>
-<html lang={site.lang}>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{site.meta.title}</title>
-  <meta name="description" content={site.meta.description}>
-  <link rel="canonical" href={site.meta.canonical}>
-  {enabledLangs.length > 1 && enabledLangs.map(l => (
-    <link rel="alternate" hreflang={l} href={`${site.meta.canonical}/${l}/`} />
-  ))}
-  {enabledLangs.length > 1 && (
-    <link rel="alternate" hreflang="x-default" href={`${site.meta.canonical}/`} />
-  )}
-  <meta property="og:title" content={site.meta.title}>
-  <meta property="og:image" content={site.meta.og_image}>
-  {site.meta.og_type && <meta property="og:type" content={site.meta.og_type}>}
-  {site.meta.og_locale && <meta property="og:locale" content={site.meta.og_locale}>}
-  {site.meta.og_site_name && <meta property="og:site_name" content={site.meta.og_site_name}>}
-  {site.meta.twitter_card && <meta name="twitter:card" content={site.meta.twitter_card}>}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href={`https://fonts.googleapis.com/css2?family=${theme.fonts.heading}:wght@400;700&family=${theme.fonts.body}:wght@400;500&display=swap`} rel="stylesheet">
-  <script type="application/ld+json" set:html={JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': site.schema_org.type,
-    '@id': `${site.meta.canonical}/#restaurant`,
-    'name': site.schema_org.name,
-    'url': site.schema_org.url ?? site.meta.canonical,
-    'address': {
-      '@type': 'PostalAddress',
-      'streetAddress': site.schema_org.address.streetAddress,
-      'addressLocality': site.schema_org.address.addressLocality,
-      'postalCode': site.schema_org.address.postalCode,
-      'addressRegion': site.schema_org.address.addressRegion,
-      'addressCountry': site.schema_org.address.addressCountry
-    },
-    'telephone': site.schema_org.telephone,
-    'servesCuisine': site.schema_org.servesCuisine,
-    'priceRange': site.schema_org.priceRange,
-    'openingHoursSpecification': site.schema_org.openingHours.map(h => ({
-      '@type': 'OpeningHoursSpecification',
-      'dayOfWeek': h.dayOfWeek,
-      'opens': h.opens,
-      'closes': h.closes
-    }))
-  })} />
-  <Analytics analytics={site.analytics} />
-</head>
-<body style={`
-  --color-primary: ${theme.colors.primary};
-  --color-secondary: ${theme.colors.secondary};
-  --color-bg: ${theme.colors.background};
-  --color-text: ${theme.colors.text};
-  --font-heading: '${theme.fonts.heading}';
-  --font-body: '${theme.fonts.body}'
-`}>
-  <slot />
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title></title>
 
-  <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script is:inline>
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on('init', user => {
-      if (!user) {
-        window.netlifyIdentity.on('login', () => {
-          document.location.href = '/admin/';
-        });
-      }
-    });
-  }
-</script>
-</body>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			href={`https://fonts.googleapis.com/css2?family=${theme.fontHeading}:wght@400;700&family=${theme.fontBody}:wght@400;500&display=swap`}
+			rel="stylesheet"
+		/>
+
+		<style
+			is:global
+			define:vars={{
+				"color-primary": theme.primary,
+				"color-secondary": theme.secondary,
+				"color-bg": theme.bg,
+				"color-text": theme.text,
+				"font-heading": theme.fontHeading,
+				"font-body": theme.fontBody,
+				"radius-base": theme.radius,
+			}}
+		>
+			:root {
+				--color-primary: var(--color-primary);
+				--color-secondary: var(--color-secondary);
+				--color-bg: var(--color-bg);
+				--color-text: var(--color-text);
+				--font-heading: var(--font-heading);
+				--font-body: var(--font-body);
+				--radius-base: var(--radius-base);
+				--spacing-section: 8rem;
+			}
+			body {
+				background: var(--color-bg);
+				color: var(--color-text);
+				font-family: var(--font-body);
+			}
+			h1,
+			h2,
+			h3,
+			h4 {
+				font-family: var(--font-heading);
+			}
+			.card,
+			.rounded-xl {
+				border-radius: var(--radius-base);
+			}
+		</style>
+	</head>
+	<body>
+		<slot />
+	</body>
 </html>

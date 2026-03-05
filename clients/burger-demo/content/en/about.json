@@ -1,1 +1,5 @@
-{ "enabled": false, "title": "About us", "text": "" }
+{
+"preTitle": "La nostra storia",
+"text": "Dal 1990 prepariamo i migliori burger con passione e dedizione.",
+"image": "/media/about.jpg"
+}

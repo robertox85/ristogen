@@ -1,0 +1,477 @@
+---
+export const prerender = false;
+import { Astro } from "astro";
+import { getContent } from "../../content";
+
+const session = Astro.cookies.get("admin_session");
+if (session?.value !== "authenticated") {
+	return Astro.redirect("/admin");
+}
+
+const content = getContent("it");
+---
+
+<html lang="it">
+	<head>
+		<title>Dashboard Admin | Ristogen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link
+			href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css"
+			rel="stylesheet"
+		/>
+	</head>
+	<body class="min-h-screen bg-gray-950 text-gray-100">
+		<div class="flex h-screen">
+			<aside
+				class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col gap-4 shadow-sm"
+			>
+				<h2 class="text-xl font-bold mb-6 text-gray-900">
+					Ristogen Admin
+				</h2>
+				<nav class="flex flex-col gap-2">
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="theme">Theme</button
+					>
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="hero">Hero</button
+					>
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="about">About</button
+					>
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="gallery">Gallery</button
+					>
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="menu">Menu</button
+					>
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="contatti">Contatti</button
+					>
+					<button
+						class="tab-btn text-left px-3 py-2 rounded-md font-semibold text-[15px] text-gray-700 hover:bg-indigo-50 focus:bg-indigo-100 focus:outline-none"
+						data-tab="footer">Footer</button
+					>
+				</nav>
+			</aside>
+			<main class="flex-1 p-10 overflow-y-auto bg-gray-50">
+				<div class="max-w-3xl mx-auto flex flex-col gap-8">
+					<section id="theme" class="tab-section">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								Theme
+							</h3>
+							<form id="form-theme" class="space-y-6">
+								<div class="grid grid-cols-2 gap-6 mb-4">
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Colore Primario</label
+										>
+										<input
+											type="color"
+											name="primary"
+											value={content.theme.primary}
+											class="w-12 h-12 p-0 border-none bg-transparent"
+										/>
+									</div>
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Colore Secondario</label
+										>
+										<input
+											type="color"
+											name="secondary"
+											value={content.theme.secondary}
+											class="w-12 h-12 p-0 border-none bg-transparent"
+										/>
+									</div>
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Colore Sfondo</label
+										>
+										<input
+											type="color"
+											name="bg"
+											value={content.theme.bg}
+											class="w-12 h-12 p-0 border-none bg-transparent"
+										/>
+									</div>
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Colore Testo</label
+										>
+										<input
+											type="color"
+											name="text"
+											value={content.theme.text}
+											class="w-12 h-12 p-0 border-none bg-transparent"
+										/>
+									</div>
+								</div>
+								<div class="grid grid-cols-3 gap-6">
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Font Heading</label
+										>
+										<input
+											type="text"
+											name="fontHeading"
+											value={content.theme.fontHeading}
+											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+										/>
+									</div>
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Font Body</label
+										>
+										<input
+											type="text"
+											name="fontBody"
+											value={content.theme.fontBody}
+											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+										/>
+									</div>
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Radius</label
+										>
+										<input
+											type="text"
+											name="radius"
+											value={content.theme.radius}
+											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+										/>
+									</div>
+								</div>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+					<section id="hero" class="tab-section hidden">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								Hero
+							</h3>
+							<form id="form-hero" class="space-y-6">
+								<input
+									type="text"
+									name="title"
+									value={content.sections.hero.title}
+									placeholder="Titolo"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="message"
+									value={content.sections.hero.message}
+									placeholder="Messaggio"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="cta"
+									value={content.sections.hero.cta}
+									placeholder="CTA"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="file"
+									name="image"
+									accept="image/*"
+									class="w-full"
+								/>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+					<section id="about" class="tab-section hidden">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								About
+							</h3>
+							<form id="form-about" class="space-y-6">
+								<input
+									type="text"
+									name="preTitle"
+									value={content.sections.about.preTitle}
+									placeholder="Pre-titolo"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<textarea
+									name="text"
+									rows="5"
+									placeholder="Testo"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+									>{content.sections.about.text}</textarea
+								>
+								<input
+									type="file"
+									name="image"
+									accept="image/*"
+									class="w-full"
+								/>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+					<section id="gallery" class="tab-section hidden">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								Gallery
+							</h3>
+							<form id="form-gallery" class="space-y-6">
+								<input
+									type="text"
+									name="title"
+									value={content.sections.gallery.title}
+									placeholder="Titolo"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="file"
+									name="images"
+									accept="image/*"
+									multiple
+									class="w-full"
+								/>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+					<section id="menu" class="tab-section hidden">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								Menu
+							</h3>
+							<form id="form-menu" class="space-y-6">
+								<input
+									type="file"
+									name="pdfLink"
+									accept="application/pdf"
+									class="w-full"
+								/>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+					<section id="contatti" class="tab-section hidden">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								Contatti
+							</h3>
+							<form id="form-contatti" class="space-y-6">
+								<input
+									type="text"
+									name="title"
+									value={content.sections.contatti.title}
+									placeholder="Titolo"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="address"
+									value={content.sections.contatti.address}
+									placeholder="Indirizzo"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="hours"
+									value={content.sections.contatti.hours}
+									placeholder="Orari"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="phone"
+									value={content.sections.contatti.phone}
+									placeholder="Telefono"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="email"
+									name="email"
+									value={content.sections.contatti.email}
+									placeholder="Email"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="googleMapsEmbed"
+									value={content.sections.contatti
+										.googleMapsEmbed}
+									placeholder="Google Maps Embed"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+					<section id="footer" class="tab-section hidden">
+						<div
+							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
+						>
+							<h3 class="text-lg font-bold mb-6 text-gray-900">
+								Footer
+							</h3>
+							<form id="form-footer" class="space-y-6">
+								<input
+									type="text"
+									name="name"
+									value={content.sections.footer.name}
+									placeholder="Nome"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="copy"
+									value={content.sections.footer.copy}
+									placeholder="Copyright"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="instagram"
+									value={content.sections.footer.socials
+										.instagram}
+									placeholder="Instagram"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<input
+									type="text"
+									name="facebook"
+									value={content.sections.footer.socials
+										.facebook}
+									placeholder="Facebook"
+									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+								/>
+								<button
+									type="submit"
+									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+									>Salva</button
+								>
+							</form>
+						</div>
+					</section>
+				</div>
+			</main>
+		</div>
+		<!-- Toastr container -->
+		<div id="toastr" class="fixed top-6 right-6 z-50 flex flex-col gap-2">
+		</div>
+		<script>
+			// Tab logic
+			const tabBtns = document.querySelectorAll(".tab-btn");
+			const tabSections = document.querySelectorAll(".tab-section");
+			let activeTab = tabBtns[0];
+			function setActiveTab(btn) {
+				activeTab.classList.remove("bg-indigo-50", "text-indigo-700");
+				btn.classList.add("bg-indigo-50", "text-indigo-700");
+				activeTab = btn;
+			}
+			setActiveTab(activeTab);
+			tabBtns.forEach((btn) => {
+				btn.addEventListener("click", () => {
+					tabSections.forEach((sec) => sec.classList.add("hidden"));
+					const tabId =
+						btn instanceof HTMLElement && btn.dataset
+							? btn.dataset.tab
+							: null;
+					if (tabId) {
+						const tabSection = document.getElementById(tabId);
+						if (tabSection) tabSection.classList.remove("hidden");
+					}
+					setActiveTab(btn);
+				});
+			});
+
+			// Toastr feedback
+			function showToastr(msg, type = "success") {
+				const toastr = document.getElementById("toastr");
+				const el = document.createElement("div");
+				el.className = `px-4 py-2 rounded-lg shadow-lg font-semibold text-sm mb-2 flex items-center gap-2 transition-all duration-300 ${type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`;
+				el.textContent = msg;
+				toastr.appendChild(el);
+				setTimeout(() => {
+					el.classList.add("opacity-0");
+					setTimeout(() => toastr.removeChild(el), 400);
+				}, 2200);
+			}
+
+			// Logica di invio FormData e gestione stato pulsante
+			document.querySelectorAll("form").forEach((form) => {
+				form.addEventListener("submit", async (e) => {
+					e.preventDefault();
+					const btn = form.querySelector('button[type="submit"]');
+					if (btn instanceof HTMLButtonElement) {
+						btn.disabled = true;
+						btn.textContent = "Sincronizzazione...";
+					}
+					const formData = new FormData(form);
+					const res = await fetch("/admin/api/cms-save", {
+						method: "POST",
+						body: formData,
+					});
+					if (btn instanceof HTMLButtonElement) {
+						btn.disabled = false;
+						btn.textContent = "Salva";
+					}
+					if (res.ok) {
+						showToastr("Salvato!", "success");
+					} else {
+						showToastr("Errore salvataggio", "error");
+					}
+				});
+			});
+		</script>
+	</body>
+</html>

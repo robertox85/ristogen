@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+import { Astro } from "astro";
+---
+
+<html lang="it">
+	<head>
+		<title>Login Admin | Ristogen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link
+			href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css"
+			rel="stylesheet"
+		/>
+	</head>
+	<body
+		class="min-h-screen flex items-center justify-center bg-gray-950 text-white"
+	>
+		<main
+			class="w-full max-w-sm mx-auto p-8 rounded-xl shadow-lg bg-gray-900"
+		>
+			<h1 class="text-2xl font-bold mb-6 text-center">
+				Login Amministratore
+			</h1>
+			<form method="POST" action="/admin/login" class="space-y-4">
+				<div>
+					<label for="password" class="block mb-2 text-sm font-medium"
+						>Password</label
+					>
+					<input
+						type="password"
+						id="password"
+						name="password"
+						required
+						class="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+					/>
+				</div>
+				<button
+					type="submit"
+					class="w-full py-2 rounded bg-blue-600 hover:bg-blue-700 font-semibold transition"
+					>Accedi</button
+				>
+			</form>
+			<p class="mt-4 text-xs text-gray-400 text-center">
+				Accesso riservato agli amministratori
+			</p>
+		</main>
+	</body>
+</html>
