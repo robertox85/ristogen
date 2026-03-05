@@ -1,8 +1,8 @@
 {
-"contatti_title": "Vieni a trovarci",
-"contatti_address": "Via Roma 123, Milano",
-"contatti_hours": "Lun-Dom: 12:00 - 23:00",
-"contatti_phone": "+39 02 1234567",
-"contatti_email": "info@burgerdemo.it",
-"contatti_googleMapsEmbed": "https://www.google.com/maps/embed?..."
+  "contatti_title": "Vieni a trovarci",
+  "contatti_address": "Via Roma 123, Milano",
+  "contatti_hours": "Lun-Dom: 12:00 - 23:00",
+  "contatti_phone": "+39 02 1234567",
+  "contatti_email": "info@burgerdemo.it",
+  "contatti_googleMapsEmbed": "https://www.google.com/maps/embed?..."
 }
