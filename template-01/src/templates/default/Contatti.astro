@@ -8,44 +8,49 @@ const { contatti } = Astro.props.sections;
 ---
 
 <section class="contatti" id="contatti">
-	<h2>{contatti.title}</h2>
+	<h2>{contatti.contatti_title}</h2>
 	<div class="info">
 		{
-			contatti.address && (
+			contatti.contatti_address && (
 				<p>
-					<strong>📍 Indirizzo:</strong> {contatti.address}
+					<strong>📍 Indirizzo:</strong> {contatti.contatti_address}
 				</p>
 			)
 		}
 		{
-			contatti.phone && (
+			contatti.contatti_phone && (
 				<p>
 					<strong>📞 Telefono:</strong>{" "}
-					<a href={`tel:${contatti.phone}`}>{contatti.phone}</a>
+					<a href={`tel:${contatti.contatti_phone}`}>
+						{contatti.contatti_phone}
+					</a>
 				</p>
 			)
 		}
 		{
-			contatti.email && (
+			contatti.contatti_email && (
 				<p>
 					<strong>✉️ Email:</strong>{" "}
-					<a href={`mailto:${contatti.email}`}>{contatti.email}</a>
+					<a href={`mailto:${contatti.contatti_email}`}>
+						{contatti.contatti_email}
+					</a>
 				</p>
 			)
 		}
 		{
-			contatti.hours && (
+			contatti.contatti_hours && (
 				<p>
 					<strong>🕐 Orari:</strong> {contatti.hours}
+					<strong>🕐 Orari:</strong> {contatti.contatti_hours}
 				</p>
 			)
 		}
 	</div>
 	{
-		contatti.googleMapsEmbed && (
+		contatti.contatti_googleMapsEmbed && (
 			<div class="mt-4">
 				<iframe
-					src={contatti.googleMapsEmbed}
+					src={contatti.contatti_googleMapsEmbed}
 					width="100%"
 					height="200"
 					style="border:0;"

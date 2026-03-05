@@ -9,12 +9,12 @@ const { hero } = Astro.props.sections;
 
 <section class="hero" style={`background-image: url(${hero.image})`}>
 	<div class="hero-content">
-		<h1>{hero.title}</h1>
-		<p>{hero.message}</p>
+		<h1>{hero.hero_title}</h1>
+		<p>{hero.hero_message}</p>
 		{
-			hero.cta && (
+			hero.hero_cta && (
 				<a href="#menu" class="cta-btn">
-					{hero.cta}
+					{hero.hero_cta}
 				</a>
 			)
 		}

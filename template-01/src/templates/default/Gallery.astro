@@ -8,11 +8,11 @@ const { gallery } = Astro.props.sections;
 ---
 
 {
-	gallery.images.length > 0 && (
+	gallery.enabled && (
 		<section class="gallery">
-			<h2>{gallery.title}</h2>
+			<h2>{gallery.gallery_title}</h2>
 			<div class="grid">
-				{gallery.images.map((img) => (
+				{gallery.images.map((img: any) => (
 					<img src={img} alt="Foto piatto" loading="lazy" />
 				))}
 			</div>

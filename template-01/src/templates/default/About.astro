@@ -10,13 +10,17 @@ const { about } = Astro.props.sections;
 <section class="about">
 	<div class="about-inner">
 		{
-			about.image && (
-				<img src={about.image} alt="Foto locale" class="about-img" />
+			about.about_image && (
+				<img
+					src={about.about_image}
+					alt="Foto locale"
+					class="about-img"
+				/>
 			)
 		}
 		<div class="about-text">
-			<h2>{about.preTitle}</h2>
-			<p>{about.text}</p>
+			<h2>{about.about_preTitle}</h2>
+			<p>{about.about_text}</p>
 		</div>
 	</div>
 </section>

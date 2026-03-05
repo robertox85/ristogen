@@ -10,9 +10,10 @@ const { menu } = Astro.props.sections;
 <section class="menu">
 	<h2>Menù</h2>
 	{
-		menu.pdfLink && (
+		menu.menu_pdfLink && (
 			<a
 				href={menu.pdfLink}
+				href={menu.menu_pdfLink}
 				target="_blank"
 				rel="noopener"
 				class="menu-pdf"

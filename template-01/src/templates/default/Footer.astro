@@ -8,13 +8,13 @@ const { footer } = Astro.props.sections;
 ---
 
 <footer class="py-12 bg-neutral-900 text-white text-center">
-	<div class="mb-2 font-bold text-lg">{footer.name}</div>
-	<div class="mb-2">{footer.copy}</div>
+	<div class="mb-2 font-bold text-lg">{footer.footer_name}</div>
+	<div class="mb-2">{footer.footer_copy}</div>
 	<div class="flex justify-center gap-4">
 		{
-			footer.socials.instagram && (
+			footer.socials.footer_instagram && (
 				<a
-					href={footer.socials.instagram}
+					href={footer.socials.footer_instagram}
 					target="_blank"
 					rel="noopener"
 					class="hover:underline"
@@ -24,9 +24,9 @@ const { footer } = Astro.props.sections;
 			)
 		}
 		{
-			footer.socials.facebook && (
+			footer.socials.footer_facebook && (
 				<a
-					href={footer.socials.facebook}
+					href={footer.socials.footer_facebook}
 					target="_blank"
 					rel="noopener"
 					class="hover:underline"
