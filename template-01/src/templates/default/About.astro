@@ -20,7 +20,95 @@ const { about } = Astro.props.sections;
 		}
 		<div class="about-text">
 			<h2>{about.about_preTitle}</h2>
-			<p>{about.about_text}</p>
+			<div set:html={about.about_text} />
 		</div>
 	</div>
 </section>
+
+<style>
+	.about {
+		padding: var(--spacing-section) 2rem;
+		background: var(--color-bg);
+	}
+
+	.about-inner {
+		max-width: 900px;
+		margin: 0 auto;
+		display: flex;
+		gap: 3rem;
+		align-items: center;
+	}
+
+	.about-img {
+		width: 100%;
+		max-width: 380px;
+		flex-shrink: 0;
+		border-radius: var(--radius-base);
+		object-fit: cover;
+		aspect-ratio: 4 / 3;
+	}
+
+	.about-text h2 {
+		font-size: clamp(1.5rem, 3vw, 2.2rem);
+		color: var(--color-primary);
+		margin-bottom: 1rem;
+	}
+
+	/* Rich text da Quill */
+	.about-text p {
+		margin-bottom: 0.85em;
+		line-height: 1.7;
+		color: var(--color-text);
+	}
+
+	.about-text strong {
+		font-weight: 700;
+		color: var(--color-text);
+	}
+
+	.about-text em {
+		font-style: italic;
+	}
+
+	.about-text ul,
+	.about-text ol {
+		padding-left: 1.5rem;
+		margin-bottom: 0.85em;
+	}
+
+	.about-text ul {
+		list-style: disc;
+	}
+
+	.about-text ol {
+		list-style: decimal;
+	}
+
+	.about-text li {
+		margin-bottom: 0.3em;
+		line-height: 1.7;
+	}
+
+	.about-text a {
+		color: var(--color-primary);
+		text-decoration: underline;
+	}
+
+	.about-text blockquote {
+		border-left: 3px solid var(--color-primary);
+		padding-left: 1rem;
+		margin: 1rem 0;
+		opacity: 0.8;
+		font-style: italic;
+	}
+
+	@media (max-width: 640px) {
+		.about-inner {
+			flex-direction: column;
+		}
+
+		.about-img {
+			max-width: 100%;
+		}
+	}
+</style>
