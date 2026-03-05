@@ -14,38 +14,38 @@ export const ClientContentSchema = z.object({
 	theme: ThemeSchema,
 	sections: z.object({
 		hero: z.object({
-			title: z.string(),
-			message: z.string(),
-			cta: z.string().optional(),
-			image: z.string()
+			hero_title: z.string(),
+			hero_message: z.string(),
+			hero_cta: z.string().optional(),
+			hero_image: z.string()
 		}),
 		about: z.object({
-			preTitle: z.string(),
-			text: z.string(),
-			image: z.string()
+			about_preTitle: z.string(),
+			about_text: z.string(),
+			about_image: z.string()
 		}),
 		gallery: z.object({
-			title: z.string(),
+			gallery_title: z.string(),
 			images: z.array(z.string())
 		}),
 		menu: z.object({
-			pdfLink: z.string()
+			menu_pdfLink: z.string()
 		}),
 		contatti: z.object({
-			title: z.string(),
-			address: z.string(),
-			hours: z.string(),
-			phone: z.string(),
-			email: z.string(),
-			googleMapsEmbed: z.string().optional()
+			contatti_title: z.string(),
+			contatti_address: z.string(),
+			contatti_hours: z.string(),
+			contatti_phone: z.string(),
+			contatti_email: z.string(),
+			contatti_googleMapsEmbed: z.string().optional()
 		}),
 		footer: z.object({
-			name: z.string(),
-			copy: z.string(),
+			footer_name: z.string(),
+			footer_copy: z.string(),
 			socials: z.object({
-				instagram: z.string().optional(),
-				facebook: z.string().optional()
-			})
+				   footer_instagram: z.string().optional(),
+				   footer_facebook: z.string().optional()
+			   })
 		})
 	})
 });
