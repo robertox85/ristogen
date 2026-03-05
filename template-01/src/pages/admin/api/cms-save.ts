@@ -132,7 +132,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		const blobData = await blobRes.json();
 		blobs[`clients/${CLIENT_SLUG}/content/media/hero.jpg`] = blobData.sha;
 		update.sections.hero = { ...update.sections.hero, image: '/media/hero.jpg' };
+	} else if (currentContent.sections.hero.image) {
+		update.sections.hero = { ...update.sections.hero, image: currentContent.sections.hero.image };
 	}
+
 	if (aboutImage && aboutImage.size > 0) {
 		const imgBuf = await aboutImage.arrayBuffer();
 		const imgBase64 = Buffer.from(imgBuf).toString('base64');
@@ -143,7 +146,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		const blobData = await blobRes.json();
 		blobs[`clients/${CLIENT_SLUG}/content/media/about.jpg`] = blobData.sha;
 		update.sections.about = { ...update.sections.about, image: '/media/about.jpg' };
+	} else if (currentContent.sections.about.image) {
+		update.sections.about = { ...update.sections.about, image: currentContent.sections.about.image };
 	}
+
 	if (galleryImages.length > 0) {
 		update.sections.gallery.images = [];
 		for (let i = 0; i < galleryImages.length; i++) {
@@ -159,7 +165,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			blobs[`clients/${CLIENT_SLUG}/content/media/gallery-${i + 1}.jpg`] = blobData.sha;
 			update.sections.gallery.images.push(imgPath);
 		}
+	} else if (currentContent.sections.gallery.images) {
+		update.sections.gallery.images = currentContent.sections.gallery.images;
 	}
+
 	if (menuPdf && menuPdf.size > 0) {
 		const pdfBuf = await menuPdf.arrayBuffer();
 		const pdfBase64 = Buffer.from(pdfBuf).toString('base64');
@@ -170,6 +179,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		const blobData = await blobRes.json();
 		blobs[`clients/${CLIENT_SLUG}/content/media/menu.pdf`] = blobData.sha;
 		update.sections.menu = { ...update.sections.menu, pdfLink: '/media/menu.pdf' };
+	} else if (currentContent.sections.menu.pdfLink) {
+		update.sections.menu = { ...update.sections.menu, pdfLink: currentContent.sections.menu.pdfLink };
 	}
 
 	// Deep merge finale
