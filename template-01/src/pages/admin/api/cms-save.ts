@@ -18,8 +18,9 @@ function isDeepEqual(obj1: any, obj2: any): boolean {
 function deepMerge(target: any, source: any) {
 	for (const key of Object.keys(source)) {
 		if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-			target[key] = deepMerge(target[key] || {}, source[key]);
-		} else if (source[key] !== "") {
+			if (!target[key]) target[key] = {};
+			deepMerge(target[key], source[key]);
+		} else if (source[key] !== undefined) { // Filtro critico per undefined
 			target[key] = source[key];
 		}
 	}
@@ -48,6 +49,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	let currentContent: any;
 	try {
 		currentContent = getContent('it');
+		console.log('[CMS-SAVE] Contenuto attuale:', currentContent);
 	} catch (e) {
 		return new Response('Errore lettura contenuto attuale', { status: 500 });
 	}
@@ -58,35 +60,65 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	};
 
 	// Estrazione dati con prefissi univoci per evitare collisioni
-	update.sections.hero.hero_title = formData.get('hero_title') ?? "";
-	update.sections.hero.hero_message = formData.get('hero_message') ?? "";
-	update.sections.hero.hero_cta = formData.get('hero_cta') ?? "";
+	const hero_title = formData.get('hero_title');
+	if (hero_title) update.sections.hero.hero_title = hero_title.toString();
+
+	const hero_message = formData.get('hero_message');
+	if (hero_message) update.sections.hero.hero_message = hero_message.toString();
+
+	const hero_cta = formData.get('hero_cta');
+	if (hero_cta) update.sections.hero.hero_cta = hero_cta.toString();
+
 	const heroImage = formData.get('hero_image') as File | null;
 
-	update.sections.about.about_preTitle = formData.get('about_preTitle') ?? "";
-	update.sections.about.about_text = formData.get('about_text') ?? "";
+	const about_preTitle = formData.get('about_preTitle');
+	if (about_preTitle) update.sections.about.about_preTitle = about_preTitle.toString();
+
+	const about_text = formData.get('about_text');
+	if (about_text) update.sections.about.about_text = about_text.toString();
+
 	const aboutImage = formData.get('about_image') as File | null;
+	const gallery_title = formData.get('gallery_title');
 
-	update.sections.gallery.gallery_title = formData.get('gallery_title') ?? "";
+	if (gallery_title) update.sections.gallery.gallery_title = gallery_title.toString();
+
 	const galleryImages = formData.getAll('gallery_images').filter((img) => img instanceof File && (img as File).size > 0) as File[];
-
 	const menuPdf = formData.get('menu_pdfLink') as File | null;
 
-	update.sections.contatti.contatti_title = formData.get('contatti_title') ?? "";
-	update.sections.contatti.contatti_address = formData.get('contatti_address') ?? "";
-	update.sections.contatti.contatti_hours = formData.get('contatti_hours') ?? "";
-	update.sections.contatti.contatti_phone = formData.get('contatti_phone') ?? "";
-	update.sections.contatti.contatti_email = formData.get('contatti_email') ?? "";
-	update.sections.contatti.contatti_googleMapsEmbed = formData.get('contatti_googleMapsEmbed') ?? "";
+	const contatti_title = formData.get('contatti_title');
+	if (contatti_title) update.sections.contatti.contatti_title = contatti_title.toString();
 
-	update.sections.footer.footer_name = formData.get('footer_name') ?? "";
-	update.sections.footer.footer_copy = formData.get('footer_copy') ?? "";
-	update.sections.footer.socials.footer_instagram = formData.get('footer_instagram') ?? "";
-	update.sections.footer.socials.footer_facebook = formData.get('footer_facebook') ?? "";
+	const contatti_address = formData.get('contatti_address');
+	if (contatti_address) update.sections.contatti.contatti_address = contatti_address.toString();
 
+	const contatti_hours = formData.get('contatti_hours');
+	if (contatti_hours) update.sections.contatti.contatti_hours = contatti_hours.toString();
+
+	const contatti_phone = formData.get('contatti_phone');
+	if (contatti_phone) update.sections.contatti.contatti_phone = contatti_phone.toString();
+
+	const contatti_email = formData.get('contatti_email');
+	if (contatti_email) update.sections.contatti.contatti_email = contatti_email.toString();
+
+	const contatti_googleMapsEmbed = formData.get('contatti_googleMapsEmbed');
+	if (contatti_googleMapsEmbed) update.sections.contatti.contatti_googleMapsEmbed = contatti_googleMapsEmbed.toString();
+
+	const footer_name = formData.get('footer_name');
+	if (footer_name) update.sections.footer.footer_name = footer_name.toString();
+
+	const footer_copy = formData.get('footer_copy');
+	if (footer_copy) update.sections.footer.footer_copy = footer_copy.toString();
+
+	const footer_instagram = formData.get('footer_instagram');
+	if (footer_instagram) update.sections.footer.socials.footer_instagram = footer_instagram.toString();
+
+	const footer_facebook = formData.get('footer_facebook');
+	if (footer_facebook) update.sections.footer.socials.footer_facebook = footer_facebook.toString();
+
+	// Gestione tema
 	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius'].forEach((field) => {
 		const val = formData.get(`theme_${field}`);
-		if (val) update.theme[field] = val;
+		if (val) update.theme[field] = val.toString();
 	});
 
 	// Gestione Media e Blob
@@ -152,28 +184,32 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		if (blobRes.ok) {
 			const blobData = await blobRes.json();
 			blobs[`clients/${CLIENT_SLUG}/content/media/menu.pdf`] = blobData.sha;
-			update.sections.menu.menu_pdf = '/media/menu.pdf';
+			update.sections.menu.menu_pdfLink = '/media/menu.pdf';
 		}
 	} else {
-		update.sections.menu.menu_pdf = currentContent.sections.menu.menu_pdf;
+		update.sections.menu.menu_pdfLink = currentContent.sections.menu.menu_pdfLink;
 	}
 
 	// Deep merge tra currentContent e update
+	console.log('[CMS-SAVE] Update ricevuto:', update);
 
-	const merged = deepMerge({ ...currentContent }, update);
+	// Deep copy prima del merge per evitare mutazione di currentContent
+	const originalContent = JSON.parse(JSON.stringify(currentContent));
+	const merged = deepMerge(JSON.parse(JSON.stringify(currentContent)), update);
+	console.log('[CMS-SAVE] Contenuto dopo merge:', merged);
 	const result = ClientContentSchema.safeParse(merged);
 	if (!result.success) return new Response('Validazione fallita', { status: 400 });
 
 	// --- OTTIMIZZAZIONE JSON ---
 	const blobsJson: Record<string, string> = {};
 	const filesToProcess = [
-		{ name: 'hero', data: merged.sections.hero, current: currentContent.sections.hero },
-		{ name: 'about', data: merged.sections.about, current: currentContent.sections.about },
-		{ name: 'gallery', data: merged.sections.gallery, current: currentContent.sections.gallery },
-		{ name: 'menu', data: merged.sections.menu, current: currentContent.sections.menu },
-		{ name: 'contatti', data: merged.sections.contatti, current: currentContent.sections.contatti },
-		{ name: 'footer', data: merged.sections.footer, current: currentContent.sections.footer },
-		{ name: 'theme', data: merged.theme, current: currentContent.theme }
+		{ name: 'hero', data: merged.sections.hero, current: originalContent.sections.hero },
+		{ name: 'about', data: merged.sections.about, current: originalContent.sections.about },
+		{ name: 'gallery', data: merged.sections.gallery, current: originalContent.sections.gallery },
+		{ name: 'menu', data: merged.sections.menu, current: originalContent.sections.menu },
+		{ name: 'contatti', data: merged.sections.contatti, current: originalContent.sections.contatti },
+		{ name: 'footer', data: merged.sections.footer, current: originalContent.sections.footer },
+		{ name: 'theme', data: merged.theme, current: originalContent.theme }
 	];
 
 	for (const file of filesToProcess) {
@@ -190,9 +226,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			blobsJson[path] = sha;
 		}
 	}
-
+	console.log('[CMS-SAVE] Blobs JSON da aggiornare:', blobsJson);
 	// Se non ci sono cambiamenti (JSON o Media), interrompiamo qui
 	if (Object.keys(blobsJson).length === 0 && Object.keys(blobs).length === 0) {
+		console.log('[CMS-SAVE] Nessuna modifica rilevata, nessun commit creato.');
 		return new Response('Nessuna modifica rilevata', { status: 200 });
 	}
 
