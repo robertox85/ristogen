@@ -40,10 +40,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	}
 
 	const formData = await request.formData();
-	let update: any = {
-		sections: {},
-		theme: {}
-	};
 	let currentContent: any;
 	try {
 		currentContent = getContent('it');
@@ -51,58 +47,55 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		return new Response('Errore lettura contenuto attuale', { status: 500 });
 	}
 
-	console.log('[CMS-SAVE] FormData ricevuto:', Array.from(formData.entries()));
+	// Inizializziamo l'oggetto update con la struttura corretta
+	let update: any = {
+		sections: {
+			hero: {},
+			about: {},
+			gallery: {},
+			menu: {},
+			contatti: {},
+			footer: { socials: {} }
+		},
+		theme: {}
+	};
 
-	// HERO
-	['title', 'message', 'cta'].forEach((field) => {
-		const val = formData.get(field);
-		if (val !== null && val !== "") update.sections.hero = { ...update.sections.hero, [field]: val };
-	});
-	const heroImage = formData.get('image') as File | null;
-	console.log('[CMS-SAVE] Hero image:', heroImage);
+	// HERO - Mappatura esatta
+	update.sections.hero.hero_title = formData.get('hero_title') ?? "";
+	update.sections.hero.hero_message = formData.get('hero_message') ?? "";
+	update.sections.hero.hero_cta = formData.get('hero_cta') ?? "";
+	const heroImage = formData.get('hero_image') as File | null;
 
-	// ABOUT
-	['preTitle', 'text'].forEach((field) => {
-		const val = formData.get(field);
-		if (val !== null && val !== "") update.sections.about = { ...update.sections.about, [field]: val };
-	});
+	// ABOUT - Mappatura esatta
+	update.sections.about.about_preTitle = formData.get('about_preTitle') ?? "";
+	update.sections.about.about_text = formData.get('about_text') ?? "";
 	const aboutImage = formData.get('about_image') as File | null;
-	console.log('[CMS-SAVE] About image:', aboutImage);
 
 	// GALLERY
-	const galleryTitle = formData.get('title');
-	if (galleryTitle !== null && galleryTitle !== "") update.sections.gallery = { ...update.sections.gallery, title: galleryTitle };
-	const galleryImages = formData.getAll('images').filter((img) => img instanceof File && (img as File).size > 0) as File[];
-	console.log('[CMS-SAVE] Gallery images:', galleryImages);
+	update.sections.gallery.gallery_title = formData.get('gallery_title') ?? "";
+	const galleryImages = formData.getAll('gallery_images').filter((img) => img instanceof File && (img as File).size > 0) as File[];
 
 	// MENU
-	const menuPdf = formData.get('pdfLink') as File | null;
-	console.log('[CMS-SAVE] Menu PDF:', menuPdf);
+	const menuPdf = formData.get('menu_pdfLink') as File | null;
 
 	// CONTATTI
-	['title', 'address', 'hours', 'phone', 'email', 'googleMapsEmbed'].forEach((field) => {
-		const val = formData.get(field);
-		if (val !== null && val !== "") update.sections.contatti = { ...update.sections.contatti, [field]: val };
-	});
+	update.sections.contatti.contatti_title = formData.get('contatti_title') ?? "";
+	update.sections.contatti.contatti_address = formData.get('contatti_address') ?? "";
+	update.sections.contatti.contatti_hours = formData.get('contatti_hours') ?? "";
+	update.sections.contatti.contatti_phone = formData.get('contatti_phone') ?? "";
+	update.sections.contatti.contatti_email = formData.get('contatti_email') ?? "";
+	update.sections.contatti.contatti_googleMapsEmbed = formData.get('contatti_googleMapsEmbed') ?? "";
 
 	// FOOTER
-	['name', 'copy'].forEach((field) => {
-		const val = formData.get(field);
-		if (val !== null && val !== "") update.sections.footer = { ...update.sections.footer, [field]: val };
-	});
-	['instagram', 'facebook'].forEach((field) => {
-		const val = formData.get(field);
-		if (val !== null && val !== "") {
-			update.sections.footer = update.sections.footer || {};
-			update.sections.footer.socials = update.sections.footer.socials || {};
-			update.sections.footer.socials[field] = val;
-		}
-	});
+	update.sections.footer.footer_name = formData.get('footer_name') ?? "";
+	update.sections.footer.footer_copy = formData.get('footer_copy') ?? "";
+	update.sections.footer.socials.footer_instagram = formData.get('footer_instagram') ?? "";
+	update.sections.footer.socials.footer_facebook = formData.get('footer_facebook') ?? "";
 
 	// THEME
 	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius'].forEach((field) => {
-		const val = formData.get(field);
-		if (val !== null && val !== "") update.theme[field] = val;
+		const val = formData.get(`theme_${field}`);
+		if (val) update.theme[field] = val;
 	});
 
 	// 1. Ottieni SHA ultimo commit master
@@ -139,11 +132,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			const blobData = await blobRes.json();
 			console.log('[CMS-SAVE] Hero image blob SHA:', blobData.sha);
 			blobs[`clients/${CLIENT_SLUG}/content/media/hero.jpg`] = blobData.sha;
-			update.sections.hero = { ...update.sections.hero, image: '/media/hero.jpg' };
+			update.sections.hero = { ...update.sections.hero, hero_image: '/media/hero.jpg' };
 		}
-	} else if (currentContent.sections.hero.image) {
-		console.log('[CMS-SAVE] Hero image path mantenuto:', currentContent.sections.hero.image);
-		update.sections.hero = { ...update.sections.hero, image: currentContent.sections.hero.image };
+	} else if (currentContent.sections.hero.hero_image) {
+		console.log('[CMS-SAVE] Hero image path mantenuto:', currentContent.sections.hero.hero_image);
+		update.sections.hero = { ...update.sections.hero, hero_image: currentContent.sections.hero.hero_image };
 	}
 
 	if (aboutImage && aboutImage.size > 0) {
@@ -159,11 +152,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			const blobData = await blobRes.json();
 			console.log('[CMS-SAVE] About image blob SHA:', blobData.sha);
 			blobs[`clients/${CLIENT_SLUG}/content/media/about.jpg`] = blobData.sha;
-			update.sections.about = { ...update.sections.about, image: '/media/about.jpg' };
+			update.sections.about = { ...update.sections.about, about_image: '/media/about.jpg' };
 		}
-	} else if (currentContent.sections.about.image) {
-		console.log('[CMS-SAVE] About image path mantenuto:', currentContent.sections.about.image);
-		update.sections.about = { ...update.sections.about, image: currentContent.sections.about.image };
+	} else if (currentContent.sections.about.about_image) {
+		console.log('[CMS-SAVE] About image path mantenuto:', currentContent.sections.about.about_image);
+		update.sections.about = { ...update.sections.about, about_image: currentContent.sections.about.about_image };
 	}
 
 	if (galleryImages.length > 0) {
@@ -204,11 +197,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			const blobData = await blobRes.json();
 			console.log('[CMS-SAVE] Menu PDF blob SHA:', blobData.sha);
 			blobs[`clients/${CLIENT_SLUG}/content/media/menu.pdf`] = blobData.sha;
-			update.sections.menu = { ...update.sections.menu, pdfLink: '/media/menu.pdf' };
+			update.sections.menu = { ...update.sections.menu, menu_pdf: '/media/menu.pdf' };
 		}
-	} else if (currentContent.sections.menu.pdfLink) {
-		console.log('[CMS-SAVE] Menu PDF path mantenuto:', currentContent.sections.menu.pdfLink);
-		update.sections.menu = { ...update.sections.menu, pdfLink: currentContent.sections.menu.pdfLink };
+	} else if (currentContent.sections.menu.menu_pdf) {
+		console.log('[CMS-SAVE] Menu PDF path mantenuto:', currentContent.sections.menu.menu_pdf);
+		update.sections.menu = { ...update.sections.menu, menu_pdf: currentContent.sections.menu.menu_pdf };
 	}
 
 	console.log('[CMS-SAVE] Oggetto update finale:', update);

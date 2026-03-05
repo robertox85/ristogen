@@ -78,7 +78,7 @@ const content = getContent("it");
 										>
 										<input
 											type="color"
-											name="primary"
+											name="theme_primary"
 											value={content.theme.primary}
 											class="w-12 h-12 p-0 border-none bg-transparent"
 										/>
@@ -90,7 +90,7 @@ const content = getContent("it");
 										>
 										<input
 											type="color"
-											name="secondary"
+											name="theme_secondary"
 											value={content.theme.secondary}
 											class="w-12 h-12 p-0 border-none bg-transparent"
 										/>
@@ -102,7 +102,7 @@ const content = getContent("it");
 										>
 										<input
 											type="color"
-											name="bg"
+											name="theme_bg"
 											value={content.theme.bg}
 											class="w-12 h-12 p-0 border-none bg-transparent"
 										/>
@@ -114,7 +114,7 @@ const content = getContent("it");
 										>
 										<input
 											type="color"
-											name="text"
+											name="theme_text"
 											value={content.theme.text}
 											class="w-12 h-12 p-0 border-none bg-transparent"
 										/>
@@ -128,7 +128,7 @@ const content = getContent("it");
 										>
 										<input
 											type="text"
-											name="fontHeading"
+											name="theme_fontHeading"
 											value={content.theme.fontHeading}
 											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 										/>
@@ -140,7 +140,7 @@ const content = getContent("it");
 										>
 										<input
 											type="text"
-											name="fontBody"
+											name="theme_fontBody"
 											value={content.theme.fontBody}
 											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 										/>
@@ -152,7 +152,7 @@ const content = getContent("it");
 										>
 										<input
 											type="text"
-											name="radius"
+											name="theme_radius"
 											value={content.theme.radius}
 											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 										/>
@@ -185,28 +185,28 @@ const content = getContent("it");
 								}
 								<input
 									type="text"
-									name="title"
+									name="hero_title"
 									value={content.sections.hero.title}
 									placeholder="Titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="message"
+									name="hero_message"
 									value={content.sections.hero.message}
 									placeholder="Messaggio"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="cta"
+									name="hero_cta"
 									value={content.sections.hero.cta}
 									placeholder="CTA"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="file"
-									name="image"
+									name="hero_image"
 									accept="image/*"
 									class="w-full"
 								/>
@@ -243,13 +243,13 @@ const content = getContent("it");
 								/>
 								<input
 									type="text"
-									name="preTitle"
+									name="about_preTitle"
 									value={content.sections.about.preTitle}
 									placeholder="Pre-titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<textarea
-									name="text"
+									name="about_text"
 									rows="5"
 									placeholder="Testo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
@@ -273,7 +273,7 @@ const content = getContent("it");
 							<form id="form-gallery" class="space-y-6">
 								<input
 									type="text"
-									name="title"
+									name="gallery_title"
 									value={content.sections.gallery.title}
 									placeholder="Titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
@@ -299,7 +299,7 @@ const content = getContent("it");
 								}
 								<input
 									type="file"
-									name="images"
+									name="gallery_images"
 									accept="image/*"
 									multiple
 									class="w-full"
@@ -334,7 +334,7 @@ const content = getContent("it");
 								}
 								<input
 									type="file"
-									name="pdfLink"
+									name="menu_pdfLink"
 									accept="application/pdf"
 									class="w-full"
 								/>
@@ -356,42 +356,42 @@ const content = getContent("it");
 							<form id="form-contatti" class="space-y-6">
 								<input
 									type="text"
-									name="title"
+									name="contatti_title"
 									value={content.sections.contatti.title}
 									placeholder="Titolo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="address"
+									name="contatti_address"
 									value={content.sections.contatti.address}
 									placeholder="Indirizzo"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="hours"
+									name="contatti_hours"
 									value={content.sections.contatti.hours}
 									placeholder="Orari"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="phone"
+									name="contatti_phone"
 									value={content.sections.contatti.phone}
 									placeholder="Telefono"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="email"
-									name="email"
+									name="contatti_email"
 									value={content.sections.contatti.email}
 									placeholder="Email"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="googleMapsEmbed"
+									name="contatti_googleMapsEmbed"
 									value={content.sections.contatti
 										.googleMapsEmbed}
 									placeholder="Google Maps Embed"
@@ -433,21 +433,21 @@ const content = getContent("it");
 							<form id="form-footer" class="space-y-6">
 								<input
 									type="text"
-									name="name"
+									name="footer_name"
 									value={content.sections.footer.name}
 									placeholder="Nome"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="copy"
+									name="footer_copy"
 									value={content.sections.footer.copy}
 									placeholder="Copyright"
 									class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
 								/>
 								<input
 									type="text"
-									name="instagram"
+									name="footer_instagram"
 									value={content.sections.footer.socials
 										.instagram}
 									placeholder="Instagram"
@@ -455,7 +455,7 @@ const content = getContent("it");
 								/>
 								<input
 									type="text"
-									name="facebook"
+									name="footer_facebook"
 									value={content.sections.footer.socials
 										.facebook}
 									placeholder="Facebook"
