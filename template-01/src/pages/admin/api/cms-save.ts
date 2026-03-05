@@ -40,6 +40,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	}
 
 	const formData = await request.formData();
+	let update: any = {
+		sections: {},
+		theme: {}
+	};
 	let currentContent: any;
 	try {
 		currentContent = getContent('it');
