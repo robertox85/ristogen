@@ -1,6 +1,26 @@
 ---
 export const prerender = false;
-import { Astro } from "astro";
+
+let errorMsg = "";
+
+if (Astro.request.method === "POST") {
+	const data = await Astro.request.formData();
+	const password = data.get("password");
+	const adminPassword = import.meta.env.ADMIN_PASSWORD;
+
+	if (typeof password === "string" && password === adminPassword) {
+		Astro.cookies.set("admin_session", "authenticated", {
+			path: "/",
+			httpOnly: true,
+			secure: import.meta.env.PROD,
+			sameSite: "strict",
+			maxAge: 60 * 60 * 8,
+		});
+		return Astro.redirect("/admin/");
+	}
+
+	errorMsg = "Password errata.";
+}
 ---
 
 <html lang="it">
@@ -41,6 +61,13 @@ import { Astro } from "astro";
 					>Accedi</button
 				>
 			</form>
+			{
+				errorMsg && (
+					<p class="mt-3 text-sm text-red-400 text-center">
+						{errorMsg}
+					</p>
+				)
+			}
 			<p class="mt-4 text-xs text-gray-400 text-center">
 				Accesso riservato agli amministratori
 			</p>

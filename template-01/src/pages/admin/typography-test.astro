@@ -1,0 +1,162 @@
+---
+export const prerender = false;
+import { getContent } from "../../content";
+import Base from "../../layouts/Base.astro";
+
+const content = getContent("it");
+---
+
+<Base content={content}>
+	<div style="padding: 2rem 3rem; max-width: 900px; margin: 0 auto;">
+		<!-- Palette colori -->
+		<section style="margin-bottom: 3rem;">
+			<p
+				style="font-family: monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 1rem; font-weight: 700;"
+			>
+				Palette
+			</p>
+			<div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+				{
+					[
+						["var(--color-primary)", "Primary"],
+						["var(--color-secondary)", "Secondary"],
+						["var(--color-bg)", "Background"],
+						["var(--color-text)", "Text"],
+					].map(([bg, label]) => (
+						<div
+							style={`background: ${bg}; padding: 1.25rem 1.5rem; border-radius: var(--radius-base); min-width: 110px; border: 1px solid rgba(128,128,128,0.15); display: flex; flex-direction: column; gap: 0.25rem;`}
+						>
+							<span style="font-size: 0.6rem; font-family: monospace; opacity: 0.6; font-weight: 700; text-transform: uppercase;">
+								{label}
+							</span>
+							<span style="font-family: monospace; font-size: 0.65rem; opacity: 0.5;">
+								{bg}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<!-- Scala tipografica -->
+		<section style="margin-bottom: 3rem;">
+			<p
+				style="font-family: monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 1.5rem; font-weight: 700;"
+			>
+				Scala Tipografica
+			</p>
+
+			<div
+				style="border-bottom: 1px solid rgba(128,128,128,0.15); padding-bottom: 1.25rem; margin-bottom: 1.25rem;"
+			>
+				<p
+					style="font-family: monospace; font-size: 0.65rem; opacity: 0.35; margin-bottom: 0.25rem;"
+				>
+					H1 — var(--fs-h1)
+				</p>
+				<h1 style="margin: 0;">Titolo Principale</h1>
+			</div>
+
+			<div
+				style="border-bottom: 1px solid rgba(128,128,128,0.15); padding-bottom: 1.25rem; margin-bottom: 1.25rem;"
+			>
+				<p
+					style="font-family: monospace; font-size: 0.65rem; opacity: 0.35; margin-bottom: 0.25rem;"
+				>
+					H2 — var(--fs-h2)
+				</p>
+				<h2 style="margin: 0;">Titolo Sezione</h2>
+			</div>
+
+			<div
+				style="border-bottom: 1px solid rgba(128,128,128,0.15); padding-bottom: 1.25rem; margin-bottom: 1.25rem;"
+			>
+				<p
+					style="font-family: monospace; font-size: 0.65rem; opacity: 0.35; margin-bottom: 0.25rem;"
+				>
+					H3 — var(--fs-h3)
+				</p>
+				<h3 style="margin: 0;">Sotto-sezione</h3>
+			</div>
+
+			<div
+				style="border-bottom: 1px solid rgba(128,128,128,0.15); padding-bottom: 1.25rem; margin-bottom: 1.25rem;"
+			>
+				<p
+					style="font-family: monospace; font-size: 0.65rem; opacity: 0.35; margin-bottom: 0.25rem;"
+				>
+					Body — var(--font-size-base) × var(--line-height-body)
+				</p>
+				<p style="margin: 0;">
+					Il ristorante nasce dalla passione per la cucina autentica
+					del territorio. Ogni piatto racconta una storia di sapori
+					genuini, ingredienti selezionati e ricette tramandate di
+					generazione in generazione. La nostra cucina è un viaggio
+					nei sapori della tradizione, reinterpretati con sensibilità
+					contemporanea.
+				</p>
+			</div>
+
+			<div>
+				<p
+					style="font-family: monospace; font-size: 0.65rem; opacity: 0.35; margin-bottom: 0.25rem;"
+				>
+					Small
+				</p>
+				<small
+					>Orari di apertura · Note legali · Dettagli prenotazione</small
+				>
+			</div>
+		</section>
+
+		<!-- Paragrafo lungo per testare interlinea -->
+		<section style="margin-bottom: 3rem;">
+			<p
+				style="font-family: monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 1rem; font-weight: 700;"
+			>
+				Interlinea — Lorem Ipsum
+			</p>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+				eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+				enim ad minim veniam, quis nostrud exercitation ullamco laboris
+				nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+				in reprehenderit in voluptate velit esse cillum dolore eu fugat
+				nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+				sunt in culpa qui officia deserunt mollit anim id est laborum.
+			</p>
+			<p style="margin-top: 1em;">
+				Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+				accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
+				quae ab illo inventore veritatis et quasi architecto beatae
+				vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia
+				voluptas sit aspernatur aut odit aut fugit, sed quia
+				consequuntur magni dolores eos qui ratione voluptatem sequi
+				nesciunt.
+			</p>
+		</section>
+
+		<!-- Bottone / colore primario -->
+		<section style="margin-bottom: 3rem;">
+			<p
+				style="font-family: monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 1rem; font-weight: 700;"
+			>
+				Elementi UI
+			</p>
+			<div
+				style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;"
+			>
+				<button
+					style="background: var(--color-primary); color: var(--color-bg); padding: 0.75rem 1.75rem; border-radius: var(--radius-base); font-family: var(--font-body); font-weight: 700; border: none; cursor: pointer; font-size: var(--font-size-base);"
+				>
+					Prenota ora
+				</button>
+				<button
+					style="background: transparent; color: var(--color-primary); padding: 0.75rem 1.75rem; border-radius: var(--radius-base); font-family: var(--font-body); font-weight: 700; border: 2px solid var(--color-primary); cursor: pointer; font-size: var(--font-size-base);"
+				>
+					Scopri il menu
+				</button>
+			</div>
+		</section>
+	</div>
+</Base>

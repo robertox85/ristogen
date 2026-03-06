@@ -79,58 +79,58 @@ const cssFontBody = hasCustomBody
 		<style
 			is:global
 			define:vars={{
-				"color-primary": theme.primary,
-				"color-secondary": theme.secondary,
-				"color-bg": theme.bg,
-				"color-text": theme.text,
-				"font-heading": cssFontHeading,
-				"font-body": cssFontBody,
-				"font-weight-heading": theme.fontWeightHeading ?? "700",
-				"font-weight-body": theme.fontWeightBody ?? "400",
-				"font-size-base": theme.fontSizeBase ?? "1rem",
-				"line-height-heading": theme.lineHeightHeading ?? "1.2",
-				"line-height-body": theme.lineHeightBody ?? "1.6",
-				"text-align-base": theme.textAlign ?? "left",
-				"radius-base": theme.radius,
-				"section-padding": theme.sectionPadding ?? "6rem",
-				"spacing-base": theme.spacing ?? "1.5rem",
-				"fs-h1": theme.fsH1 ?? "4rem",
-				"fs-h2": theme.fsH2 ?? "2.5rem",
-				"fs-h3": theme.fsH3 ?? "1.75rem",
-				"mobile-scale-h1": (
+				"init-color-primary": theme.primary,
+				"init-color-secondary": theme.secondary,
+				"init-color-bg": theme.bg,
+				"init-color-text": theme.text,
+				"init-font-heading": cssFontHeading,
+				"init-font-body": cssFontBody,
+				"init-font-weight-heading": theme.fontWeightHeading ?? "700",
+				"init-font-weight-body": theme.fontWeightBody ?? "400",
+				"init-font-size-base": theme.fontSizeBase ?? "1rem",
+				"init-line-height-heading": theme.lineHeightHeading ?? "1.2",
+				"init-line-height-body": theme.lineHeightBody ?? "1.6",
+				"init-text-align-base": theme.textAlign ?? "left",
+				"init-radius-base": theme.radius,
+				"init-section-padding": theme.sectionPadding ?? "6rem",
+				"init-spacing-base": theme.spacing ?? "1.5rem",
+				"init-fs-h1": theme.fsH1 ?? "4rem",
+				"init-fs-h2": theme.fsH2 ?? "2.5rem",
+				"init-fs-h3": theme.fsH3 ?? "1.75rem",
+				"init-mobile-scale-h1": (
 					parseFloat(theme.mobileScaleH1 ?? "65") / 100
 				).toFixed(2),
-				"mobile-scale-h2": (
+				"init-mobile-scale-h2": (
 					parseFloat(theme.mobileScaleH2 ?? "80") / 100
 				).toFixed(2),
-				"ls-h1": theme.letterSpacingH1 ?? "0em",
-				"ls-h2": theme.letterSpacingH2 ?? "0em",
+				"init-ls-h1": theme.letterSpacingH1 ?? "0em",
+				"init-ls-h2": theme.letterSpacingH2 ?? "0em",
 			}}
 		>
 			:root {
-				--color-primary: var(--color-primary);
-				--color-secondary: var(--color-secondary);
-				--color-bg: var(--color-bg);
-				--color-text: var(--color-text);
-				--font-heading: var(--font-heading);
-				--font-body: var(--font-body);
-				--font-weight-heading: var(--font-weight-heading);
-				--font-weight-body: var(--font-weight-body);
-				--font-size-base: var(--font-size-base);
-				--line-height-heading: var(--line-height-heading);
-				--line-height-body: var(--line-height-body);
-				--text-align-base: var(--text-align-base);
-				--radius-base: var(--radius-base);
-				--section-padding: var(--section-padding);
-				--spacing-base: var(--spacing-base);
+				--color-primary: var(--init-color-primary);
+				--color-secondary: var(--init-color-secondary);
+				--color-bg: var(--init-color-bg);
+				--color-text: var(--init-color-text);
+				--font-heading: var(--init-font-heading);
+				--font-body: var(--init-font-body);
+				--font-weight-heading: var(--init-font-weight-heading);
+				--font-weight-body: var(--init-font-weight-body);
+				--font-size-base: var(--init-font-size-base);
+				--line-height-heading: var(--init-line-height-heading);
+				--line-height-body: var(--init-line-height-body);
+				--text-align-base: var(--init-text-align-base);
+				--radius-base: var(--init-radius-base);
+				--section-padding: var(--init-section-padding);
+				--spacing-base: var(--init-spacing-base);
 				--spacing-section: var(--section-padding);
-				--fs-h1: var(--fs-h1);
-				--fs-h2: var(--fs-h2);
-				--fs-h3: var(--fs-h3);
-				--mobile-scale-h1: var(--mobile-scale-h1);
-				--mobile-scale-h2: var(--mobile-scale-h2);
-				--ls-h1: var(--ls-h1);
-				--ls-h2: var(--ls-h2);
+				--fs-h1: var(--init-fs-h1);
+				--fs-h2: var(--init-fs-h2);
+				--fs-h3: var(--init-fs-h3);
+				--mobile-scale-h1: var(--init-mobile-scale-h1);
+				--mobile-scale-h2: var(--init-mobile-scale-h2);
+				--ls-h1: var(--init-ls-h1);
+				--ls-h2: var(--init-ls-h2);
 			}
 			body {
 				background: var(--color-bg);
@@ -178,6 +178,38 @@ const cssFontBody = hasCustomBody
 				padding-bottom: var(--section-padding);
 			}
 		</style>
+		<!-- Live preview: riceve CSS var injections via postMessage dall'admin dashboard -->
+		<script>
+			window.addEventListener("message", (e) => {
+				if (e.origin !== window.location.origin) return;
+				const data = e.data;
+				if (!data || typeof data !== "object") return;
+				if (data.type === "setVar") {
+					document.documentElement.style.setProperty(
+						data.name,
+						data.value,
+					);
+				} else if (data.type === "loadFont") {
+					const fontName = String(data.fontFamily)
+						.replace(/'/g, "")
+						.split(",")[0]
+						.trim();
+					if (
+						document.head.querySelector(
+							`link[data-gf="${fontName}"]`,
+						)
+					)
+						return;
+					const link = document.createElement("link");
+					link.rel = "stylesheet";
+					link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName).replace(/%20/g, "+")}:ital,wght@0,400;0,700;1,400&display=swap`;
+					(
+						link as HTMLLinkElement & { dataset: DOMStringMap }
+					).dataset.gf = fontName;
+					document.head.appendChild(link);
+				}
+			});
+		</script>
 	</head>
 	<body>
 		<slot />
