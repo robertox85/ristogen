@@ -8,6 +8,8 @@
   "radius": "0.5rem",
   "customFonts": {
     "heading": "/media/fonts/ApriliaDaisy.woff2",
-    "body": ""
+	"headingType": "sans-serif",
+	"body": "",
+	"bodyType": ""
   }
 }

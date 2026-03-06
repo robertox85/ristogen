@@ -10,7 +10,9 @@ export const ThemeSchema = z.object({
 	radius: z.string().default('0.5rem'),
 	customFonts: z.object({
 		heading: z.string().optional(),
-		body: z.string().optional()
+		headingType: z.string().optional(),
+		body: z.string().optional(),
+		bodyType: z.string().optional()
 	}).default({})
 });
 

@@ -3,6 +3,8 @@ import { ClientContentSchema } from '../../../schema/content.schema';
 import { getContent } from '../../../content';
 // @ts-ignore - wawoff2 è un modulo CJS senza dichiarazioni TypeScript
 import { compress as woff2Compress } from 'wawoff2';
+// @ts-ignore - fontkit è un modulo CJS senza dichiarazioni TypeScript
+import fontkit from 'fontkit';
 
 export const prerender = false;
 
@@ -127,7 +129,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	const currentCustomFonts = currentContent.theme.customFonts || {};
 	update.theme.customFonts = {
 		heading: currentCustomFonts.heading || '',
-		body: currentCustomFonts.body || ''
+		headingType: currentCustomFonts.headingType || '',
+		body: currentCustomFonts.body || '',
+		bodyType: currentCustomFonts.bodyType || ''
 	};
 
 	// Gestione Media e Blob
@@ -224,6 +228,39 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		return fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ').trim();
 	}
 
+	/**
+	 * Deduce il tipo CSS del font leggendo IBM Font Class (OS/2.sFamilyClass)
+	 * con fallback su PANOSE quando la classe è 0 (non classificato).
+	 * Ritorna uno dei generic CSS: 'serif' | 'sans-serif' | 'cursive' | 'fantasy'
+	 */
+	function detectFontType(rawBuf: Buffer): string {
+		try {
+			const font = fontkit.create(rawBuf);
+			const os2 = font['OS/2'];
+			if (!os2) return 'sans-serif';
+
+			const classID = (os2.sFamilyClass >> 8) & 0xFF;
+
+			// IBM class 1-7: vari stili Serif; 8: Sans-serif; 9: Ornamentals; 10: Script; 12: Symbolic
+			if (classID >= 1 && classID <= 7) return 'serif';
+			if (classID === 8) return 'sans-serif';
+			if (classID === 10) return 'cursive';
+			if (classID === 9 || classID === 12) return 'fantasy';
+
+			// Fallback PANOSE quando IBM class = 0 (non classificato)
+			const panose = os2.panose ?? [];
+			const pFamily = panose[0] ?? 0;
+			if (pFamily === 3) return 'cursive';   // Latin Hand Written
+			if (pFamily === 4 || pFamily === 5) return 'fantasy'; // Decorative/Symbol
+			if (pFamily === 2) {
+				const serifStyle = panose[1] ?? 0;
+				if (serifStyle >= 2 && serifStyle <= 8) return 'serif';
+				if (serifStyle >= 11) return 'sans-serif';
+			}
+		} catch (_) { /* font con metadati non leggibili: usa default */ }
+		return 'sans-serif';
+	}
+
 	// Gestione font personalizzato Heading
 	const fontHeadingFile = formData.get('font_heading_file') as File | null;
 	if (fontHeadingFile && fontHeadingFile.size > 0) {
@@ -237,6 +274,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			if (blobRes.ok) {
 				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
 				update.theme.customFonts.heading = `/media/fonts/${fileName}`;
+				update.theme.customFonts.headingType = detectFontType(raw);
 				update.theme.fontHeading = fontNameFromFile(fileName);
 			}
 		} catch (e) {
@@ -257,6 +295,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			if (blobRes.ok) {
 				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
 				update.theme.customFonts.body = `/media/fonts/${fileName}`;
+				update.theme.customFonts.bodyType = detectFontType(raw);
 				update.theme.fontBody = fontNameFromFile(fileName);
 			}
 		} catch (e) {

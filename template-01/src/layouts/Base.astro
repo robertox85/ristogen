@@ -31,11 +31,15 @@ const googleFontsHref =
 		? `https://fonts.googleapis.com/css2?${gFontParts.join("&")}&display=swap`
 		: null;
 
-// Valori finali delle variabili CSS font
+// Valori finali delle variabili CSS font (usa il tipo rilevato come fallback)
+const headingFallback = theme.customFonts?.headingType || "serif";
+const bodyFallback = theme.customFonts?.bodyType || "sans-serif";
 const cssFontHeading = hasCustomHeading
-	? "'CustomHeading', serif"
+	? `'CustomHeading', ${headingFallback}`
 	: theme.fontHeading;
-const cssFontBody = hasCustomBody ? "'CustomBody', sans-serif" : theme.fontBody;
+const cssFontBody = hasCustomBody
+	? `'CustomBody', ${bodyFallback}`
+	: theme.fontBody;
 ---
 
 <!doctype html>
