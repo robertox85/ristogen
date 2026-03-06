@@ -397,6 +397,26 @@ const bodyLabel =
 </div>
 
 <script>
+	// ── GOOGLE FONTS LOADER: inietta <link> per i font visibili ─────────────
+	const _loadedGFonts = new Set<string>();
+
+	function loadGoogleFontsBatch(families: string[]) {
+		const toLoad = families.filter((f) => !_loadedGFonts.has(f));
+		if (toLoad.length === 0) return;
+		toLoad.forEach((f) => _loadedGFonts.add(f));
+		// Google Fonts CSS2 supporta max ~50 family per richiesta in modo sicuro
+		for (let i = 0; i < toLoad.length; i += 50) {
+			const chunk = toLoad.slice(i, i + 50);
+			const params = chunk
+				.map((f) => `family=${encodeURIComponent(f)}`)
+				.join("&");
+			const link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.href = `https://fonts.googleapis.com/css2?${params}&display=swap`;
+			document.head.appendChild(link);
+		}
+	}
+
 	// ── FONT PICKER: dropdown custom con ricerca + lazy-load ──────────────────
 	function initFontPicker(role: string) {
 		const hidden = document.getElementById(
@@ -440,6 +460,8 @@ const bodyLabel =
 			for (const f of shown) {
 				const btn = document.createElement("button");
 				btn.type = "button";
+				// Nome scritto con il font stesso
+				btn.style.fontFamily = `'${f.l}', sans-serif`;
 				btn.textContent = f.l;
 				btn.className = [
 					"w-full text-left px-3 py-1.5 text-sm transition-colors",
@@ -456,6 +478,8 @@ const bodyLabel =
 				empty.textContent = "Nessun risultato";
 				list.appendChild(empty);
 			}
+			// Carica Google Fonts per i font visibili
+			loadGoogleFontsBatch(shown.map((f) => f.l));
 		}
 
 		function pick(value: string, label: string) {

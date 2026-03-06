@@ -15,16 +15,78 @@
 			class="text-xs font-bold uppercase tracking-widest text-gray-400 mr-2"
 			>Preview</span
 		>
-		<button
-			id="btn-desktop"
-			class="px-2.5 py-1 text-xs rounded-md border font-medium transition bg-indigo-50 text-indigo-700 border-indigo-300"
-			>🖥 Desktop</button
+		<!-- Viewport switcher -->
+		<div
+			class="flex items-center rounded-md border border-gray-200 overflow-hidden"
 		>
-		<button
-			id="btn-mobile"
-			class="px-2.5 py-1 text-xs rounded-md border font-medium transition text-gray-600 border-gray-200 hover:bg-gray-50"
-			>📱 Mobile</button
-		>
+			<button
+				id="btn-desktop"
+				title="Desktop"
+				class="px-2.5 py-1.5 transition bg-indigo-50 text-indigo-700 border-r border-gray-200"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="w-4 h-4"
+				>
+					<rect x="2" y="3" width="20" height="14" rx="2"></rect><path
+						d="M8 21h8M12 17v4"></path>
+				</svg>
+			</button>
+			<button
+				id="btn-tablet"
+				title="Tablet (768px)"
+				class="px-2.5 py-1.5 transition text-gray-500 hover:bg-gray-50 border-r border-gray-200"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="w-4 h-4"
+				>
+					<rect x="4" y="2" width="16" height="20" rx="2"></rect><line
+						x1="12"
+						y1="18"
+						x2="12"
+						y2="18.01"
+						stroke-width="3"
+						stroke-linecap="round"></line>
+				</svg>
+			</button>
+			<button
+				id="btn-mobile"
+				title="Mobile (375px)"
+				class="px-2.5 py-1.5 transition text-gray-500 hover:bg-gray-50"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="w-4 h-4"
+				>
+					<rect x="7" y="2" width="10" height="20" rx="2"></rect><line
+						x1="12"
+						y1="18"
+						x2="12"
+						y2="18.01"
+						stroke-width="3"
+						stroke-linecap="round"></line>
+				</svg>
+			</button>
+		</div>
 		<button
 			id="btn-typography"
 			class="px-2.5 py-1 text-xs rounded-md border font-medium transition text-gray-600 border-gray-200 hover:bg-gray-50"
@@ -230,37 +292,43 @@
 	// (intenzionale: gestisce navigazione interna e primo caricamento)
 	previewFrame?.addEventListener("load", applyAllVarsToPreview);
 
-	// ── VIEWPORT TOGGLE: Desktop / Mobile ────────────────────────────────────
-	const ACT = ["bg-indigo-50", "text-indigo-700", "border-indigo-300"];
-	const INACT = ["text-gray-600", "border-gray-200"];
+	// ── VIEWPORT TOGGLE: Desktop / Tablet / Mobile ───────────────────────────
+	const BTN_ACT = ["bg-indigo-50", "text-indigo-700", "border-indigo-300"];
+	const BTN_INACT = ["text-gray-500"];
 
-	function setViewMode(mode: "desktop" | "mobile") {
+	const viewportBtns = {
+		desktop: document.getElementById("btn-desktop"),
+		tablet: document.getElementById("btn-tablet"),
+		mobile: document.getElementById("btn-mobile"),
+	} as Record<string, HTMLElement | null>;
+
+	function setViewMode(mode: "desktop" | "tablet" | "mobile") {
 		if (!previewWrapper) return;
-		const btnDesktop = document.getElementById("btn-desktop");
-		const btnMobile = document.getElementById("btn-mobile");
 
-		if (mode === "mobile") {
-			previewWrapper.style.cssText =
-				"width:375px;height:812px;overflow:hidden;";
-			btnMobile?.classList.add(...ACT);
-			btnMobile?.classList.remove(...INACT);
-			btnDesktop?.classList.remove(...ACT);
-			btnDesktop?.classList.add(...INACT);
-		} else {
-			previewWrapper.style.cssText = "width:100%;height:100%;";
-			btnDesktop?.classList.add(...ACT);
-			btnDesktop?.classList.remove(...INACT);
-			btnMobile?.classList.remove(...ACT);
-			btnMobile?.classList.add(...INACT);
-		}
+		const sizes = {
+			desktop: "width:100%;height:100%;",
+			tablet: "width:768px;height:1024px;overflow:hidden;",
+			mobile: "width:375px;height:812px;overflow:hidden;",
+		};
+		previewWrapper.style.cssText = sizes[mode];
+
+		Object.entries(viewportBtns).forEach(([key, btn]) => {
+			if (!btn) return;
+			if (key === mode) {
+				btn.classList.add(...BTN_ACT);
+				btn.classList.remove(...BTN_INACT);
+			} else {
+				btn.classList.remove(...BTN_ACT);
+				btn.classList.add(...BTN_INACT);
+			}
+		});
 	}
 
-	document
-		.getElementById("btn-desktop")
-		?.addEventListener("click", () => setViewMode("desktop"));
-	document
-		.getElementById("btn-mobile")
-		?.addEventListener("click", () => setViewMode("mobile"));
+	viewportBtns.desktop?.addEventListener("click", () =>
+		setViewMode("desktop"),
+	);
+	viewportBtns.tablet?.addEventListener("click", () => setViewMode("tablet"));
+	viewportBtns.mobile?.addEventListener("click", () => setViewMode("mobile"));
 
 	// ── TIPOGRAFIA TOGGLE (homepage ↔ typography-test) ───────────────────────
 	const btnTypo = document.getElementById("btn-typography");
