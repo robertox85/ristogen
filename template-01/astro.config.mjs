@@ -45,7 +45,13 @@ export default defineConfig({
 			'__DEFAULT_LANG__': JSON.stringify(defaultLang),
 			'__ENABLED_LANGS__': JSON.stringify(enabledLangs),
 			'__DEFAULT_TEMPLATE__': JSON.stringify(defaultTemplate),
-
+		},
+		server: {
+			watch: {
+				// Vite di default non guarda file fuori dalla root del progetto;
+				// questo assicura l'HMR quando i JSON client cambiano in dev.
+				ignored: (path) => path.includes('node_modules') || path.includes('.netlify'),
+			}
 		},
 		// plugins: [],
 	},
