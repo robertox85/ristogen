@@ -75,323 +75,276 @@ const content = getContent("it");
 							<h3 class="text-lg font-bold mb-6 text-gray-900">
 								Theme
 							</h3>
-							<form id="form-theme" class="space-y-6">
-								<div class="grid grid-cols-2 gap-6 mb-4">
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Colore Primario</label
-										>
-										<input
-											type="color"
-											name="theme_primary"
-											value={content.theme.primary}
-											class="w-12 h-12 p-0 border-none bg-transparent"
-										/>
-									</div>
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Colore Secondario</label
-										>
-										<input
-											type="color"
-											name="theme_secondary"
-											value={content.theme.secondary}
-											class="w-12 h-12 p-0 border-none bg-transparent"
-										/>
-									</div>
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Colore Sfondo</label
-										>
-										<input
-											type="color"
-											name="theme_bg"
-											value={content.theme.bg}
-											class="w-12 h-12 p-0 border-none bg-transparent"
-										/>
-									</div>
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Colore Testo</label
-										>
-										<input
-											type="color"
-											name="theme_text"
-											value={content.theme.text}
-											class="w-12 h-12 p-0 border-none bg-transparent"
-										/>
-									</div>
-								</div>
-								<div class="grid grid-cols-2 gap-6 mt-2">
-									<!-- Font Heading card -->
-									<div
-										class="rounded-lg border border-gray-200 bg-gray-50 p-4"
-									>
-										<p
-											class="text-sm font-semibold text-gray-700 mb-3"
-										>
-											Font Heading
-										</p>
-										<div class="flex gap-4 mb-3">
-											<label
-												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
-											>
-												<input
-													type="radio"
-													name="font_heading_mode"
-													value="standard"
-													checked={!content.theme
-														.customFonts?.heading}
-												/>
-												Standard
-											</label>
-											<label
-												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
-											>
-												<input
-													type="radio"
-													name="font_heading_mode"
-													value="custom"
-													checked={!!content.theme
-														.customFonts?.heading}
-												/>
-												Custom
-											</label>
-										</div>
-										<div id="heading-standard-panel">
-											<select
-												name="theme_fontHeading"
-												id="select-fontHeading"
-												class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
-											>
-												<option
-													value="'Playfair Display', serif"
-													selected={content.theme
-														.fontHeading ===
-														"'Playfair Display', serif"}
-													>Playfair Display</option
-												>
-												<option
-													value="'Montserrat', sans-serif"
-													selected={content.theme
-														.fontHeading ===
-														"'Montserrat', sans-serif"}
-													>Montserrat</option
-												>
-												<option
-													value="'Cormorant Garamond', serif"
-													selected={content.theme
-														.fontHeading ===
-														"'Cormorant Garamond', serif"}
-													>Cormorant Garamond</option
-												>
-												<option
-													value="'Inter', sans-serif"
-													selected={content.theme
-														.fontHeading ===
-														"'Inter', sans-serif"}
-													>Inter</option
-												>
-												<option
-													value="'Lora', serif"
-													selected={content.theme
-														.fontHeading ===
-														"'Lora', serif"}
-													>Lora</option
-												>
-												<option
-													value="'Oswald', sans-serif"
-													selected={content.theme
-														.fontHeading ===
-														"'Oswald', sans-serif"}
-													>Oswald</option
-												>
-											</select>
-										</div>
-										<div
-											id="heading-custom-panel"
-											class="hidden"
-										>
-											<input
-												type="file"
-												name="font_heading_file"
-												accept=".ttf,.woff2"
-												class="w-full text-sm text-gray-900"
-											/>
-											{
-												content.theme.customFonts
-													?.heading && (
-													<p class="text-xs text-green-600 mt-1">
-														Caricato:{" "}
-														{
-															content.theme
-																.customFonts
-																.heading
-														}
-														{content.theme
-															.customFonts
-															.headingType && (
-															<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
-																{
-																	content
-																		.theme
-																		.customFonts
-																		.headingType
-																}
-															</span>
-														)}
-													</p>
-												)
-											}
-										</div>
-									</div>
-									<!-- Font Body card -->
-									<div
-										class="rounded-lg border border-gray-200 bg-gray-50 p-4"
-									>
-										<p
-											class="text-sm font-semibold text-gray-700 mb-3"
-										>
-											Font Body
-										</p>
-										<div class="flex gap-4 mb-3">
-											<label
-												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
-											>
-												<input
-													type="radio"
-													name="font_body_mode"
-													value="standard"
-													checked={!content.theme
-														.customFonts?.body}
-												/>
-												Standard
-											</label>
-											<label
-												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
-											>
-												<input
-													type="radio"
-													name="font_body_mode"
-													value="custom"
-													checked={!!content.theme
-														.customFonts?.body}
-												/>
-												Custom
-											</label>
-										</div>
-										<div id="body-standard-panel">
-											<select
-												name="theme_fontBody"
-												id="select-fontBody"
-												class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
-											>
-												<option
-													value="'Playfair Display', serif"
-													selected={content.theme
-														.fontBody ===
-														"'Playfair Display', serif"}
-													>Playfair Display</option
-												>
-												<option
-													value="'Montserrat', sans-serif"
-													selected={content.theme
-														.fontBody ===
-														"'Montserrat', sans-serif"}
-													>Montserrat</option
-												>
-												<option
-													value="'Cormorant Garamond', serif"
-													selected={content.theme
-														.fontBody ===
-														"'Cormorant Garamond', serif"}
-													>Cormorant Garamond</option
-												>
-												<option
-													value="'Inter', sans-serif"
-													selected={content.theme
-														.fontBody ===
-														"'Inter', sans-serif"}
-													>Inter</option
-												>
-												<option
-													value="'Lora', serif"
-													selected={content.theme
-														.fontBody ===
-														"'Lora', serif"}
-													>Lora</option
-												>
-												<option
-													value="'Oswald', sans-serif"
-													selected={content.theme
-														.fontBody ===
-														"'Oswald', sans-serif"}
-													>Oswald</option
-												>
-											</select>
-										</div>
-										<div
-											id="body-custom-panel"
-											class="hidden"
-										>
-											<input
-												type="file"
-												name="font_body_file"
-												accept=".ttf,.woff2"
-												class="w-full text-sm text-gray-900"
-											/>
-											{
-												content.theme.customFonts
-													?.body && (
-													<p class="text-xs text-green-600 mt-1">
-														Caricato:{" "}
-														{
-															content.theme
-																.customFonts
-																.body
-														}
-														{content.theme
-															.customFonts
-															.bodyType && (
-															<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
-																{
-																	content
-																		.theme
-																		.customFonts
-																		.bodyType
-																}
-															</span>
-														)}
-													</p>
-												)
-											}
-										</div>
-									</div>
-								</div>
+							<form id="form-theme" class="space-y-8">
+
+								<!-- ── COLORI BRAND ─────────────────────────────── -->
 								<div>
-									<label
-										class="block mb-2 text-sm font-medium text-gray-700"
-										>Radius</label
-									>
-									<input
-										type="text"
-										name="theme_radius"
-										value={content.theme.radius}
-										class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
-									/>
+									<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Colori Brand</p>
+									<div class="grid grid-cols-2 gap-6">
+										<div class="flex items-center gap-3">
+											<input
+												type="color"
+												name="theme_primary"
+												value={content.theme.primary}
+												class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+											/>
+											<div>
+												<p class="text-sm font-medium text-gray-700">Colore Primario</p>
+												<p class="text-xs text-gray-400">Pulsanti, accenti</p>
+											</div>
+										</div>
+										<div class="flex items-center gap-3">
+											<input
+												type="color"
+												name="theme_secondary"
+												value={content.theme.secondary}
+												class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+											/>
+											<div>
+												<p class="text-sm font-medium text-gray-700">Colore Secondario</p>
+												<p class="text-xs text-gray-400">Elementi decorativi</p>
+											</div>
+										</div>
+										<div class="flex items-center gap-3">
+											<input
+												type="color"
+												name="theme_bg"
+												value={content.theme.bg}
+												class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+											/>
+											<div>
+												<p class="text-sm font-medium text-gray-700">Sfondo</p>
+												<p class="text-xs text-gray-400">Colore di fondo pagina</p>
+											</div>
+										</div>
+										<div class="flex items-center gap-3">
+											<input
+												type="color"
+												name="theme_text"
+												value={content.theme.text}
+												class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+											/>
+											<div>
+												<p class="text-sm font-medium text-gray-700">Testo</p>
+												<p class="text-xs text-gray-400">Colore testo principale</p>
+											</div>
+										</div>
+									</div>
 								</div>
+
+								<!-- ── TIPOGRAFIA ────────────────────────────────── -->
+								<div>
+									<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Tipografia</p>
+									<div class="grid grid-cols-2 gap-6">
+										<!-- Font Heading card -->
+										<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+											<p class="text-sm font-semibold text-gray-700 mb-3">Font Titoli</p>
+											<div class="flex gap-4 mb-3">
+												<label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+													<input type="radio" name="font_heading_mode" value="standard" checked={!content.theme.customFonts?.heading} />
+													Standard
+												</label>
+												<label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+													<input type="radio" name="font_heading_mode" value="custom" checked={!!content.theme.customFonts?.heading} />
+													Custom
+												</label>
+											</div>
+											<div id="heading-standard-panel">
+												<select name="theme_fontHeading" id="select-fontHeading" class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm">
+													<option value="'Playfair Display', serif" selected={content.theme.fontHeading === "'Playfair Display', serif"}>Playfair Display</option>
+													<option value="'Montserrat', sans-serif" selected={content.theme.fontHeading === "'Montserrat', sans-serif"}>Montserrat</option>
+													<option value="'Cormorant Garamond', serif" selected={content.theme.fontHeading === "'Cormorant Garamond', serif"}>Cormorant Garamond</option>
+													<option value="'Inter', sans-serif" selected={content.theme.fontHeading === "'Inter', sans-serif"}>Inter</option>
+													<option value="'Lora', serif" selected={content.theme.fontHeading === "'Lora', serif"}>Lora</option>
+													<option value="'Oswald', sans-serif" selected={content.theme.fontHeading === "'Oswald', sans-serif"}>Oswald</option>
+												</select>
+											</div>
+											<div id="heading-custom-panel" class="hidden">
+												<input type="file" name="font_heading_file" accept=".ttf,.woff2" class="w-full text-sm text-gray-900" />
+												{content.theme.customFonts?.heading && (
+													<p class="text-xs text-green-600 mt-1">
+														Caricato: {content.theme.customFonts.heading}
+														{content.theme.customFonts.headingType && (
+															<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">{content.theme.customFonts.headingType}</span>
+														)}
+													</p>
+												)}
+											</div>
+											<!-- Peso -->
+											<div class="mt-4">
+												<p class="text-xs text-gray-500 mb-1">Peso carattere titoli</p>
+												<div class="flex gap-2">
+													{[['300','Sottile'],['400','Regolare'],['700','Grassetto'],['900','Extra Grassetto']].map(([val, label]) => (
+														<label class="flex-1 text-center cursor-pointer">
+															<input type="radio" name="theme_fontWeightHeading" value={val} checked={content.theme.fontWeightHeading === val || (!content.theme.fontWeightHeading && val === '700')} class="sr-only peer" />
+															<span class="block py-1.5 px-1 rounded-md border border-gray-200 text-xs text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">{label}</span>
+														</label>
+													))}
+												</div>
+											</div>
+											<!-- Interlinea -->
+											<div class="mt-4">
+												<div class="flex justify-between items-center mb-1">
+													<p class="text-xs text-gray-500">Interlinea titoli</p>
+													<span id="lh-heading-val" class="text-xs font-mono text-indigo-600">{content.theme.lineHeightHeading ?? '1.2'}</span>
+												</div>
+												<input type="range" name="theme_lineHeightHeading" min="1" max="2" step="0.1"
+													value={content.theme.lineHeightHeading ?? '1.2'}
+													class="w-full accent-indigo-500"
+													id="lh-heading-range"
+												/>
+											</div>
+										</div>
+
+										<!-- Font Body card -->
+										<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+											<p class="text-sm font-semibold text-gray-700 mb-3">Font Testo</p>
+											<div class="flex gap-4 mb-3">
+												<label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+													<input type="radio" name="font_body_mode" value="standard" checked={!content.theme.customFonts?.body} />
+													Standard
+												</label>
+												<label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+													<input type="radio" name="font_body_mode" value="custom" checked={!!content.theme.customFonts?.body} />
+													Custom
+												</label>
+											</div>
+											<div id="body-standard-panel">
+												<select name="theme_fontBody" id="select-fontBody" class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm">
+													<option value="'Playfair Display', serif" selected={content.theme.fontBody === "'Playfair Display', serif"}>Playfair Display</option>
+													<option value="'Montserrat', sans-serif" selected={content.theme.fontBody === "'Montserrat', sans-serif"}>Montserrat</option>
+													<option value="'Cormorant Garamond', serif" selected={content.theme.fontBody === "'Cormorant Garamond', serif"}>Cormorant Garamond</option>
+													<option value="'Inter', sans-serif" selected={content.theme.fontBody === "'Inter', sans-serif"}>Inter</option>
+													<option value="'Lora', serif" selected={content.theme.fontBody === "'Lora', serif"}>Lora</option>
+													<option value="'Oswald', sans-serif" selected={content.theme.fontBody === "'Oswald', sans-serif"}>Oswald</option>
+												</select>
+											</div>
+											<div id="body-custom-panel" class="hidden">
+												<input type="file" name="font_body_file" accept=".ttf,.woff2" class="w-full text-sm text-gray-900" />
+												{content.theme.customFonts?.body && (
+													<p class="text-xs text-green-600 mt-1">
+														Caricato: {content.theme.customFonts.body}
+														{content.theme.customFonts.bodyType && (
+															<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">{content.theme.customFonts.bodyType}</span>
+														)}
+													</p>
+												)}
+											</div>
+											<!-- Peso -->
+											<div class="mt-4">
+												<p class="text-xs text-gray-500 mb-1">Peso carattere testo</p>
+												<div class="flex gap-2">
+													{[['300','Sottile'],['400','Regolare'],['700','Grassetto'],['900','Extra Grassetto']].map(([val, label]) => (
+														<label class="flex-1 text-center cursor-pointer">
+															<input type="radio" name="theme_fontWeightBody" value={val} checked={content.theme.fontWeightBody === val || (!content.theme.fontWeightBody && val === '400')} class="sr-only peer" />
+															<span class="block py-1.5 px-1 rounded-md border border-gray-200 text-xs text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">{label}</span>
+														</label>
+													))}
+												</div>
+											</div>
+											<!-- Interlinea -->
+											<div class="mt-4">
+												<div class="flex justify-between items-center mb-1">
+													<p class="text-xs text-gray-500">Interlinea testo</p>
+													<span id="lh-body-val" class="text-xs font-mono text-indigo-600">{content.theme.lineHeightBody ?? '1.6'}</span>
+												</div>
+												<input type="range" name="theme_lineHeightBody" min="1" max="2.5" step="0.1"
+													value={content.theme.lineHeightBody ?? '1.6'}
+													class="w-full accent-indigo-500"
+													id="lh-body-range"
+												/>
+											</div>
+										</div>
+									</div>
+
+									<!-- Dimensione base font -->
+									<div class="mt-4">
+										<div class="flex justify-between items-center mb-1">
+											<p class="text-sm font-medium text-gray-700">Dimensione testo base</p>
+											<span id="fs-base-val" class="text-xs font-mono text-indigo-600">{content.theme.fontSizeBase ?? '1rem'}</span>
+										</div>
+										<input type="range" id="fs-base-range" name="theme_fontSizeBase_px" min="14" max="22" step="1"
+											value={parseInt((content.theme.fontSizeBase ?? '16px').replace(/[^0-9]/g,'')) || 16}
+											class="w-full accent-indigo-500"
+										/>
+										<input type="hidden" name="theme_fontSizeBase" id="fs-base-hidden" value={content.theme.fontSizeBase ?? '1rem'} />
+										<div class="flex justify-between text-xs text-gray-400 mt-1"><span>Piccolo (14px)</span><span>Grande (22px)</span></div>
+									</div>
+
+									<!-- Allineamento testo -->
+									<div class="mt-4">
+										<p class="text-sm font-medium text-gray-700 mb-2">Allineamento testo</p>
+										<div class="flex gap-2">
+											{[['left','← Sinistra'],['center','⊜ Centro'],['right','Destra →']].map(([val, label]) => (
+												<label class="flex-1 text-center cursor-pointer">
+													<input type="radio" name="theme_textAlign" value={val} checked={content.theme.textAlign === val || (!content.theme.textAlign && val === 'left')} class="sr-only peer" />
+													<span class="block py-2 rounded-md border border-gray-200 text-sm text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">{label}</span>
+												</label>
+											))}
+										</div>
+									</div>
+								</div>
+
+								<!-- ── SPAZI E BORDI ───────────────────────────── -->
+								<div>
+									<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Spazi e Bordi</p>
+									<div class="space-y-5">
+										<!-- Section Padding -->
+										<div>
+											<div class="flex justify-between items-center mb-1">
+												<div>
+													<p class="text-sm font-medium text-gray-700">Respiro delle sezioni</p>
+													<p class="text-xs text-gray-400">Spazio verticale sopra/sotto ogni sezione</p>
+												</div>
+												<span id="sp-val" class="text-xs font-mono text-indigo-600">{content.theme.sectionPadding ?? '6rem'}</span>
+											</div>
+											<input type="range" id="sp-range" name="theme_sectionPadding_raw" min="2" max="10" step="0.5"
+												value={parseFloat((content.theme.sectionPadding ?? '6rem').replace('rem','')) || 6}
+												class="w-full accent-indigo-500"
+											/>
+											<input type="hidden" name="theme_sectionPadding" id="sp-hidden" value={content.theme.sectionPadding ?? '6rem'} />
+											<div class="flex justify-between text-xs text-gray-400 mt-1"><span>Compatto (2rem)</span><span>Arioso (10rem)</span></div>
+										</div>
+										<!-- Spacing -->
+										<div>
+											<div class="flex justify-between items-center mb-1">
+												<div>
+													<p class="text-sm font-medium text-gray-700">Distanza tra elementi</p>
+													<p class="text-xs text-gray-400">Margine interno tra blocchi di contenuto</p>
+												</div>
+												<span id="spc-val" class="text-xs font-mono text-indigo-600">{content.theme.spacing ?? '1.5rem'}</span>
+											</div>
+											<input type="range" id="spc-range" name="theme_spacing_raw" min="0.5" max="4" step="0.25"
+												value={parseFloat((content.theme.spacing ?? '1.5rem').replace('rem','')) || 1.5}
+												class="w-full accent-indigo-500"
+											/>
+											<input type="hidden" name="theme_spacing" id="spc-hidden" value={content.theme.spacing ?? '1.5rem'} />
+											<div class="flex justify-between text-xs text-gray-400 mt-1"><span>Stretto (0.5rem)</span><span>Ampio (4rem)</span></div>
+										</div>
+										<!-- Border Radius -->
+										<div>
+											<div class="flex justify-between items-center mb-1">
+												<div>
+													<p class="text-sm font-medium text-gray-700">Arrotondamento angoli</p>
+													<p class="text-xs text-gray-400">Bordi di card e pulsanti</p>
+												</div>
+												<span id="radius-val" class="text-xs font-mono text-indigo-600">{content.theme.radius}</span>
+											</div>
+											<input type="range" id="radius-range" name="theme_radius_raw" min="0" max="32" step="2"
+												value={parseInt((content.theme.radius ?? '8px').replace(/[^0-9]/g,'')) || 8}
+												class="w-full accent-indigo-500"
+											/>
+											<input type="hidden" name="theme_radius" id="radius-hidden" value={content.theme.radius} />
+											<div class="flex justify-between text-xs text-gray-400 mt-1"><span>Squadrato (0px)</span><span>Molto tondo (32px)</span></div>
+										</div>
+									</div>
+								</div>
+
 								<button
 									type="submit"
 									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
 									>Salva</button
 								>
-							</form>
-						</div>
-					</section>
 					<section id="hero" class="tab-section hidden">
 						<div
 							class="rounded-xl border border-gray-200 bg-white shadow-sm p-7"
@@ -835,6 +788,62 @@ const content = getContent("it");
 
 				initFontSelector("heading", "select-fontHeading");
 				initFontSelector("body", "select-fontBody");
+
+				// Slider: Section Padding (rem)
+				const spRange = document.getElementById('sp-range') as HTMLInputElement | null;
+				const spHidden = document.getElementById('sp-hidden') as HTMLInputElement | null;
+				const spVal = document.getElementById('sp-val');
+				spRange?.addEventListener('input', () => {
+					const v = `${spRange.value}rem`;
+					if (spHidden) spHidden.value = v;
+					if (spVal) spVal.textContent = v;
+				});
+
+				// Slider: Spacing (rem)
+				const spcRange = document.getElementById('spc-range') as HTMLInputElement | null;
+				const spcHidden = document.getElementById('spc-hidden') as HTMLInputElement | null;
+				const spcVal = document.getElementById('spc-val');
+				spcRange?.addEventListener('input', () => {
+					const v = `${spcRange.value}rem`;
+					if (spcHidden) spcHidden.value = v;
+					if (spcVal) spcVal.textContent = v;
+				});
+
+				// Slider: Border Radius (px)
+				const radiusRange = document.getElementById('radius-range') as HTMLInputElement | null;
+				const radiusHidden = document.getElementById('radius-hidden') as HTMLInputElement | null;
+				const radiusVal = document.getElementById('radius-val');
+				radiusRange?.addEventListener('input', () => {
+					const v = `${radiusRange.value}px`;
+					if (radiusHidden) radiusHidden.value = v;
+					if (radiusVal) radiusVal.textContent = v;
+				});
+
+				// Slider: Font Size Base (px → rem)
+				const fsRange = document.getElementById('fs-base-range') as HTMLInputElement | null;
+				const fsHidden = document.getElementById('fs-base-hidden') as HTMLInputElement | null;
+				const fsVal = document.getElementById('fs-base-val');
+				fsRange?.addEventListener('input', () => {
+					const px = parseFloat(fsRange.value);
+					const rem = (px / 16).toFixed(4).replace(/\.?0+$/, '');
+					const v = `${rem}rem`;
+					if (fsHidden) fsHidden.value = v;
+					if (fsVal) fsVal.textContent = v;
+				});
+
+				// Slider: Line Height Heading
+				const lhHRange = document.getElementById('lh-heading-range') as HTMLInputElement | null;
+				const lhHVal = document.getElementById('lh-heading-val');
+				lhHRange?.addEventListener('input', () => {
+					if (lhHVal) lhHVal.textContent = lhHRange.value;
+				});
+
+				// Slider: Line Height Body
+				const lhBRange = document.getElementById('lh-body-range') as HTMLInputElement | null;
+				const lhBVal = document.getElementById('lh-body-val');
+				lhBRange?.addEventListener('input', () => {
+					if (lhBVal) lhBVal.textContent = lhBRange.value;
+				});
 
 				tabBtns.forEach((btn) => {
 					btn.addEventListener("click", () => {

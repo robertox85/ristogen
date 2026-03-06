@@ -120,7 +120,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	if (footer_facebook) update.sections.footer.socials.footer_facebook = footer_facebook.toString();
 
 	// Gestione tema
-	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius'].forEach((field) => {
+	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius',
+		'fontWeightHeading', 'fontWeightBody', 'fontSizeBase', 'lineHeightHeading',
+		'lineHeightBody', 'textAlign', 'sectionPadding', 'spacing'].forEach((field) => {
 		const val = formData.get(`theme_${field}`);
 		if (val) update.theme[field] = val.toString();
 	});
