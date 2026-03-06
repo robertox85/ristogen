@@ -3,13 +3,13 @@
   "secondary": "#1a1a1a",
   "bg": "#aafd8b",
   "text": "#0e0606",
-  "fontHeading": "ApriliaDaisy",
-  "fontBody": "ApriliaDaisy",
+  "fontHeading": "'Oswald', sans-serif",
+  "fontBody": "'Montserrat', sans-serif",
   "radius": "0.5rem",
   "customFonts": {
-    "heading": "/media/fonts/ApriliaDaisy.woff2",
-    "headingType": "sans-serif",
-    "body": "/media/fonts/ApriliaDaisy.woff2",
-    "bodyType": "sans-serif"
+    "heading": "",
+    "headingType": "",
+    "body": "",
+    "bodyType": ""
   }
 }
