@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 			sameSite: 'strict',
 			maxAge: 60 * 60 * 8 // 8 ore
 		});
-		return redirect('/admin/dashboard');
+		return redirect('/admin/');
 	}
 
 	return new Response(
