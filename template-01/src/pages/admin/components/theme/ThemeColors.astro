@@ -1,0 +1,64 @@
+---
+const { theme } = Astro.props;
+---
+
+<div>
+	<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+		Colori Brand
+	</p>
+	<div
+		class="grid gap-6"
+		style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"
+	>
+		<div class="flex items-center gap-3">
+			<input
+				type="color"
+				name="theme_primary"
+				value={theme.primary}
+				class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+			/>
+			<div>
+				<p class="text-sm font-medium text-gray-700">Colore Primario</p>
+				<p class="text-xs text-gray-400">Pulsanti, accenti</p>
+			</div>
+		</div>
+		<div class="flex items-center gap-3">
+			<input
+				type="color"
+				name="theme_secondary"
+				value={theme.secondary}
+				class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+			/>
+			<div>
+				<p class="text-sm font-medium text-gray-700">
+					Colore Secondario
+				</p>
+				<p class="text-xs text-gray-400">Elementi decorativi</p>
+			</div>
+		</div>
+		<div class="flex items-center gap-3">
+			<input
+				type="color"
+				name="theme_bg"
+				value={theme.bg}
+				class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+			/>
+			<div>
+				<p class="text-sm font-medium text-gray-700">Sfondo</p>
+				<p class="text-xs text-gray-400">Colore di fondo pagina</p>
+			</div>
+		</div>
+		<div class="flex items-center gap-3">
+			<input
+				type="color"
+				name="theme_text"
+				value={theme.text}
+				class="w-10 h-10 p-0 border-none bg-transparent cursor-pointer rounded"
+			/>
+			<div>
+				<p class="text-sm font-medium text-gray-700">Testo</p>
+				<p class="text-xs text-gray-400">Colore testo principale</p>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,107 @@
+---
+const { theme } = Astro.props;
+---
+
+<div>
+	<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+		Spazi e Bordi
+	</p>
+	<div class="space-y-5">
+		<!-- Section Padding -->
+		<div>
+			<div class="flex justify-between items-center mb-1">
+				<label class="text-sm font-medium text-gray-700"
+					>Padding Sezioni</label
+				>
+				<span id="sp-val" class="text-xs font-mono text-indigo-600"
+					>{theme.sectionPadding ?? "6rem"}</span
+				>
+			</div>
+			<input
+				type="range"
+				id="sp-range"
+				name="theme_sectionPadding_raw"
+				min="2"
+				max="10"
+				step="0.5"
+				value={parseFloat(
+					(theme.sectionPadding ?? "6rem").replace("rem", ""),
+				) || 6}
+				class="w-full accent-indigo-500"
+			/>
+			<input
+				type="hidden"
+				name="theme_sectionPadding"
+				id="sp-hidden"
+				value={theme.sectionPadding ?? "6rem"}
+			/>
+			<div class="flex justify-between text-xs text-gray-400 mt-0.5">
+				<span>2rem (compatto)</span><span>10rem (ampio)</span>
+			</div>
+		</div>
+
+		<!-- Spacing -->
+		<div>
+			<div class="flex justify-between items-center mb-1">
+				<label class="text-sm font-medium text-gray-700"
+					>Gap Interno</label
+				>
+				<span id="spc-val" class="text-xs font-mono text-indigo-600"
+					>{theme.spacing ?? "1.5rem"}</span
+				>
+			</div>
+			<input
+				type="range"
+				id="spc-range"
+				name="theme_spacing_raw"
+				min="0.5"
+				max="4"
+				step="0.25"
+				value={parseFloat(
+					(theme.spacing ?? "1.5rem").replace("rem", ""),
+				) || 1.5}
+				class="w-full accent-indigo-500"
+			/>
+			<input
+				type="hidden"
+				name="theme_spacing"
+				id="spc-hidden"
+				value={theme.spacing ?? "1.5rem"}
+			/>
+			<div class="flex justify-between text-xs text-gray-400 mt-0.5">
+				<span>0.5rem (stretto)</span><span>4rem (aria)</span>
+			</div>
+		</div>
+
+		<!-- Border Radius -->
+		<div>
+			<div class="flex justify-between items-center mb-1">
+				<label class="text-sm font-medium text-gray-700"
+					>Border Radius</label
+				>
+				<span id="radius-val" class="text-xs font-mono text-indigo-600"
+					>{theme.radius ?? "8px"}</span
+				>
+			</div>
+			<input
+				type="range"
+				id="radius-range"
+				name="theme_radius_raw"
+				min="0"
+				max="32"
+				step="2"
+				value={parseInt((theme.radius ?? "8px").replace("px", "")) || 8}
+				class="w-full accent-indigo-500"
+			/>
+			<input
+				type="hidden"
+				name="theme_radius"
+				id="radius-hidden"
+				value={theme.radius ?? "8px"}
+			/>
+			<div class="flex justify-between text-xs text-gray-400 mt-0.5">
+				<span>0px (squadrato)</span><span>32px (tondo)</span>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,257 @@
+---
+const { theme } = Astro.props;
+---
+
+<div>
+	<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+		Gerarchia Titoli
+	</p>
+	<div class="space-y-4">
+		<!-- H1 Impatto Hero -->
+		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<p class="text-sm font-semibold text-gray-700">H1 — Impatto Hero</p>
+			<p class="text-xs text-gray-400 mb-3">
+				Titolo principale della sezione hero
+			</p>
+			<div
+				class="grid gap-4"
+				style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))"
+			>
+				<div>
+					<div class="flex justify-between items-center mb-1">
+						<p class="text-xs text-gray-500">Dimensione</p>
+						<span
+							id="fsh1-val"
+							class="text-xs font-mono text-indigo-600"
+							>{theme.fsH1 ?? "4rem"}</span
+						>
+					</div>
+					<input
+						type="range"
+						id="fsh1-range"
+						name="theme_fsH1_raw"
+						min="2.5"
+						max="6"
+						step="0.25"
+						value={parseFloat(
+							(theme.fsH1 ?? "4rem").replace("rem", ""),
+						) || 4}
+						class="w-full accent-indigo-500"
+					/>
+					<input
+						type="hidden"
+						name="theme_fsH1"
+						id="fsh1-hidden"
+						value={theme.fsH1 ?? "4rem"}
+					/>
+					<div
+						class="flex justify-between text-xs text-gray-400 mt-0.5"
+					>
+						<span>2.5rem</span><span>6rem</span>
+					</div>
+				</div>
+				<div>
+					<div class="flex justify-between items-center mb-1">
+						<p class="text-xs text-gray-500">Compressione Mobile</p>
+						<span
+							id="mob-h1-val"
+							class="text-xs font-mono text-indigo-600"
+							>{theme.mobileScaleH1 ?? "65"}%</span
+						>
+					</div>
+					<input
+						type="range"
+						id="mob-h1-range"
+						name="theme_mobileScaleH1"
+						min="40"
+						max="100"
+						step="5"
+						value={theme.mobileScaleH1 ?? "65"}
+						class="w-full accent-indigo-500"
+					/>
+					<div
+						class="flex justify-between text-xs text-gray-400 mt-0.5"
+					>
+						<span>40%</span><span>100%</span>
+					</div>
+				</div>
+			</div>
+			<div class="mt-3">
+				<div class="flex justify-between items-center mb-1">
+					<p class="text-xs text-gray-500">
+						Crenatura (Letter Spacing)
+					</p>
+					<span
+						id="lsh1-val"
+						class="text-xs font-mono text-indigo-600"
+						>{theme.letterSpacingH1 ?? "0em"}</span
+					>
+				</div>
+				<input
+					type="range"
+					id="lsh1-range"
+					name="theme_letterSpacingH1_raw"
+					min="-5"
+					max="20"
+					step="1"
+					value={Math.round(
+						parseFloat(
+							(theme.letterSpacingH1 ?? "0em").replace("em", ""),
+						) * 100,
+					) || 0}
+					class="w-full accent-indigo-500"
+				/>
+				<input
+					type="hidden"
+					name="theme_letterSpacingH1"
+					id="lsh1-hidden"
+					value={theme.letterSpacingH1 ?? "0em"}
+				/>
+				<div class="flex justify-between text-xs text-gray-400 mt-0.5">
+					<span>-0.05em (stretto)</span><span>0.2em (ariosa)</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- H2 Titoli Sezione -->
+		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<p class="text-sm font-semibold text-gray-700">
+				H2 — Titoli Sezione
+			</p>
+			<p class="text-xs text-gray-400 mb-3">About, Gallery, Contatti</p>
+			<div
+				class="grid gap-4"
+				style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))"
+			>
+				<div>
+					<div class="flex justify-between items-center mb-1">
+						<p class="text-xs text-gray-500">Dimensione</p>
+						<span
+							id="fsh2-val"
+							class="text-xs font-mono text-indigo-600"
+							>{theme.fsH2 ?? "2.5rem"}</span
+						>
+					</div>
+					<input
+						type="range"
+						id="fsh2-range"
+						name="theme_fsH2_raw"
+						min="1.5"
+						max="3.5"
+						step="0.25"
+						value={parseFloat(
+							(theme.fsH2 ?? "2.5rem").replace("rem", ""),
+						) || 2.5}
+						class="w-full accent-indigo-500"
+					/>
+					<input
+						type="hidden"
+						name="theme_fsH2"
+						id="fsh2-hidden"
+						value={theme.fsH2 ?? "2.5rem"}
+					/>
+					<div
+						class="flex justify-between text-xs text-gray-400 mt-0.5"
+					>
+						<span>1.5rem</span><span>3.5rem</span>
+					</div>
+				</div>
+				<div>
+					<div class="flex justify-between items-center mb-1">
+						<p class="text-xs text-gray-500">Compressione Mobile</p>
+						<span
+							id="mob-h2-val"
+							class="text-xs font-mono text-indigo-600"
+							>{theme.mobileScaleH2 ?? "80"}%</span
+						>
+					</div>
+					<input
+						type="range"
+						id="mob-h2-range"
+						name="theme_mobileScaleH2"
+						min="50"
+						max="100"
+						step="5"
+						value={theme.mobileScaleH2 ?? "80"}
+						class="w-full accent-indigo-500"
+					/>
+					<div
+						class="flex justify-between text-xs text-gray-400 mt-0.5"
+					>
+						<span>50%</span><span>100%</span>
+					</div>
+				</div>
+			</div>
+			<div class="mt-3">
+				<div class="flex justify-between items-center mb-1">
+					<p class="text-xs text-gray-500">
+						Crenatura (Letter Spacing)
+					</p>
+					<span
+						id="lsh2-val"
+						class="text-xs font-mono text-indigo-600"
+						>{theme.letterSpacingH2 ?? "0em"}</span
+					>
+				</div>
+				<input
+					type="range"
+					id="lsh2-range"
+					name="theme_letterSpacingH2_raw"
+					min="-5"
+					max="20"
+					step="1"
+					value={Math.round(
+						parseFloat(
+							(theme.letterSpacingH2 ?? "0em").replace("em", ""),
+						) * 100,
+					) || 0}
+					class="w-full accent-indigo-500"
+				/>
+				<input
+					type="hidden"
+					name="theme_letterSpacingH2"
+					id="lsh2-hidden"
+					value={theme.letterSpacingH2 ?? "0em"}
+				/>
+				<div class="flex justify-between text-xs text-gray-400 mt-0.5">
+					<span>-0.05em (stretto)</span><span>0.2em (ariosa)</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- H3 Sottotitoli -->
+		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<p class="text-sm font-semibold text-gray-700">H3 — Sottotitoli</p>
+			<p class="text-xs text-gray-400 mb-3">
+				Testi in evidenza e sottosezioni
+			</p>
+			<div class="flex justify-between items-center mb-1">
+				<p class="text-xs text-gray-500">Dimensione</p>
+				<span id="fsh3-val" class="text-xs font-mono text-indigo-600"
+					>{theme.fsH3 ?? "1.75rem"}</span
+				>
+			</div>
+			<input
+				type="range"
+				id="fsh3-range"
+				name="theme_fsH3_raw"
+				min="1"
+				max="2.5"
+				step="0.25"
+				value={parseFloat(
+					(theme.fsH3 ?? "1.75rem").replace("rem", ""),
+				) || 1.75}
+				class="w-full accent-indigo-500"
+			/>
+			<input
+				type="hidden"
+				name="theme_fsH3"
+				id="fsh3-hidden"
+				value={theme.fsH3 ?? "1.75rem"}
+			/>
+			<div class="flex justify-between text-xs text-gray-400 mt-0.5">
+				<span>1rem</span><span>2.5rem</span>
+			</div>
+		</div>
+	</div>
+</div>

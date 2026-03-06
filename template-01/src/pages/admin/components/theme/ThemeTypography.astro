@@ -1,0 +1,333 @@
+---
+const { theme } = Astro.props;
+---
+
+<div>
+	<p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+		Tipografia
+	</p>
+	<div
+		class="grid gap-6"
+		style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"
+	>
+		<!-- Font Heading card -->
+		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<p class="text-sm font-semibold text-gray-700 mb-3">Font Titoli</p>
+			<div class="flex gap-4 mb-3">
+				<label
+					class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+				>
+					<input
+						type="radio"
+						name="font_heading_mode"
+						value="standard"
+						checked={!theme.customFonts?.heading}
+					/>
+					Standard
+				</label>
+				<label
+					class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+				>
+					<input
+						type="radio"
+						name="font_heading_mode"
+						value="custom"
+						checked={!!theme.customFonts?.heading}
+					/>
+					Custom
+				</label>
+			</div>
+			<div id="heading-standard-panel">
+				<select
+					name="theme_fontHeading"
+					id="select-fontHeading"
+					class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
+				>
+					{
+						[
+							["'Playfair Display', serif", "Playfair Display"],
+							["'Montserrat', sans-serif", "Montserrat"],
+							[
+								"'Cormorant Garamond', serif",
+								"Cormorant Garamond",
+							],
+							["'Inter', sans-serif", "Inter"],
+							["'Lora', serif", "Lora"],
+							["'Oswald', sans-serif", "Oswald"],
+						].map(([val, label]) => (
+							<option
+								value={val}
+								selected={theme.fontHeading === val}
+							>
+								{label}
+							</option>
+						))
+					}
+				</select>
+			</div>
+			<div id="heading-custom-panel" class="hidden">
+				<input
+					type="file"
+					name="font_heading_file"
+					accept=".ttf,.woff2"
+					class="w-full text-sm text-gray-900"
+				/>
+				{
+					theme.customFonts?.heading && (
+						<p class="text-xs text-green-600 mt-1">
+							Caricato: {theme.customFonts.heading}
+							{theme.customFonts.headingType && (
+								<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
+									{theme.customFonts.headingType}
+								</span>
+							)}
+						</p>
+					)
+				}
+			</div>
+			<!-- Peso -->
+			<div class="mt-4">
+				<p class="text-xs text-gray-500 mb-1">Peso carattere titoli</p>
+				<div class="flex gap-2">
+					{
+						[
+							["300", "Sottile"],
+							["400", "Regolare"],
+							["700", "Grassetto"],
+							["900", "Extra Grassetto"],
+						].map(([val, label]) => (
+							<label class="flex-1 text-center cursor-pointer">
+								<input
+									type="radio"
+									name="theme_fontWeightHeading"
+									value={val}
+									checked={
+										theme.fontWeightHeading === val ||
+										(!theme.fontWeightHeading &&
+											val === "700")
+									}
+									class="sr-only peer"
+								/>
+								<span class="block py-1.5 px-1 rounded-md border border-gray-200 text-xs text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">
+									{label}
+								</span>
+							</label>
+						))
+					}
+				</div>
+			</div>
+			<!-- Interlinea -->
+			<div class="mt-4">
+				<div class="flex justify-between items-center mb-1">
+					<p class="text-xs text-gray-500">Interlinea titoli</p>
+					<span
+						id="lh-heading-val"
+						class="text-xs font-mono text-indigo-600"
+						>{theme.lineHeightHeading ?? "1.2"}</span
+					>
+				</div>
+				<input
+					type="range"
+					name="theme_lineHeightHeading"
+					min="1"
+					max="2"
+					step="0.1"
+					value={theme.lineHeightHeading ?? "1.2"}
+					class="w-full accent-indigo-500"
+					id="lh-heading-range"
+				/>
+			</div>
+		</div>
+
+		<!-- Font Body card -->
+		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+			<p class="text-sm font-semibold text-gray-700 mb-3">Font Testo</p>
+			<div class="flex gap-4 mb-3">
+				<label
+					class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+				>
+					<input
+						type="radio"
+						name="font_body_mode"
+						value="standard"
+						checked={!theme.customFonts?.body}
+					/>
+					Standard
+				</label>
+				<label
+					class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+				>
+					<input
+						type="radio"
+						name="font_body_mode"
+						value="custom"
+						checked={!!theme.customFonts?.body}
+					/>
+					Custom
+				</label>
+			</div>
+			<div id="body-standard-panel">
+				<select
+					name="theme_fontBody"
+					id="select-fontBody"
+					class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
+				>
+					{
+						[
+							["'Playfair Display', serif", "Playfair Display"],
+							["'Montserrat', sans-serif", "Montserrat"],
+							[
+								"'Cormorant Garamond', serif",
+								"Cormorant Garamond",
+							],
+							["'Inter', sans-serif", "Inter"],
+							["'Lora', serif", "Lora"],
+							["'Oswald', sans-serif", "Oswald"],
+						].map(([val, label]) => (
+							<option
+								value={val}
+								selected={theme.fontBody === val}
+							>
+								{label}
+							</option>
+						))
+					}
+				</select>
+			</div>
+			<div id="body-custom-panel" class="hidden">
+				<input
+					type="file"
+					name="font_body_file"
+					accept=".ttf,.woff2"
+					class="w-full text-sm text-gray-900"
+				/>
+				{
+					theme.customFonts?.body && (
+						<p class="text-xs text-green-600 mt-1">
+							Caricato: {theme.customFonts.body}
+							{theme.customFonts.bodyType && (
+								<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
+									{theme.customFonts.bodyType}
+								</span>
+							)}
+						</p>
+					)
+				}
+			</div>
+			<!-- Peso -->
+			<div class="mt-4">
+				<p class="text-xs text-gray-500 mb-1">Peso carattere testo</p>
+				<div class="flex gap-2">
+					{
+						[
+							["300", "Sottile"],
+							["400", "Regolare"],
+							["700", "Grassetto"],
+							["900", "Extra Grassetto"],
+						].map(([val, label]) => (
+							<label class="flex-1 text-center cursor-pointer">
+								<input
+									type="radio"
+									name="theme_fontWeightBody"
+									value={val}
+									checked={
+										theme.fontWeightBody === val ||
+										(!theme.fontWeightBody && val === "400")
+									}
+									class="sr-only peer"
+								/>
+								<span class="block py-1.5 px-1 rounded-md border border-gray-200 text-xs text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">
+									{label}
+								</span>
+							</label>
+						))
+					}
+				</div>
+			</div>
+			<!-- Interlinea -->
+			<div class="mt-4">
+				<div class="flex justify-between items-center mb-1">
+					<p class="text-xs text-gray-500">Interlinea testo</p>
+					<span
+						id="lh-body-val"
+						class="text-xs font-mono text-indigo-600"
+						>{theme.lineHeightBody ?? "1.6"}</span
+					>
+				</div>
+				<input
+					type="range"
+					name="theme_lineHeightBody"
+					min="1"
+					max="2.5"
+					step="0.1"
+					value={theme.lineHeightBody ?? "1.6"}
+					class="w-full accent-indigo-500"
+					id="lh-body-range"
+				/>
+			</div>
+		</div>
+	</div>
+
+	<!-- Dimensione base font -->
+	<div class="mt-4">
+		<div class="flex justify-between items-center mb-1">
+			<p class="text-sm font-medium text-gray-700">
+				Dimensione testo base
+			</p>
+			<span id="fs-base-val" class="text-xs font-mono text-indigo-600"
+				>{theme.fontSizeBase ?? "1rem"}</span
+			>
+		</div>
+		<input
+			type="range"
+			id="fs-base-range"
+			name="theme_fontSizeBase_px"
+			min="14"
+			max="22"
+			step="1"
+			value={parseInt(
+				(theme.fontSizeBase ?? "16px").replace(/[^0-9]/g, ""),
+			) || 16}
+			class="w-full accent-indigo-500"
+		/>
+		<input
+			type="hidden"
+			name="theme_fontSizeBase"
+			id="fs-base-hidden"
+			value={theme.fontSizeBase ?? "1rem"}
+		/>
+		<div class="flex justify-between text-xs text-gray-400 mt-1">
+			<span>Piccolo (14px)</span><span>Grande (22px)</span>
+		</div>
+	</div>
+
+	<!-- Allineamento testo -->
+	<div class="mt-4">
+		<p class="text-sm font-medium text-gray-700 mb-2">Allineamento testo</p>
+		<div class="flex gap-2">
+			{
+				[
+					["left", "← Sinistra"],
+					["center", "⊜ Centro"],
+					["right", "Destra →"],
+				].map(([val, label]) => (
+					<label class="flex-1 text-center cursor-pointer">
+						<input
+							type="radio"
+							name="theme_textAlign"
+							value={val}
+							checked={
+								theme.textAlign === val ||
+								(!theme.textAlign && val === "left")
+							}
+							class="sr-only peer"
+						/>
+						<span class="block py-2 rounded-md border border-gray-200 text-sm text-gray-600 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition">
+							{label}
+						</span>
+					</label>
+				))
+			}
+		</div>
+	</div>
+</div>
