@@ -1,10 +1,6 @@
 import type { APIRoute } from 'astro';
 import { ClientContentSchema } from '../../../schema/content.schema';
 import { getContent } from '../../../content';
-// @ts-ignore - wawoff2 è un modulo CJS senza dichiarazioni TypeScript
-import { compress as woff2Compress } from 'wawoff2';
-// @ts-ignore - fontkit è un modulo CJS senza dichiarazioni TypeScript
-import * as fontkit from 'fontkit';
 
 export const prerender = false;
 
@@ -228,6 +224,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	async function toWoff2Buffer(raw: Buffer, originalName: string): Promise<{ buf: Buffer; fileName: string }> {
 		let fileName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
 		if (!isWoff2(raw)) {
+			// Import dinamico: evita crash ESM su modulo CJS quando non servono font
+			// @ts-ignore
+			const { compress: woff2Compress } = await import('wawoff2');
 			// Conversione necessaria (TTF/OTF o woff2 rinominato); wawoff2 ritorna Uint8Array
 			const compressed = await woff2Compress(raw);
 			return {
@@ -248,8 +247,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	 * con fallback su PANOSE quando la classe è 0 (non classificato).
 	 * Ritorna uno dei generic CSS: 'serif' | 'sans-serif' | 'cursive' | 'fantasy'
 	 */
-	function detectFontType(rawBuf: Buffer): string {
+	async function detectFontType(rawBuf: Buffer): Promise<string> {
 		try {
+			// @ts-ignore
+			const fontkit = await import('fontkit');
 			const font = fontkit.create(rawBuf);
 			const os2 = font['OS/2'];
 			if (!os2) return 'sans-serif';
@@ -289,7 +290,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			if (blobRes.ok) {
 				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
 				update.theme.customFonts.heading = `/media/fonts/${fileName}`;
-				update.theme.customFonts.headingType = detectFontType(raw);
+				update.theme.customFonts.headingType = await detectFontType(raw);
 				update.theme.fontHeading = fontNameFromFile(fileName);
 			}
 		} catch (e) {
@@ -310,7 +311,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			if (blobRes.ok) {
 				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
 				update.theme.customFonts.body = `/media/fonts/${fileName}`;
-				update.theme.customFonts.bodyType = detectFontType(raw);
+				update.theme.customFonts.bodyType = await detectFontType(raw);
 				update.theme.fontBody = fontNameFromFile(fileName);
 			}
 		} catch (e) {
