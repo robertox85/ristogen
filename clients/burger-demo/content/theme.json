@@ -1,23 +1,23 @@
 {
-	"primary": "#d4af37",
-	"secondary": "#1a1a1a",
-	"bg": "#aafd8b",
-	"text": "#0e0606",
-	"fontHeading": "'Oswald', sans-serif",
-	"fontBody": "'Montserrat', sans-serif",
-	"fontWeightHeading": "700",
-	"fontWeightBody": "400",
-	"fontSizeBase": "1rem",
-	"lineHeightHeading": "1.2",
-	"lineHeightBody": "1.6",
-	"textAlign": "left",
-	"radius": "8px",
-	"sectionPadding": "6rem",
-	"spacing": "1.5rem",
-	"customFonts": {
-		"heading": "",
-		"headingType": "",
-		"body": "",
-		"bodyType": ""
-	}
+  "primary": "#d4af37",
+  "secondary": "#1a1a1a",
+  "bg": "#aafd8b",
+  "text": "#0e0606",
+  "fontHeading": "'Oswald', sans-serif",
+  "fontBody": "'Montserrat', sans-serif",
+  "fontWeightHeading": "700",
+  "fontWeightBody": "700",
+  "fontSizeBase": "1.375rem",
+  "lineHeightHeading": "1.2",
+  "lineHeightBody": "2.5",
+  "textAlign": "left",
+  "radius": "30px",
+  "sectionPadding": "9.5rem",
+  "spacing": "3rem",
+  "customFonts": {
+    "heading": "",
+    "headingType": "",
+    "body": "",
+    "bodyType": ""
+  }
 }
