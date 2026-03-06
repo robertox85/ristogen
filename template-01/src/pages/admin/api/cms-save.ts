@@ -199,23 +199,45 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		update.sections.menu.menu_pdfLink = currentContent.sections.menu.menu_pdfLink;
 	}
 
+	/** Ritorna true solo se il buffer è un woff2 valido (magic bytes "wOF2") */
+	function isWoff2(buf: Buffer): boolean {
+		return buf.length >= 4 &&
+			buf[0] === 0x77 && buf[1] === 0x4F && buf[2] === 0x46 && buf[3] === 0x32;
+	}
+
+	/** Converte in woff2 se necessario; ritorna sempre un Buffer base64-safe */
+	async function toWoff2Buffer(raw: Buffer, originalName: string): Promise<{ buf: Buffer; fileName: string }> {
+		let fileName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
+		if (!isWoff2(raw)) {
+			// Conversione necessaria (TTF/OTF o woff2 rinominato); wawoff2 ritorna Uint8Array
+			const compressed = await woff2Compress(raw);
+			return {
+				buf: Buffer.from(compressed),
+				fileName: fileName.replace(/\.[^/.]+$/, '') + '.woff2'
+			};
+		}
+		return { buf: raw, fileName };
+	}
+
+	/** Ricava il nome del font dal filename (es. "ApriliaDaisy.woff2" → "ApriliaDaisy") */
+	function fontNameFromFile(fileName: string): string {
+		return fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ').trim();
+	}
+
 	// Gestione font personalizzato Heading
 	const fontHeadingFile = formData.get('font_heading_file') as File | null;
 	if (fontHeadingFile && fontHeadingFile.size > 0) {
 		try {
-			let buffer = Buffer.from(await fontHeadingFile.arrayBuffer());
-			let fileName = fontHeadingFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-			if (!fileName.endsWith('.woff2')) {
-				buffer = await woff2Compress(buffer);
-				fileName = fileName.replace(/\.[^/.]+$/, '') + '.woff2';
-			}
+			const raw = Buffer.from(await fontHeadingFile.arrayBuffer());
+			const { buf, fileName } = await toWoff2Buffer(raw, fontHeadingFile.name);
 			const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
-				content: buffer.toString('base64'),
+				content: buf.toString('base64'),
 				encoding: 'base64'
 			});
 			if (blobRes.ok) {
 				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
 				update.theme.customFonts.heading = `/media/fonts/${fileName}`;
+				update.theme.fontHeading = fontNameFromFile(fileName);
 			}
 		} catch (e) {
 			console.error('[CMS-SAVE] Errore conversione font heading:', e);
@@ -226,19 +248,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	const fontBodyFile = formData.get('font_body_file') as File | null;
 	if (fontBodyFile && fontBodyFile.size > 0) {
 		try {
-			let buffer = Buffer.from(await fontBodyFile.arrayBuffer());
-			let fileName = fontBodyFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-			if (!fileName.endsWith('.woff2')) {
-				buffer = await woff2Compress(buffer);
-				fileName = fileName.replace(/\.[^/.]+$/, '') + '.woff2';
-			}
+			const raw = Buffer.from(await fontBodyFile.arrayBuffer());
+			const { buf, fileName } = await toWoff2Buffer(raw, fontBodyFile.name);
 			const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
-				content: buffer.toString('base64'),
+				content: buf.toString('base64'),
 				encoding: 'base64'
 			});
 			if (blobRes.ok) {
 				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
 				update.theme.customFonts.body = `/media/fonts/${fileName}`;
+				update.theme.fontBody = fontNameFromFile(fileName);
 			}
 		} catch (e) {
 			console.error('[CMS-SAVE] Errore conversione font body:', e);
