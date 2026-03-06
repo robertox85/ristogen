@@ -134,6 +134,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		bodyType: currentCustomFonts.bodyType || ''
 	};
 
+	// Se l'utente ha scelto Standard (select abilitato → value in FormData),
+	// azzera il font personalizzato per quel ruolo: la select sovrascriverà fontHeading/fontBody
+	if (formData.get('theme_fontHeading')) {
+		update.theme.customFonts.heading = '';
+		update.theme.customFonts.headingType = '';
+	}
+	if (formData.get('theme_fontBody')) {
+		update.theme.customFonts.body = '';
+		update.theme.customFonts.bodyType = '';
+	}
+
 	// Gestione Media e Blob
 	const blobs: Record<string, string> = {};
 

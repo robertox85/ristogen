@@ -126,114 +126,263 @@ const content = getContent("it");
 										/>
 									</div>
 								</div>
-								<div class="grid grid-cols-3 gap-6">
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Font Heading</label
+								<div class="grid grid-cols-2 gap-6 mt-2">
+									<!-- Font Heading card -->
+									<div
+										class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+									>
+										<p
+											class="text-sm font-semibold text-gray-700 mb-3"
 										>
-										<input
-											type="text"
-											name="theme_fontHeading"
-											value={content.theme.fontHeading}
-											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
-										/>
+											Font Heading
+										</p>
+										<div class="flex gap-4 mb-3">
+											<label
+												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+											>
+												<input
+													type="radio"
+													name="font_heading_mode"
+													value="standard"
+													checked={!content.theme
+														.customFonts?.heading}
+												/>
+												Standard
+											</label>
+											<label
+												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+											>
+												<input
+													type="radio"
+													name="font_heading_mode"
+													value="custom"
+													checked={!!content.theme
+														.customFonts?.heading}
+												/>
+												Custom
+											</label>
+										</div>
+										<div id="heading-standard-panel">
+											<select
+												name="theme_fontHeading"
+												id="select-fontHeading"
+												class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
+											>
+												<option
+													value="'Playfair Display', serif"
+													selected={content.theme
+														.fontHeading ===
+														"'Playfair Display', serif"}
+													>Playfair Display</option
+												>
+												<option
+													value="'Montserrat', sans-serif"
+													selected={content.theme
+														.fontHeading ===
+														"'Montserrat', sans-serif"}
+													>Montserrat</option
+												>
+												<option
+													value="'Cormorant Garamond', serif"
+													selected={content.theme
+														.fontHeading ===
+														"'Cormorant Garamond', serif"}
+													>Cormorant Garamond</option
+												>
+												<option
+													value="'Inter', sans-serif"
+													selected={content.theme
+														.fontHeading ===
+														"'Inter', sans-serif"}
+													>Inter</option
+												>
+												<option
+													value="'Lora', serif"
+													selected={content.theme
+														.fontHeading ===
+														"'Lora', serif"}
+													>Lora</option
+												>
+												<option
+													value="'Oswald', sans-serif"
+													selected={content.theme
+														.fontHeading ===
+														"'Oswald', sans-serif"}
+													>Oswald</option
+												>
+											</select>
+										</div>
+										<div
+											id="heading-custom-panel"
+											class="hidden"
+										>
+											<input
+												type="file"
+												name="font_heading_file"
+												accept=".ttf,.woff2"
+												class="w-full text-sm text-gray-900"
+											/>
+											{
+												content.theme.customFonts
+													?.heading && (
+													<p class="text-xs text-green-600 mt-1">
+														Caricato:{" "}
+														{
+															content.theme
+																.customFonts
+																.heading
+														}
+														{content.theme
+															.customFonts
+															.headingType && (
+															<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
+																{
+																	content
+																		.theme
+																		.customFonts
+																		.headingType
+																}
+															</span>
+														)}
+													</p>
+												)
+											}
+										</div>
 									</div>
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Font Body</label
+									<!-- Font Body card -->
+									<div
+										class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+									>
+										<p
+											class="text-sm font-semibold text-gray-700 mb-3"
 										>
-										<input
-											type="text"
-											name="theme_fontBody"
-											value={content.theme.fontBody}
-											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
-										/>
-									</div>
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Radius</label
+											Font Body
+										</p>
+										<div class="flex gap-4 mb-3">
+											<label
+												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+											>
+												<input
+													type="radio"
+													name="font_body_mode"
+													value="standard"
+													checked={!content.theme
+														.customFonts?.body}
+												/>
+												Standard
+											</label>
+											<label
+												class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer"
+											>
+												<input
+													type="radio"
+													name="font_body_mode"
+													value="custom"
+													checked={!!content.theme
+														.customFonts?.body}
+												/>
+												Custom
+											</label>
+										</div>
+										<div id="body-standard-panel">
+											<select
+												name="theme_fontBody"
+												id="select-fontBody"
+												class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
+											>
+												<option
+													value="'Playfair Display', serif"
+													selected={content.theme
+														.fontBody ===
+														"'Playfair Display', serif"}
+													>Playfair Display</option
+												>
+												<option
+													value="'Montserrat', sans-serif"
+													selected={content.theme
+														.fontBody ===
+														"'Montserrat', sans-serif"}
+													>Montserrat</option
+												>
+												<option
+													value="'Cormorant Garamond', serif"
+													selected={content.theme
+														.fontBody ===
+														"'Cormorant Garamond', serif"}
+													>Cormorant Garamond</option
+												>
+												<option
+													value="'Inter', sans-serif"
+													selected={content.theme
+														.fontBody ===
+														"'Inter', sans-serif"}
+													>Inter</option
+												>
+												<option
+													value="'Lora', serif"
+													selected={content.theme
+														.fontBody ===
+														"'Lora', serif"}
+													>Lora</option
+												>
+												<option
+													value="'Oswald', sans-serif"
+													selected={content.theme
+														.fontBody ===
+														"'Oswald', sans-serif"}
+													>Oswald</option
+												>
+											</select>
+										</div>
+										<div
+											id="body-custom-panel"
+											class="hidden"
 										>
-										<input
-											type="text"
-											name="theme_radius"
-											value={content.theme.radius}
-											class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
-										/>
+											<input
+												type="file"
+												name="font_body_file"
+												accept=".ttf,.woff2"
+												class="w-full text-sm text-gray-900"
+											/>
+											{
+												content.theme.customFonts
+													?.body && (
+													<p class="text-xs text-green-600 mt-1">
+														Caricato:{" "}
+														{
+															content.theme
+																.customFonts
+																.body
+														}
+														{content.theme
+															.customFonts
+															.bodyType && (
+															<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
+																{
+																	content
+																		.theme
+																		.customFonts
+																		.bodyType
+																}
+															</span>
+														)}
+													</p>
+												)
+											}
+										</div>
 									</div>
 								</div>
-								<div class="grid grid-cols-2 gap-6 mt-4">
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Font Heading personalizzato
-											(TTF/WOFF2)</label
-										>
-										<input
-											type="file"
-											name="font_heading_file"
-											accept=".ttf,.woff2"
-											class="w-full text-sm text-gray-900"
-										/>
-										{
-											content.theme.customFonts
-												.heading && (
-												<p class="text-xs text-green-600 mt-1">
-													Caricato:{" "}
-													{
-														content.theme
-															.customFonts.heading
-													}
-													{content.theme.customFonts
-														.headingType && (
-														<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
-															{
-																content.theme
-																	.customFonts
-																	.headingType
-															}
-														</span>
-													)}
-												</p>
-											)
-										}
-									</div>
-									<div>
-										<label
-											class="block mb-2 text-sm font-medium text-gray-700"
-											>Font Body personalizzato
-											(TTF/WOFF2)</label
-										>
-										<input
-											type="file"
-											name="font_body_file"
-											accept=".ttf,.woff2"
-											class="w-full text-sm text-gray-900"
-										/>
-										{
-											content.theme.customFonts.body && (
-												<p class="text-xs text-green-600 mt-1">
-													Caricato:{" "}
-													{
-														content.theme
-															.customFonts.body
-													}
-													{content.theme.customFonts
-														.bodyType && (
-														<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
-															{
-																content.theme
-																	.customFonts
-																	.bodyType
-															}
-														</span>
-													)}
-												</p>
-											)
-										}
-									</div>
+								<div>
+									<label
+										class="block mb-2 text-sm font-medium text-gray-700"
+										>Radius</label
+									>
+									<input
+										type="text"
+										name="theme_radius"
+										value={content.theme.radius}
+										class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+									/>
 								</div>
 								<button
 									type="submit"
@@ -642,6 +791,51 @@ const content = getContent("it");
 					activeTab = btn;
 				}
 				setActiveTab(activeTab);
+
+				// Font selector: toggle tra Google Fonts e upload personalizzato
+				function initFontSelector(role: string, selectId: string) {
+					const standardRadio = document.querySelector(
+						`input[name="font_${role}_mode"][value="standard"]`,
+					) as HTMLInputElement | null;
+					const customRadio = document.querySelector(
+						`input[name="font_${role}_mode"][value="custom"]`,
+					) as HTMLInputElement | null;
+					const standardPanel = document.getElementById(
+						`${role}-standard-panel`,
+					);
+					const customPanel = document.getElementById(
+						`${role}-custom-panel`,
+					);
+					const select = document.getElementById(
+						selectId,
+					) as HTMLSelectElement | null;
+
+					function applyMode(mode: string) {
+						if (mode === "standard") {
+							standardPanel?.classList.remove("hidden");
+							customPanel?.classList.add("hidden");
+							if (select) select.disabled = false;
+						} else {
+							standardPanel?.classList.add("hidden");
+							customPanel?.classList.remove("hidden");
+							if (select) select.disabled = true;
+						}
+					}
+
+					// Applica lo stato iniziale (sincronizza disabled con checked iniziale)
+					applyMode(customRadio?.checked ? "custom" : "standard");
+
+					standardRadio?.addEventListener("change", () =>
+						applyMode("standard"),
+					);
+					customRadio?.addEventListener("change", () =>
+						applyMode("custom"),
+					);
+				}
+
+				initFontSelector("heading", "select-fontHeading");
+				initFontSelector("body", "select-fontBody");
+
 				tabBtns.forEach((btn) => {
 					btn.addEventListener("click", () => {
 						tabSections.forEach((sec) =>
