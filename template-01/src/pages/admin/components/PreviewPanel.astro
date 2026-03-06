@@ -108,7 +108,7 @@
 		<div
 			id="preview-wrapper"
 			style="width:100%;height:100%"
-			class="transition-all duration-300"
+			class="relative transition-all duration-300"
 		>
 			<iframe
 				id="preview-frame"
@@ -116,6 +116,12 @@
 				title="Live Preview"
 				class="w-full h-full rounded-lg shadow-xl border-0 bg-white"
 			></iframe>
+			<!-- Overlay anti-iframe: blocca i pointer events durante il drag-resize -->
+			<div
+				id="preview-drag-overlay"
+				class="hidden absolute inset-0 z-10 cursor-col-resize"
+			>
+			</div>
 		</div>
 	</div>
 </div>
@@ -400,45 +406,6 @@
 		const label = document.getElementById("preview-label");
 		if (label) label.textContent = open ? "Chiudi Preview" : "Live Preview";
 	}
-
-	// Drag-to-resize
-	let isResizing = false;
-
-	resizeHandle?.addEventListener("mousedown", (e) => {
-		e.preventDefault();
-		isResizing = true;
-		document.body.style.cursor = "col-resize";
-		document.body.style.userSelect = "none";
-	});
-
-	document.addEventListener("mousemove", (e) => {
-		if (!isResizing || !controlPanel) return;
-		const sidebar = document.getElementById("sidebar");
-		const container = controlPanel.parentElement;
-		if (!container) return;
-
-		const rect = container.getBoundingClientRect();
-		const sidebarW = sidebar?.offsetWidth ?? 0;
-		const handleW = resizeHandle?.offsetWidth ?? 6;
-		const available = rect.width - sidebarW - handleW;
-		let newW = e.clientX - rect.left - sidebarW;
-
-		// Snap a larghezze comuni
-		const snap = [320, 380, 480, 600].find((s) => Math.abs(newW - s) < 20);
-		if (snap) newW = snap;
-		newW = Math.max(280, Math.min(available - 200, newW));
-
-		controlPanel.style.cssText = `width:${newW}px;flex-shrink:0;`;
-		if (previewPanel)
-			previewPanel.style.cssText = "flex:1;min-width:200px;";
-	});
-
-	document.addEventListener("mouseup", () => {
-		if (!isResizing) return;
-		isResizing = false;
-		document.body.style.cursor = "";
-		document.body.style.userSelect = "";
-	});
 
 	document
 		.getElementById("btn-preview-toggle")

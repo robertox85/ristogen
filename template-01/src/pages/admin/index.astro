@@ -143,6 +143,63 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 					);
 				});
 			});
+
+			// ── DRAG-TO-RESIZE ──────────────────────────────────────────────────
+			// #resize-handle, #control-panel e #sidebar sono tutti in questa pagina.
+			// + dragOverlay vive in PreviewPanel ma è accessibile via getElementById.
+			const resizeHandle = document.getElementById("resize-handle");
+			const controlPanel = document.getElementById("control-panel");
+			const dragOverlay = document.getElementById("preview-drag-overlay");
+			let isResizing = false;
+
+			resizeHandle?.addEventListener("mousedown", (e) => {
+				e.preventDefault();
+				isResizing = true;
+				document.body.style.cursor = "col-resize";
+				document.body.style.userSelect = "none";
+				// Blocca i pointer events sull'iframe durante il drag
+				dragOverlay?.classList.remove("hidden");
+			});
+
+			document.addEventListener("mousemove", (e) => {
+				if (!isResizing || !controlPanel) return;
+				const sidebar = document.getElementById("sidebar");
+				const previewPanel = document.getElementById("preview-panel");
+				const container = controlPanel.parentElement;
+				if (!container) return;
+
+				// newW = larghezza desiderata per control-panel
+				const sidebarW = sidebar?.offsetWidth ?? 0;
+				const handleW = resizeHandle?.offsetWidth ?? 6;
+				const totalW = container.offsetWidth;
+				const containerLeft = container.getBoundingClientRect().left;
+				let newW = e.clientX - containerLeft - sidebarW;
+
+				// Snap a larghezze comuni
+				const snap = [320, 380, 480, 600].find(
+					(s) => Math.abs(newW - s) < 20,
+				);
+				if (snap) newW = snap;
+				newW = Math.max(
+					280,
+					Math.min(totalW - sidebarW - handleW - 200, newW),
+				);
+
+				controlPanel.style.maxWidth = `${newW}px`;
+				controlPanel.style.flexShrink = "0";
+				if (previewPanel) {
+					previewPanel.style.flex = "1";
+					previewPanel.style.minWidth = "200px";
+				}
+			});
+
+			document.addEventListener("mouseup", () => {
+				if (!isResizing) return;
+				isResizing = false;
+				document.body.style.cursor = "";
+				document.body.style.userSelect = "";
+				dragOverlay?.classList.add("hidden");
+			});
 		</script>
 	</body>
 </html>
