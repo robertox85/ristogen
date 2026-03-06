@@ -186,6 +186,16 @@ const content = getContent("it");
 														content.theme
 															.customFonts.heading
 													}
+													{content.theme.customFonts
+														.headingType && (
+														<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
+															{
+																content.theme
+																	.customFonts
+																	.headingType
+															}
+														</span>
+													)}
 												</p>
 											)
 										}
@@ -210,6 +220,16 @@ const content = getContent("it");
 														content.theme
 															.customFonts.body
 													}
+													{content.theme.customFonts
+														.bodyType && (
+														<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-mono">
+															{
+																content.theme
+																	.customFonts
+																	.bodyType
+															}
+														</span>
+													)}
 												</p>
 											)
 										}
