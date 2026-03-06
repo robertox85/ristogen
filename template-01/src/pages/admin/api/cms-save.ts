@@ -4,7 +4,7 @@ import { getContent } from '../../../content';
 // @ts-ignore - wawoff2 è un modulo CJS senza dichiarazioni TypeScript
 import { compress as woff2Compress } from 'wawoff2';
 // @ts-ignore - fontkit è un modulo CJS senza dichiarazioni TypeScript
-import fontkit from 'fontkit';
+import * as fontkit from 'fontkit';
 
 export const prerender = false;
 
