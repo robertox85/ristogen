@@ -1,13 +1,13 @@
 {
-	"primary": "#d4af37",
-	"secondary": "#1a1a1a",
-	"bg": "#aafd8b",
-	"text": "#0e0606",
-	"fontHeading": "'Playfair Display', serif",
-	"fontBody": "'Inter', sans-serif",
-	"radius": "0.5rem",
-	"customFonts": {
-		"heading": "/media/fonts/ApriliaDaisy.woff2",
-		"body": ""
-	}
+  "primary": "#d4af37",
+  "secondary": "#1a1a1a",
+  "bg": "#aafd8b",
+  "text": "#0e0606",
+  "fontHeading": "ApriliaDaisy",
+  "fontBody": "'Inter', sans-serif",
+  "radius": "0.5rem",
+  "customFonts": {
+    "heading": "/media/fonts/ApriliaDaisy.woff2",
+    "body": ""
+  }
 }
