@@ -1,6 +1,10 @@
 import type { APIRoute } from 'astro';
+import { createRequire } from 'module';
 import { ClientContentSchema } from '../../../schema/content.schema';
 import { getContent } from '../../../content';
+
+// createRequire permette di caricare moduli CJS puri (wawoff2, fontkit) dall'ESM
+const _require = createRequire(import.meta.url);
 
 export const prerender = false;
 
@@ -227,9 +231,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	async function toWoff2Buffer(raw: Buffer, originalName: string): Promise<{ buf: Buffer; fileName: string }> {
 		let fileName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
 		if (!isWoff2(raw)) {
-			// Import dinamico: evita crash ESM su modulo CJS quando non servono font
-			// @ts-ignore
-			const { compress: woff2Compress } = await import('wawoff2');
+			// Usa createRequire: wawoff2 è CJS puro, non compatibile con import() ESM
+			const { compress: woff2Compress } = _require('wawoff2');
 			// Conversione necessaria (TTF/OTF o woff2 rinominato); wawoff2 ritorna Uint8Array
 			const compressed = await woff2Compress(raw);
 			return {
@@ -253,7 +256,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	async function detectFontType(rawBuf: Buffer): Promise<string> {
 		try {
 			// @ts-ignore
-			const fontkit = await import('fontkit');
+			const fontkit = _require('fontkit');
 			const font = fontkit.create(rawBuf);
 			const os2 = font['OS/2'];
 			if (!os2) return 'sans-serif';
