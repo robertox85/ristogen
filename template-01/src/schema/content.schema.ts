@@ -7,7 +7,11 @@ export const ThemeSchema = z.object({
 	text: z.string().default('#f5f5f5'),
 	fontHeading: z.string().default("'Playfair Display', serif"),
 	fontBody: z.string().default("'Inter', sans-serif"),
-	radius: z.string().default('0.5rem')
+	radius: z.string().default('0.5rem'),
+	customFonts: z.object({
+		heading: z.string().optional(),
+		body: z.string().optional()
+	}).default({})
 });
 
 export const ClientContentSchema = z.object({
@@ -49,3 +53,5 @@ export const ClientContentSchema = z.object({
 		})
 	})
 });
+
+export type ClientContent = z.infer<typeof ClientContentSchema>;

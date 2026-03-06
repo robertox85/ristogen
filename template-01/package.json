@@ -3,10 +3,10 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-"sync:media": "mkdir -p public/media && cp -r ../clients/${CLIENT_SLUG:-burger-demo}/content/media/. public/media/",
-"dev": "npm run sync:media && astro dev --port 4321",
-"build": "astro build",
-	"preview": "astro preview",
+    "sync:media": "mkdir -p public/media && cp -r ../clients/${CLIENT_SLUG:-burger-demo}/content/media/. public/media/",
+    "dev": "npm run sync:media && astro dev --port 4321",
+    "build": "astro build",
+    "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
@@ -14,6 +14,7 @@
     "@astrojs/sitemap": "^3.7.0",
     "astro": "^5.17.1",
     "marked": "^17.0.3",
+    "wawoff2": "^2.0.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {

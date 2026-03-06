@@ -10,6 +10,32 @@ interface Props {
 const { content } = Astro.props;
 const { theme } = content;
 const enabledLangs = __ENABLED_LANGS__;
+
+const hasCustomHeading = !!theme.customFonts?.heading;
+const hasCustomBody = !!theme.customFonts?.body;
+
+// Estrae il nome del font da un valore CSS (es. "'Playfair Display', serif" → "Playfair Display")
+const extractFontName = (cssValue: string) =>
+	cssValue.replace(/'/g, "").split(",")[0].trim();
+
+// Costruisce la query Google Fonts solo per i ruoli senza font custom
+const gFontParts: string[] = [];
+if (!hasCustomHeading)
+	gFontParts.push(
+		`family=${extractFontName(theme.fontHeading)}:wght@400;700`,
+	);
+if (!hasCustomBody)
+	gFontParts.push(`family=${extractFontName(theme.fontBody)}:wght@400;500`);
+const googleFontsHref =
+	gFontParts.length > 0
+		? `https://fonts.googleapis.com/css2?${gFontParts.join("&")}&display=swap`
+		: null;
+
+// Valori finali delle variabili CSS font
+const cssFontHeading = hasCustomHeading
+	? "'CustomHeading', serif"
+	: theme.fontHeading;
+const cssFontBody = hasCustomBody ? "'CustomBody', sans-serif" : theme.fontBody;
 ---
 
 <!doctype html>
@@ -19,11 +45,32 @@ const enabledLangs = __ENABLED_LANGS__;
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title></title>
 
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link
-			href={`https://fonts.googleapis.com/css2?family=${theme.fontHeading}:wght@400;700&family=${theme.fontBody}:wght@400;500&display=swap`}
-			rel="stylesheet"
-		/>
+		{
+			googleFontsHref && (
+				<>
+					<link
+						rel="preconnect"
+						href="https://fonts.googleapis.com"
+					/>
+					<link href={googleFontsHref} rel="stylesheet" />
+				</>
+			)
+		}
+
+		{
+			hasCustomHeading && (
+				<style
+					set:html={`@font-face { font-family: 'CustomHeading'; src: url('${theme.customFonts!.heading}') format('woff2'); font-display: swap; }`}
+				/>
+			)
+		}
+		{
+			hasCustomBody && (
+				<style
+					set:html={`@font-face { font-family: 'CustomBody'; src: url('${theme.customFonts!.body}') format('woff2'); font-display: swap; }`}
+				/>
+			)
+		}
 
 		<style
 			is:global
@@ -32,8 +79,8 @@ const enabledLangs = __ENABLED_LANGS__;
 				"color-secondary": theme.secondary,
 				"color-bg": theme.bg,
 				"color-text": theme.text,
-				"font-heading": theme.fontHeading,
-				"font-body": theme.fontBody,
+				"font-heading": cssFontHeading,
+				"font-body": cssFontBody,
 				"radius-base": theme.radius,
 			}}
 		>

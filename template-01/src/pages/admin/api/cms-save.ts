@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { ClientContentSchema } from '../../../schema/content.schema';
 import { getContent } from '../../../content';
+// @ts-ignore - wawoff2 è un modulo CJS senza dichiarazioni TypeScript
+import { compress as woff2Compress } from 'wawoff2';
 
 export const prerender = false;
 
@@ -121,6 +123,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		if (val) update.theme[field] = val.toString();
 	});
 
+	// Inizializza customFonts conservando i valori correnti
+	const currentCustomFonts = currentContent.theme.customFonts || {};
+	update.theme.customFonts = {
+		heading: currentCustomFonts.heading || '',
+		body: currentCustomFonts.body || ''
+	};
+
 	// Gestione Media e Blob
 	const blobs: Record<string, string> = {};
 
@@ -188,6 +197,52 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		}
 	} else {
 		update.sections.menu.menu_pdfLink = currentContent.sections.menu.menu_pdfLink;
+	}
+
+	// Gestione font personalizzato Heading
+	const fontHeadingFile = formData.get('font_heading_file') as File | null;
+	if (fontHeadingFile && fontHeadingFile.size > 0) {
+		try {
+			let buffer = Buffer.from(await fontHeadingFile.arrayBuffer());
+			let fileName = fontHeadingFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+			if (!fileName.endsWith('.woff2')) {
+				buffer = await woff2Compress(buffer);
+				fileName = fileName.replace(/\.[^/.]+$/, '') + '.woff2';
+			}
+			const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
+				content: buffer.toString('base64'),
+				encoding: 'base64'
+			});
+			if (blobRes.ok) {
+				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
+				update.theme.customFonts.heading = `/media/fonts/${fileName}`;
+			}
+		} catch (e) {
+			console.error('[CMS-SAVE] Errore conversione font heading:', e);
+		}
+	}
+
+	// Gestione font personalizzato Body
+	const fontBodyFile = formData.get('font_body_file') as File | null;
+	if (fontBodyFile && fontBodyFile.size > 0) {
+		try {
+			let buffer = Buffer.from(await fontBodyFile.arrayBuffer());
+			let fileName = fontBodyFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+			if (!fileName.endsWith('.woff2')) {
+				buffer = await woff2Compress(buffer);
+				fileName = fileName.replace(/\.[^/.]+$/, '') + '.woff2';
+			}
+			const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
+				content: buffer.toString('base64'),
+				encoding: 'base64'
+			});
+			if (blobRes.ok) {
+				blobs[`clients/${CLIENT_SLUG}/content/media/fonts/${fileName}`] = (await blobRes.json()).sha;
+				update.theme.customFonts.body = `/media/fonts/${fileName}`;
+			}
+		} catch (e) {
+			console.error('[CMS-SAVE] Errore conversione font body:', e);
+		}
 	}
 
 	// Deep merge tra currentContent e update

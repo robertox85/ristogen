@@ -164,6 +164,57 @@ const content = getContent("it");
 										/>
 									</div>
 								</div>
+								<div class="grid grid-cols-2 gap-6 mt-4">
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Font Heading personalizzato
+											(TTF/WOFF2)</label
+										>
+										<input
+											type="file"
+											name="font_heading_file"
+											accept=".ttf,.woff2"
+											class="w-full text-sm text-gray-900"
+										/>
+										{
+											content.theme.customFonts
+												.heading && (
+												<p class="text-xs text-green-600 mt-1">
+													Caricato:{" "}
+													{
+														content.theme
+															.customFonts.heading
+													}
+												</p>
+											)
+										}
+									</div>
+									<div>
+										<label
+											class="block mb-2 text-sm font-medium text-gray-700"
+											>Font Body personalizzato
+											(TTF/WOFF2)</label
+										>
+										<input
+											type="file"
+											name="font_body_file"
+											accept=".ttf,.woff2"
+											class="w-full text-sm text-gray-900"
+										/>
+										{
+											content.theme.customFonts.body && (
+												<p class="text-xs text-green-600 mt-1">
+													Caricato:{" "}
+													{
+														content.theme
+															.customFonts.body
+													}
+												</p>
+											)
+										}
+									</div>
+								</div>
 								<button
 									type="submit"
 									class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
