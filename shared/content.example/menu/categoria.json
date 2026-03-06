@@ -5,7 +5,7 @@
 			"name": "Nome Piatto",
 			"description": "Descrizione del piatto",
 			"price": "0.00",
-			"image": "/images/menu/piatto.jpg",
+			"image": "/images/menu/piatto.webp",
 			"image_alt": "Nome Piatto",
 			"badge": null,
 			"allergeni": []

@@ -4,7 +4,7 @@
 	"meta": {
 		"title": "Nome Ristorante - Slogan",
 		"description": "Breve descrizione del ristorante.",
-		"og_image": "/images/og.jpg",
+		"og_image": "/images/og.webp",
 		"og_type": "restaurant.restaurant",
 		"og_locale": "it_IT",
 		"og_site_name": "Nome Ristorante",

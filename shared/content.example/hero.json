@@ -2,7 +2,7 @@
 	"enabled": true,
 	"headline": "Titolo principale",
 	"subheadline": "Sottotitolo descrittivo",
-	"image": "/assets/hero.jpg",
+	"image": "/assets/hero.webp",
 	"image_alt": "Descrizione immagine hero",
 	"cta": {
 		"label": "Scopri di più",

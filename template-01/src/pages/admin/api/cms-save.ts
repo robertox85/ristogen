@@ -150,6 +150,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 	// Logica ottimizzata per Hero Image
 	if (heroImage && heroImage.size > 0) {
+		const ext = heroImage.name.split('.').pop()?.toLowerCase() || 'webp';
 		const imgBuf = await heroImage.arrayBuffer();
 		const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 			content: Buffer.from(imgBuf).toString('base64'),
@@ -157,8 +158,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		});
 		if (blobRes.ok) {
 			const blobData = await blobRes.json();
-			blobs[`clients/${CLIENT_SLUG}/content/media/hero.jpg`] = blobData.sha;
-			update.sections.hero.hero_image = '/media/hero.jpg';
+			blobs[`clients/${CLIENT_SLUG}/content/media/hero.${ext}`] = blobData.sha;
+			update.sections.hero.hero_image = `/media/hero.${ext}`;
 		}
 	} else {
 		update.sections.hero.hero_image = currentContent.sections.hero.hero_image;
@@ -166,6 +167,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 	// [Logica simile per aboutImage, galleryImages e menuPdf...]
 	if (aboutImage && aboutImage.size > 0) {
+		const ext = aboutImage.name.split('.').pop()?.toLowerCase() || 'webp';
 		const imgBuf = await aboutImage.arrayBuffer();
 		const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 			content: Buffer.from(imgBuf).toString('base64'),
@@ -173,8 +175,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		});
 		if (blobRes.ok) {
 			const blobData = await blobRes.json();
-			blobs[`clients/${CLIENT_SLUG}/content/media/about.jpg`] = blobData.sha;
-			update.sections.about.about_image = '/media/about.jpg';
+			blobs[`clients/${CLIENT_SLUG}/content/media/about.${ext}`] = blobData.sha;
+			update.sections.about.about_image = `/media/about.${ext}`;
 		}
 	} else {
 		update.sections.about.about_image = currentContent.sections.about.about_image;
@@ -184,6 +186,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		update.sections.gallery.images = [];
 		for (let i = 0; i < galleryImages.length; i++) {
 			const file = galleryImages[i];
+			const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
 			const imgBuf = await file.arrayBuffer();
 			const blobRes = await githubFetch(`/repos/${OWNER}/${REPO}/git/blobs`, 'POST', {
 				content: Buffer.from(imgBuf).toString('base64'),
@@ -191,8 +194,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			});
 			if (blobRes.ok) {
 				const blobData = await blobRes.json();
-				blobs[`clients/${CLIENT_SLUG}/content/media/gallery-${i + 1}.jpg`] = blobData.sha;
-				update.sections.gallery.images.push(`/media/gallery-${i + 1}.jpg`);
+				blobs[`clients/${CLIENT_SLUG}/content/media/gallery-${i + 1}.${ext}`] = blobData.sha;
+				update.sections.gallery.images.push(`/media/gallery-${i + 1}.${ext}`);
 			}
 		}
 	} else {

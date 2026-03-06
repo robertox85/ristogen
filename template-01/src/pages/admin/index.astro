@@ -119,6 +119,9 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 			}
 
 			// ── FORM SUBMIT ─────────────────────────────────────────────────────
+			// Mappa: input element → file/files WebP convertiti (più affidabile di input.files=)
+			const convertedFiles = new Map<HTMLInputElement, File | File[]>();
+
 			document.querySelectorAll("form").forEach((form) => {
 				form.addEventListener("submit", async (e) => {
 					e.preventDefault();
@@ -131,7 +134,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 					}
 					const res = await fetch("/admin/api/cms-save", {
 						method: "POST",
-						body: new FormData(form),
+						body: buildFormData(form),
 					});
 					if (btn) {
 						btn.disabled = false;
@@ -220,6 +223,55 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 			};
 
 			// ── IMAGE & FILE DROPZONES ─────────────────────────────────────────────
+			/** Costruisce un FormData sostituendo i file immagine con le versioni WebP convertite */
+			function buildFormData(form: HTMLFormElement): FormData {
+				const fd = new FormData();
+				for (const el of Array.from(form.elements)) {
+					const field = el as
+						| HTMLInputElement
+						| HTMLTextAreaElement
+						| HTMLSelectElement;
+					if (!field.name) continue;
+					if (
+						field instanceof HTMLInputElement &&
+						field.type === "file"
+					) {
+						const converted = convertedFiles.get(field);
+						if (converted) {
+							// Usa il/i file convertiti in WebP
+							if (Array.isArray(converted)) {
+								converted.forEach((f) =>
+									fd.append(field.name, f),
+								);
+							} else {
+								fd.append(field.name, converted);
+							}
+						} else if (field.files?.length) {
+							// Nessuna conversione effettuata: usa i file originali
+							Array.from(field.files).forEach((f) =>
+								fd.append(field.name, f),
+							);
+						}
+					} else if (
+						field instanceof HTMLInputElement &&
+						field.type === "checkbox"
+					) {
+						if (field.checked) fd.append(field.name, field.value);
+					} else if (
+						field instanceof HTMLInputElement &&
+						field.type === "radio"
+					) {
+						if (field.checked) fd.append(field.name, field.value);
+					} else if ("value" in field && field.value !== undefined) {
+						fd.append(
+							field.name,
+							(field as HTMLInputElement).value,
+						);
+					}
+				}
+				return fd;
+			}
+
 			function initDropzones() {
 				document
 					.querySelectorAll<HTMLElement>("[data-dropzone]")
@@ -287,10 +339,14 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 								setDzConverting(dz, true);
 
 								const webpFile = await convertToWebP(file);
+								convertedFiles.set(input, webpFile); // ← fonte di verità per buildFormData
 								const dt = new DataTransfer();
 								dt.items.add(webpFile);
-								input.files = dt.files;
-
+								try {
+									input.files = dt.files;
+								} catch (_) {
+									/* alcuni browser non lo permettono */
+								}
 								if (thumb) {
 									thumb.src = URL.createObjectURL(webpFile);
 									thumb.style.opacity = "";
@@ -322,6 +378,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 									previews?.appendChild(img);
 								});
 								input.files = dt.files;
+								convertedFiles.set(input, webpFiles); // ← fonte di verità per buildFormData
 								setDzConverting(dz, false);
 								if (dt.files.length === 0) {
 									emptyEl?.classList.remove("hidden");
