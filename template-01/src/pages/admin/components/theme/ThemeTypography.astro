@@ -331,3 +331,78 @@ const { theme } = Astro.props;
 		</div>
 	</div>
 </div>
+
+<script>
+	// ── FONT SELECTOR: toggle Standard / Custom per Heading e Body ────────────
+	function initFontSelector(role: string, selectId: string) {
+		const standardRadio = document.querySelector<HTMLInputElement>(
+			`input[name="font_${role}_mode"][value="standard"]`,
+		);
+		const customRadio = document.querySelector<HTMLInputElement>(
+			`input[name="font_${role}_mode"][value="custom"]`,
+		);
+		const standardPanel = document.getElementById(`${role}-standard-panel`);
+		const customPanel = document.getElementById(`${role}-custom-panel`);
+		const select = document.getElementById(
+			selectId,
+		) as HTMLSelectElement | null;
+
+		function applyMode(mode: string) {
+			if (mode === "standard") {
+				standardPanel?.classList.remove("hidden");
+				customPanel?.classList.add("hidden");
+				if (select) select.disabled = false;
+			} else {
+				standardPanel?.classList.add("hidden");
+				customPanel?.classList.remove("hidden");
+				if (select) select.disabled = true;
+			}
+		}
+
+		// Sincronizza con il radio già checked al caricamento
+		applyMode(customRadio?.checked ? "custom" : "standard");
+
+		standardRadio?.addEventListener("change", () => applyMode("standard"));
+		customRadio?.addEventListener("change", () => applyMode("custom"));
+	}
+
+	initFontSelector("heading", "select-fontHeading");
+	initFontSelector("body", "select-fontBody");
+
+	// ── Font Size Base: converte px → rem per l'input nascosto ────────────────
+	const fsRange = document.getElementById(
+		"fs-base-range",
+	) as HTMLInputElement | null;
+	const fsHidden = document.getElementById(
+		"fs-base-hidden",
+	) as HTMLInputElement | null;
+	const fsVal = document.getElementById("fs-base-val");
+
+	fsRange?.addEventListener("input", () => {
+		const rem = (parseFloat(fsRange.value) / 16)
+			.toFixed(4)
+			.replace(/\.?0+$/, "");
+		const v = `${rem}rem`;
+		if (fsHidden) fsHidden.value = v;
+		if (fsVal) fsVal.textContent = v;
+	});
+
+	// ── Line Height ─────────────────────────────────────────────────────────
+	const lhHRange = document.getElementById(
+		"lh-heading-range",
+	) as HTMLInputElement | null;
+	const lhHVal = document.getElementById("lh-heading-val");
+
+	lhHRange?.addEventListener("input", () => {
+		if (lhHVal) lhHVal.textContent = lhHRange.value;
+	});
+
+	const lhBRange = document.getElementById(
+		"lh-body-range",
+	) as HTMLInputElement | null;
+	const lhBVal = document.getElementById("lh-body-val");
+
+	lhBRange?.addEventListener("input", () => {
+		if (lhBVal) lhBVal.textContent = lhBRange.value;
+	});
+</script>

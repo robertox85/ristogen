@@ -70,667 +70,78 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 		<div id="toastr" class="fixed top-6 right-6 z-50 flex flex-col gap-2">
 		</div>
 		<script>
-			document.addEventListener("DOMContentLoaded", () => {
-				// Tab logic
-				const tabBtns = document.querySelectorAll(".tab-btn");
-				const tabSections = document.querySelectorAll(".tab-section");
-				let activeTab = tabBtns[0];
-				function setActiveTab(btn) {
-					activeTab.classList.remove(
-						"bg-indigo-50",
-						"text-indigo-700",
-					);
-					btn.classList.add("bg-indigo-50", "text-indigo-700");
-					activeTab = btn;
-				}
-				setActiveTab(activeTab);
+			// ── TAB NAVIGATION ──────────────────────────────────────────────────
+			// Gli script dei componenti (Sidebar, PreviewPanel, ThemeTypography, …)
+			// sono autonomi. index.astro gestisce solo la navigazione fra sezioni,
+			// il toastr e il submit dei form.
+			const tabBtns = document.querySelectorAll<HTMLElement>(".tab-btn");
+			const tabSections = document.querySelectorAll(".tab-section");
+			let activeTab = tabBtns[0] as HTMLElement;
 
-				// Font selector: toggle tra Google Fonts e upload personalizzato
-				function initFontSelector(role: string, selectId: string) {
-					const standardRadio = document.querySelector(
-						`input[name="font_${role}_mode"][value="standard"]`,
-					) as HTMLInputElement | null;
-					const customRadio = document.querySelector(
-						`input[name="font_${role}_mode"][value="custom"]`,
-					) as HTMLInputElement | null;
-					const standardPanel = document.getElementById(
-						`${role}-standard-panel`,
-					);
-					const customPanel = document.getElementById(
-						`${role}-custom-panel`,
-					);
-					const select = document.getElementById(
-						selectId,
-					) as HTMLSelectElement | null;
+			function setActiveTab(btn: HTMLElement) {
+				activeTab.classList.remove("bg-indigo-50", "text-indigo-700");
+				btn.classList.add("bg-indigo-50", "text-indigo-700");
+				activeTab = btn;
+			}
+			setActiveTab(activeTab);
 
-					function applyMode(mode: string) {
-						if (mode === "standard") {
-							standardPanel?.classList.remove("hidden");
-							customPanel?.classList.add("hidden");
-							if (select) select.disabled = false;
-						} else {
-							standardPanel?.classList.add("hidden");
-							customPanel?.classList.remove("hidden");
-							if (select) select.disabled = true;
-						}
-					}
-
-					// Applica lo stato iniziale (sincronizza disabled con checked iniziale)
-					applyMode(customRadio?.checked ? "custom" : "standard");
-
-					standardRadio?.addEventListener("change", () =>
-						applyMode("standard"),
-					);
-					customRadio?.addEventListener("change", () =>
-						applyMode("custom"),
-					);
-				}
-
-				initFontSelector("heading", "select-fontHeading");
-				initFontSelector("body", "select-fontBody");
-
-				// Slider: Section Padding (rem)
-				const spRange = document.getElementById(
-					"sp-range",
-				) as HTMLInputElement | null;
-				const spHidden = document.getElementById(
-					"sp-hidden",
-				) as HTMLInputElement | null;
-				const spVal = document.getElementById("sp-val");
-				spRange?.addEventListener("input", () => {
-					const v = `${spRange.value}rem`;
-					if (spHidden) spHidden.value = v;
-					if (spVal) spVal.textContent = v;
+			tabBtns.forEach((btn) => {
+				btn.addEventListener("click", () => {
+					tabSections.forEach((sec) => sec.classList.add("hidden"));
+					const tabId = btn.dataset?.tab;
+					if (tabId)
+						document
+							.getElementById(tabId)
+							?.classList.remove("hidden");
+					setActiveTab(btn);
 				});
+			});
 
-				// Slider: Spacing (rem)
-				const spcRange = document.getElementById(
-					"spc-range",
-				) as HTMLInputElement | null;
-				const spcHidden = document.getElementById(
-					"spc-hidden",
-				) as HTMLInputElement | null;
-				const spcVal = document.getElementById("spc-val");
-				spcRange?.addEventListener("input", () => {
-					const v = `${spcRange.value}rem`;
-					if (spcHidden) spcHidden.value = v;
-					if (spcVal) spcVal.textContent = v;
-				});
+			// ── TOASTR ──────────────────────────────────────────────────────────
+			function showToastr(
+				msg: string,
+				type: "success" | "error" = "success",
+			) {
+				const toastr = document.getElementById("toastr");
+				if (!toastr) return;
+				const el = document.createElement("div");
+				el.className = `px-4 py-2 rounded-lg shadow-lg font-semibold text-sm mb-2 flex items-center gap-2 transition-all duration-300 ${
+					type === "success"
+						? "bg-green-500 text-white"
+						: "bg-red-500 text-white"
+				}`;
+				el.textContent = msg;
+				toastr.appendChild(el);
+				setTimeout(() => {
+					el.classList.add("opacity-0");
+					setTimeout(() => toastr.removeChild(el), 400);
+				}, 2200);
+			}
 
-				// Slider: Border Radius (px)
-				const radiusRange = document.getElementById(
-					"radius-range",
-				) as HTMLInputElement | null;
-				const radiusHidden = document.getElementById(
-					"radius-hidden",
-				) as HTMLInputElement | null;
-				const radiusVal = document.getElementById("radius-val");
-				radiusRange?.addEventListener("input", () => {
-					const v = `${radiusRange.value}px`;
-					if (radiusHidden) radiusHidden.value = v;
-					if (radiusVal) radiusVal.textContent = v;
-				});
-
-				// Slider: Font Size Base (px → rem)
-				const fsRange = document.getElementById(
-					"fs-base-range",
-				) as HTMLInputElement | null;
-				const fsHidden = document.getElementById(
-					"fs-base-hidden",
-				) as HTMLInputElement | null;
-				const fsVal = document.getElementById("fs-base-val");
-				fsRange?.addEventListener("input", () => {
-					const px = parseFloat(fsRange.value);
-					const rem = (px / 16).toFixed(4).replace(/\.?0+$/, "");
-					const v = `${rem}rem`;
-					if (fsHidden) fsHidden.value = v;
-					if (fsVal) fsVal.textContent = v;
-				});
-
-				// Slider: Line Height Heading
-				const lhHRange = document.getElementById(
-					"lh-heading-range",
-				) as HTMLInputElement | null;
-				const lhHVal = document.getElementById("lh-heading-val");
-				lhHRange?.addEventListener("input", () => {
-					if (lhHVal) lhHVal.textContent = lhHRange.value;
-				});
-
-				// Slider: Line Height Body
-				const lhBRange = document.getElementById(
-					"lh-body-range",
-				) as HTMLInputElement | null;
-				const lhBVal = document.getElementById("lh-body-val");
-				lhBRange?.addEventListener("input", () => {
-					if (lhBVal) lhBVal.textContent = lhBRange.value;
-				});
-
-				// Gerarchia Titoli — slider rem (H1, H2, H3)
-				const makeRemSlider = (
-					rangeId: string,
-					hiddenId: string,
-					valId: string,
-				) => {
-					const range = document.getElementById(
-						rangeId,
-					) as HTMLInputElement | null;
-					const hidden = document.getElementById(
-						hiddenId,
-					) as HTMLInputElement | null;
-					const val = document.getElementById(valId);
-					range?.addEventListener("input", () => {
-						const v = `${range.value}rem`;
-						if (hidden) hidden.value = v;
-						if (val) val.textContent = v;
-					});
-				};
-				makeRemSlider("fsh1-range", "fsh1-hidden", "fsh1-val");
-				makeRemSlider("fsh2-range", "fsh2-hidden", "fsh2-val");
-				makeRemSlider("fsh3-range", "fsh3-hidden", "fsh3-val");
-
-				// Gerarchia Titoli — slider letter-spacing (centesimi di em)
-				const makeLsSlider = (
-					rangeId: string,
-					hiddenId: string,
-					valId: string,
-				) => {
-					const range = document.getElementById(
-						rangeId,
-					) as HTMLInputElement | null;
-					const hidden = document.getElementById(
-						hiddenId,
-					) as HTMLInputElement | null;
-					const val = document.getElementById(valId);
-					range?.addEventListener("input", () => {
-						const n = parseFloat(range.value) / 100;
-						const v = `${n.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") || "0"}em`;
-						if (hidden) hidden.value = v;
-						if (val) val.textContent = v;
-					});
-				};
-				makeLsSlider("lsh1-range", "lsh1-hidden", "lsh1-val");
-				makeLsSlider("lsh2-range", "lsh2-hidden", "lsh2-val");
-
-				// Gerarchia Titoli — mobile scale (aggiorna solo label, valore va direttamente in FormData)
-				const mobH1Range = document.getElementById(
-					"mob-h1-range",
-				) as HTMLInputElement | null;
-				const mobH1Val = document.getElementById("mob-h1-val");
-				mobH1Range?.addEventListener("input", () => {
-					if (mobH1Val) mobH1Val.textContent = `${mobH1Range.value}%`;
-				});
-				const mobH2Range = document.getElementById(
-					"mob-h2-range",
-				) as HTMLInputElement | null;
-				const mobH2Val = document.getElementById("mob-h2-val");
-				mobH2Range?.addEventListener("input", () => {
-					if (mobH2Val) mobH2Val.textContent = `${mobH2Range.value}%`;
-				});
-
-				tabBtns.forEach((btn) => {
-					btn.addEventListener("click", () => {
-						tabSections.forEach((sec) =>
-							sec.classList.add("hidden"),
-						);
-						const tabId =
-							btn instanceof HTMLElement && btn.dataset
-								? btn.dataset.tab
-								: null;
-						if (tabId) {
-							const tabSection = document.getElementById(tabId);
-							if (tabSection)
-								tabSection.classList.remove("hidden");
-						}
-						setActiveTab(btn);
-					});
-				});
-
-				// Toastr feedback
-				function showToastr(msg, type = "success") {
-					const toastr = document.getElementById("toastr");
-					const el = document.createElement("div");
-					el.className = `px-4 py-2 rounded-lg shadow-lg font-semibold text-sm mb-2 flex items-center gap-2 transition-all duration-300 ${type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`;
-					el.textContent = msg;
-					toastr.appendChild(el);
-					setTimeout(() => {
-						el.classList.add("opacity-0");
-						setTimeout(() => toastr.removeChild(el), 400);
-					}, 2200);
-				}
-
-				// Inizializza Quill editor per About
-				// Usiamo text-change per tenere l'input nascosto sempre aggiornato
-				// (evita race condition con il listener submit generico)
-				const aboutInput = document.querySelector(
-					'input[name="about_text"]',
-				);
-				const quill = new Quill("#editor-about", { theme: "snow" });
-				if (aboutInput?.value) {
-					quill.root.innerHTML = aboutInput.value;
-				}
-				quill.on("text-change", () => {
-					if (aboutInput) aboutInput.value = quill.root.innerHTML;
-				});
-				// Logica di invio FormData e gestione stato pulsante
-				document.querySelectorAll("form").forEach((form) => {
-					form.addEventListener("submit", async (e) => {
-						e.preventDefault();
-						const btn = form.querySelector('button[type="submit"]');
-						if (btn instanceof HTMLButtonElement) {
-							btn.disabled = true;
-							btn.textContent = "Sincronizzazione...";
-						}
-						const formData = new FormData(form);
-						const res = await fetch("/admin/api/cms-save", {
-							method: "POST",
-							body: formData,
-						});
-						if (btn instanceof HTMLButtonElement) {
-							btn.disabled = false;
-							btn.textContent = "Salva";
-						}
-						if (res.ok) {
-							showToastr("Salvato!", "success");
-						} else {
-							showToastr("Errore salvataggio", "error");
-						}
-					});
-				});
-
-				// ── LIVE PREVIEW ─────────────────────────────────────────────────
-				const previewFrame = document.getElementById(
-					"preview-frame",
-				) as HTMLIFrameElement | null;
-
-				// postMessage-based injection: works regardless di timing e CORS-ready
-				function previewSetVar(name: string, value: string) {
-					previewFrame?.contentWindow?.postMessage(
-						{ type: "setVar", name, value },
-						location.origin,
-					);
-				}
-				function previewLoadFont(fontFamily: string) {
-					previewFrame?.contentWindow?.postMessage(
-						{ type: "loadFont", fontFamily },
-						location.origin,
-					);
-				}
-
-				// Mappa: nome input → CSS var + trasformazione opzionale
-				const THEME_VAR_MAP: Record<
-					string,
-					{ cssVar: string; transform?: (v: string) => string }
-				> = {
-					theme_primary: { cssVar: "--color-primary" },
-					theme_secondary: { cssVar: "--color-secondary" },
-					theme_bg: { cssVar: "--color-bg" },
-					theme_text: { cssVar: "--color-text" },
-					theme_fontWeightHeading: {
-						cssVar: "--font-weight-heading",
-					},
-					theme_fontWeightBody: { cssVar: "--font-weight-body" },
-					theme_lineHeightHeading: {
-						cssVar: "--line-height-heading",
-					},
-					theme_lineHeightBody: { cssVar: "--line-height-body" },
-					theme_textAlign: { cssVar: "--text-align-base" },
-					theme_fontSizeBase: { cssVar: "--font-size-base" },
-					theme_sectionPadding: { cssVar: "--section-padding" },
-					theme_spacing: { cssVar: "--spacing-base" },
-					theme_radius: { cssVar: "--radius-base" },
-					theme_fsH1: { cssVar: "--fs-h1" },
-					theme_fsH2: { cssVar: "--fs-h2" },
-					theme_fsH3: { cssVar: "--fs-h3" },
-					theme_letterSpacingH1: { cssVar: "--ls-h1" },
-					theme_letterSpacingH2: { cssVar: "--ls-h2" },
-					theme_mobileScaleH1: {
-						cssVar: "--mobile-scale-h1",
-						transform: (v) => (parseFloat(v) / 100).toFixed(2),
-					},
-					theme_mobileScaleH2: {
-						cssVar: "--mobile-scale-h2",
-						transform: (v) => (parseFloat(v) / 100).toFixed(2),
-					},
-				};
-
-				// Ascolta tutti gli input nel form theme → inietta via postMessage
-				const themeForm = document.getElementById("form-theme");
-				themeForm?.addEventListener("input", (e) => {
-					const target = e.target as HTMLInputElement;
-					const name = target.name;
-					if (!name) return;
-					if (name === "theme_fontHeading") {
-						previewSetVar("--font-heading", target.value);
-						previewLoadFont(target.value);
-						return;
-					}
-					if (name === "theme_fontBody") {
-						previewSetVar("--font-body", target.value);
-						previewLoadFont(target.value);
-						return;
-					}
-					const entry = THEME_VAR_MAP[name];
-					if (!entry) return;
-					previewSetVar(
-						entry.cssVar,
-						entry.transform
-							? entry.transform(target.value)
-							: target.value,
-					);
-				});
-
-				// Range sliders → live inject (via ID, non via name perché gli hidden non emettono input)
-				const RANGE_PREVIEW: [
-					string,
-					string,
-					((v: string) => string)?,
-				][] = [
-					["sp-range", "--section-padding", (v) => `${v}rem`],
-					["spc-range", "--spacing-base", (v) => `${v}rem`],
-					["radius-range", "--radius-base", (v) => `${v}px`],
-					[
-						"fs-base-range",
-						"--font-size-base",
-						(v) =>
-							`${(parseFloat(v) / 16).toFixed(4).replace(/\.?0+$/, "")}rem`,
-					],
-					["fsh1-range", "--fs-h1", (v) => `${v}rem`],
-					["fsh2-range", "--fs-h2", (v) => `${v}rem`],
-					["fsh3-range", "--fs-h3", (v) => `${v}rem`],
-					[
-						"lsh1-range",
-						"--ls-h1",
-						(v) => {
-							const n = parseFloat(v) / 100;
-							return `${n.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") || "0"}em`;
-						},
-					],
-					[
-						"lsh2-range",
-						"--ls-h2",
-						(v) => {
-							const n = parseFloat(v) / 100;
-							return `${n.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") || "0"}em`;
-						},
-					],
-					[
-						"mob-h1-range",
-						"--mobile-scale-h1",
-						(v) => (parseFloat(v) / 100).toFixed(2),
-					],
-					[
-						"mob-h2-range",
-						"--mobile-scale-h2",
-						(v) => (parseFloat(v) / 100).toFixed(2),
-					],
-					["lh-heading-range", "--line-height-heading"],
-					["lh-body-range", "--line-height-body"],
-				];
-				RANGE_PREVIEW.forEach(([rangeId, cssVar, transform]) => {
-					const range = document.getElementById(
-						rangeId,
-					) as HTMLInputElement | null;
-					range?.addEventListener("input", () =>
-						previewSetVar(
-							cssVar,
-							transform ? transform(range.value) : range.value,
-						),
-					);
-				});
-
-				// Re-applica tutti i vars sull'iframe dopo ogni caricamento
-				function applyAllVarsToPreview() {
-					const form = document.getElementById(
-						"form-theme",
-					) as HTMLFormElement | null;
-					if (!form) return;
-					new FormData(form).forEach((value, key) => {
-						if (typeof value !== "string") return;
-						if (key === "theme_fontHeading") {
-							previewSetVar("--font-heading", value);
-							previewLoadFont(value);
-							return;
-						}
-						if (key === "theme_fontBody") {
-							previewSetVar("--font-body", value);
-							previewLoadFont(value);
-							return;
-						}
-						const entry = THEME_VAR_MAP[key];
-						if (!entry) return;
-						previewSetVar(
-							entry.cssVar,
-							entry.transform ? entry.transform(value) : value,
-						);
-					});
-				}
-				previewFrame?.addEventListener("load", applyAllVarsToPreview);
-
-				// Desktop / Mobile view toggle
-				const previewWrapper = document.getElementById(
-					"preview-wrapper",
-				) as HTMLElement | null;
-				const btnDesktop = document.getElementById("btn-desktop");
-				const btnMobile = document.getElementById("btn-mobile");
-				const ACT = [
-					"bg-indigo-50",
-					"text-indigo-700",
-					"border-indigo-300",
-				];
-				const INACT = ["text-gray-600", "border-gray-200"];
-				function setViewMode(mode: "desktop" | "mobile") {
-					if (!previewWrapper) return;
-					if (mode === "mobile") {
-						previewWrapper.style.cssText =
-							"width:375px;height:812px;overflow:hidden;";
-						btnMobile?.classList.add(...ACT);
-						btnMobile?.classList.remove(...INACT);
-						btnDesktop?.classList.remove(...ACT);
-						btnDesktop?.classList.add(...INACT);
-					} else {
-						previewWrapper.style.cssText =
-							"width:100%;height:100%;";
-						btnDesktop?.classList.add(...ACT);
-						btnDesktop?.classList.remove(...INACT);
-						btnMobile?.classList.remove(...ACT);
-						btnMobile?.classList.add(...INACT);
-					}
-				}
-				btnDesktop?.addEventListener("click", () =>
-					setViewMode("desktop"),
-				);
-				btnMobile?.addEventListener("click", () =>
-					setViewMode("mobile"),
-				);
-
-				// Tipografia toggle (homepage ↔ typography-test)
-				const btnTypo = document.getElementById("btn-typography");
-				let typoActive = false;
-				btnTypo?.addEventListener("click", () => {
-					typoActive = !typoActive;
-					if (previewFrame)
-						previewFrame.src = typoActive
-							? "/admin/typography-test"
-							: "/";
-					btnTypo.classList.toggle("bg-indigo-50", typoActive);
-					btnTypo.classList.toggle("text-indigo-700", typoActive);
-					btnTypo.classList.toggle("border-indigo-300", typoActive);
-					btnTypo.classList.toggle("text-gray-600", !typoActive);
-					btnTypo.classList.toggle("border-gray-200", !typoActive);
-				});
-
-				// ── SIDEBAR TOGGLE ──────────────────────────────────────────────────
-				const sidebar = document.getElementById(
-					"sidebar",
-				) as HTMLElement | null;
-				const sidebarHeader = document.getElementById("sidebar-header");
-				const sidebarBrand = document.getElementById("sidebar-brand");
-				const btnSidebarToggle =
-					document.getElementById("btn-sidebar-toggle");
-				const sidebarToggleIcon = document.getElementById(
-					"sidebar-toggle-icon",
-				) as HTMLElement | null;
-				const sidebarLabels =
-					document.querySelectorAll(".sidebar-label");
-				let sidebarOpen = true;
-
-				function setSidebar(open: boolean) {
-					sidebarOpen = open;
-					if (!sidebar) return;
-					// Rimuovi qualsiasi override inline residuo
-					sidebar.style.cssText = "";
-
-					const allBtns = Array.from(
-						document.querySelectorAll<HTMLElement>(
-							".tab-btn, #btn-preview-toggle",
-						),
-					);
-
-					if (open) {
-						sidebar.classList.remove("w-14");
-						sidebar.classList.add("w-52");
-						// Header: torna justify-between
-						sidebarHeader?.classList.remove("justify-center");
-						sidebarHeader?.classList.add("justify-between");
-						// Brand visibile
-						sidebarBrand?.classList.remove("hidden");
-						// Labels visibili
-						sidebarLabels.forEach((el) =>
-							(el as HTMLElement).classList.remove("hidden"),
-						);
-						// Bottoni: torna layout normale
-						allBtns.forEach((btn) => {
-							btn.classList.remove("justify-center");
-							btn.classList.add("gap-3");
-						});
-						// Icona toggle: punta a sinistra
-						if (sidebarToggleIcon)
-							sidebarToggleIcon.style.transform = "rotate(0deg)";
-					} else {
-						sidebar.classList.remove("w-52");
-						sidebar.classList.add("w-14");
-						// Header: centra il solo toggle button
-						sidebarHeader?.classList.remove("justify-between");
-						sidebarHeader?.classList.add("justify-center");
-						// Brand nascosto
-						sidebarBrand?.classList.add("hidden");
-						// Labels nascosti
-						sidebarLabels.forEach((el) =>
-							(el as HTMLElement).classList.add("hidden"),
-						);
-						// Bottoni: centra icona
-						allBtns.forEach((btn) => {
-							btn.classList.add("justify-center");
-							btn.classList.remove("gap-3");
-						});
-						// Icona toggle: punta a destra
-						if (sidebarToggleIcon)
-							sidebarToggleIcon.style.transform =
-								"rotate(180deg)";
-					}
-				}
-				btnSidebarToggle?.addEventListener("click", () =>
-					setSidebar(!sidebarOpen),
-				);
-
-				// ── PREVIEW PANEL TOGGLE + RESIZE ──────────────────────────────────
-				const previewPanel = document.getElementById(
-					"preview-panel",
-				) as HTMLElement | null;
-				const controlPanel = document.getElementById(
-					"control-panel",
-				) as HTMLElement | null;
-				const resizeHandle = document.getElementById(
-					"resize-handle",
-				) as HTMLElement | null;
-				const btnPreviewToggle =
-					document.getElementById("btn-preview-toggle");
-				const btnClosePreview =
-					document.getElementById("btn-close-preview");
-				let previewOpen = false;
-				let sidebarStateBeforePreview = true;
-
-				function setPreview(open: boolean) {
-					previewOpen = open;
-					if (open) {
-						sidebarStateBeforePreview = sidebarOpen;
-						previewPanel?.classList.remove("hidden");
-						resizeHandle?.classList.remove("hidden");
-						if (controlPanel)
-							controlPanel.style.cssText =
-								"width:380px;flex-shrink:0;";
-						if (previewPanel)
-							previewPanel.style.cssText =
-								"flex:1;min-width:200px;";
-						// Collassa sidebar (non nasconde, così rimangono le icone navigabili)
-						setSidebar(false);
-					} else {
-						previewPanel?.classList.add("hidden");
-						resizeHandle?.classList.add("hidden");
-						if (controlPanel)
-							controlPanel.style.cssText = "flex:1;min-width:0;";
-						if (previewPanel) previewPanel.style.cssText = "";
-						// Ripristina stato sidebar precedente
-						setSidebar(sidebarStateBeforePreview);
-					}
-					const label = document.getElementById("preview-label");
-					if (label)
-						label.textContent = open
-							? "Chiudi Preview"
-							: "Live Preview";
-					if (open) setTimeout(applyAllVarsToPreview, 200);
-				}
-
-				// Drag-to-resize
-				let isResizing = false;
-				resizeHandle?.addEventListener("mousedown", (e) => {
+			// ── FORM SUBMIT ─────────────────────────────────────────────────────
+			document.querySelectorAll("form").forEach((form) => {
+				form.addEventListener("submit", async (e) => {
 					e.preventDefault();
-					isResizing = true;
-					document.body.style.cursor = "col-resize";
-					document.body.style.userSelect = "none";
-				});
-				document.addEventListener("mousemove", (e) => {
-					if (!isResizing || !controlPanel || !previewPanel) return;
-					const container = controlPanel.parentElement;
-					if (!container) return;
-					const rect = container.getBoundingClientRect();
-					const sidebarW = sidebar ? sidebar.offsetWidth : 0;
-					const handleW = resizeHandle ? resizeHandle.offsetWidth : 6;
-					const available = rect.width - sidebarW - handleW;
-					let newControlW = e.clientX - rect.left - sidebarW;
-					// Snap a valori predefiniti (320, 380, 480, 600)
-					const snaps = [320, 380, 480, 600];
-					const snap = snaps.find(
-						(s) => Math.abs(newControlW - s) < 20,
+					const btn = form.querySelector<HTMLButtonElement>(
+						'button[type="submit"]',
 					);
-					if (snap) newControlW = snap;
-					// Limiti min/max
-					newControlW = Math.max(
-						280,
-						Math.min(available - 200, newControlW),
+					if (btn) {
+						btn.disabled = true;
+						btn.textContent = "Sincronizzazione...";
+					}
+					const res = await fetch("/admin/api/cms-save", {
+						method: "POST",
+						body: new FormData(form),
+					});
+					if (btn) {
+						btn.disabled = false;
+						btn.textContent = "Salva";
+					}
+					showToastr(
+						res.ok ? "Salvato!" : "Errore salvataggio",
+						res.ok ? "success" : "error",
 					);
-					controlPanel.style.cssText = `width:${newControlW}px;flex-shrink:0;`;
-					previewPanel.style.cssText = `flex:1;min-width:200px;`;
 				});
-				document.addEventListener("mouseup", () => {
-					if (!isResizing) return;
-					isResizing = false;
-					document.body.style.cursor = "";
-					document.body.style.userSelect = "";
-				});
-
-				btnPreviewToggle?.addEventListener("click", () =>
-					setPreview(!previewOpen),
-				);
-				btnClosePreview?.addEventListener("click", () =>
-					setPreview(false),
-				);
-
-				// ── INIT MOBILE ─────────────────────────────────────────────────────
-				// Su schermi piccoli la sidebar parte collassata automaticamente
-				if (window.innerWidth < 768) {
-					setSidebar(false);
-				}
 			});
 		</script>
 	</body>

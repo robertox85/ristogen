@@ -105,3 +105,40 @@ const { theme } = Astro.props;
 		</div>
 	</div>
 </div>
+
+<script>
+	// ── SLIDER REM: aggiorna hidden input e label ─────────────────────────────
+	function bindRemSlider(rangeId: string, hiddenId: string, valId: string) {
+		const range = document.getElementById(
+			rangeId,
+		) as HTMLInputElement | null;
+		const hidden = document.getElementById(
+			hiddenId,
+		) as HTMLInputElement | null;
+		const val = document.getElementById(valId);
+
+		range?.addEventListener("input", () => {
+			const v = `${range.value}rem`;
+			if (hidden) hidden.value = v;
+			if (val) val.textContent = v;
+		});
+	}
+
+	bindRemSlider("sp-range", "sp-hidden", "sp-val");
+	bindRemSlider("spc-range", "spc-hidden", "spc-val");
+
+	// ── Border Radius (px) ──────────────────────────────────────────────
+	const radiusRange = document.getElementById(
+		"radius-range",
+	) as HTMLInputElement | null;
+	const radiusHidden = document.getElementById(
+		"radius-hidden",
+	) as HTMLInputElement | null;
+	const radiusVal = document.getElementById("radius-val");
+
+	radiusRange?.addEventListener("input", () => {
+		const v = `${radiusRange.value}px`;
+		if (radiusHidden) radiusHidden.value = v;
+		if (radiusVal) radiusVal.textContent = v;
+	});
+</script>

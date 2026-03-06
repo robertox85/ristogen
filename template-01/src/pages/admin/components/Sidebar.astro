@@ -150,3 +150,74 @@
 		</button>
 	</div>
 </aside>
+
+<script>
+	// ── SIDEBAR TOGGLE ──────────────────────────────────────────────────────────
+	const sidebar = document.getElementById("sidebar") as HTMLElement | null;
+	const sidebarHeader = document.getElementById("sidebar-header");
+	const sidebarBrand = document.getElementById("sidebar-brand");
+	const toggleIcon = document.getElementById(
+		"sidebar-toggle-icon",
+	) as HTMLElement | null;
+	const sidebarLabels =
+		document.querySelectorAll<HTMLElement>(".sidebar-label");
+
+	let sidebarOpen = true;
+
+	function setSidebar(open: boolean) {
+		sidebarOpen = open;
+		if (!sidebar) return;
+		sidebar.style.cssText = "";
+
+		const navBtns = Array.from(
+			document.querySelectorAll<HTMLElement>(
+				".tab-btn, #btn-preview-toggle",
+			),
+		);
+
+		if (open) {
+			sidebar.classList.replace("w-14", "w-52");
+			sidebarHeader?.classList.replace(
+				"justify-center",
+				"justify-between",
+			);
+			sidebarBrand?.classList.remove("hidden");
+			sidebarLabels.forEach((el) => el.classList.remove("hidden"));
+			navBtns.forEach((btn) => {
+				btn.classList.remove("justify-center");
+				btn.classList.add("gap-3");
+			});
+			if (toggleIcon) toggleIcon.style.transform = "rotate(0deg)";
+		} else {
+			sidebar.classList.replace("w-52", "w-14");
+			sidebarHeader?.classList.replace(
+				"justify-between",
+				"justify-center",
+			);
+			sidebarBrand?.classList.add("hidden");
+			sidebarLabels.forEach((el) => el.classList.add("hidden"));
+			navBtns.forEach((btn) => {
+				btn.classList.add("justify-center");
+				btn.classList.remove("gap-3");
+			});
+			if (toggleIcon) toggleIcon.style.transform = "rotate(180deg)";
+		}
+
+		// Notifica ad altri componenti lo stato aggiornato
+		document.dispatchEvent(
+			new CustomEvent("admin:sidebarChanged", { detail: { open } }),
+		);
+	}
+
+	document
+		.getElementById("btn-sidebar-toggle")
+		?.addEventListener("click", () => setSidebar(!sidebarOpen));
+
+	// Riceve richieste da altri componenti (es. PreviewPanel → chiudi per fare spazio)
+	document.addEventListener("admin:setSidebar", (e: Event) => {
+		setSidebar((e as CustomEvent<{ open: boolean }>).detail.open);
+	});
+
+	// Collassa automaticamente su schermi piccoli
+	if (window.innerWidth < 768) setSidebar(false);
+</script>

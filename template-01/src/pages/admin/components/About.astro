@@ -64,3 +64,23 @@ const { content } = Astro.props;
 		</form>
 	</div>
 </section>
+
+<script>
+	// ── QUILL RICH TEXT EDITOR ────────────────────────────────────────────────
+	// Mantiene l'input nascosto sincronizzato ad ogni modifica,
+	// evitando race condition con il listener submit generico in index.astro.
+	document.addEventListener("DOMContentLoaded", () => {
+		const aboutInput = document.querySelector<HTMLInputElement>(
+			'input[name="about_text"]',
+		);
+		const quill = new Quill("#editor-about", { theme: "snow" });
+
+		if (aboutInput?.value) {
+			quill.root.innerHTML = aboutInput.value;
+		}
+
+		quill.on("text-change", () => {
+			if (aboutInput) aboutInput.value = quill.root.innerHTML;
+		});
+	});
+</script>

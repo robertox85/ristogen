@@ -255,3 +255,70 @@ const { theme } = Astro.props;
 		</div>
 	</div>
 </div>
+
+<script>
+	// ── SLIDER REM: aggiorna hidden input e label di visualizzazione ──────────
+	function bindRemSlider(rangeId: string, hiddenId: string, valId: string) {
+		const range = document.getElementById(
+			rangeId,
+		) as HTMLInputElement | null;
+		const hidden = document.getElementById(
+			hiddenId,
+		) as HTMLInputElement | null;
+		const val = document.getElementById(valId);
+
+		range?.addEventListener("input", () => {
+			const v = `${range.value}rem`;
+			if (hidden) hidden.value = v;
+			if (val) val.textContent = v;
+		});
+	}
+
+	// ── SLIDER LETTER-SPACING: centesimi di em (es: 5 → 0.05em) ──────────────
+	function bindLetterSpacingSlider(
+		rangeId: string,
+		hiddenId: string,
+		valId: string,
+	) {
+		const range = document.getElementById(
+			rangeId,
+		) as HTMLInputElement | null;
+		const hidden = document.getElementById(
+			hiddenId,
+		) as HTMLInputElement | null;
+		const val = document.getElementById(valId);
+
+		range?.addEventListener("input", () => {
+			const n = parseFloat(range.value) / 100;
+			const v = `${n.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") || "0"}em`;
+			if (hidden) hidden.value = v;
+			if (val) val.textContent = v;
+		});
+	}
+
+	bindRemSlider("fsh1-range", "fsh1-hidden", "fsh1-val");
+	bindRemSlider("fsh2-range", "fsh2-hidden", "fsh2-val");
+	bindRemSlider("fsh3-range", "fsh3-hidden", "fsh3-val");
+
+	bindLetterSpacingSlider("lsh1-range", "lsh1-hidden", "lsh1-val");
+	bindLetterSpacingSlider("lsh2-range", "lsh2-hidden", "lsh2-val");
+
+	// ── MOBILE SCALE: aggiorna solo la label (il valore va direttamente in FormData)
+	const mobH1Range = document.getElementById(
+		"mob-h1-range",
+	) as HTMLInputElement | null;
+	const mobH1Val = document.getElementById("mob-h1-val");
+
+	mobH1Range?.addEventListener("input", () => {
+		if (mobH1Val) mobH1Val.textContent = `${mobH1Range.value}%`;
+	});
+
+	const mobH2Range = document.getElementById(
+		"mob-h2-range",
+	) as HTMLInputElement | null;
+	const mobH2Val = document.getElementById("mob-h2-val");
+
+	mobH2Range?.addEventListener("input", () => {
+		if (mobH2Val) mobH2Val.textContent = `${mobH2Range.value}%`;
+	});
+</script>
