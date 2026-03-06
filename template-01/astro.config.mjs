@@ -47,6 +47,10 @@ export default defineConfig({
 			'__DEFAULT_TEMPLATE__': JSON.stringify(defaultTemplate),
 		},
 		server: {
+			fs: {
+				// Permette import da ../data/ (fuori dalla root di template-01)
+				allow: ['..'],
+			},
 			watch: {
 				// Vite di default non guarda file fuori dalla root del progetto;
 				// questo assicura l'HMR quando i JSON client cambiano in dev.

@@ -1,5 +1,29 @@
 ---
+import gfontsRaw from "../../data/google-fonts-cache.json";
 const { theme } = Astro.props;
+
+type GFont = { f: string; c: string; v: string[]; last: string };
+const genericMap: Record<string, string> = {
+	serif: "serif",
+	"sans-serif": "sans-serif",
+	display: "cursive",
+	handwriting: "cursive",
+	monospace: "monospace",
+};
+const fontOptions = (gfontsRaw as GFont[]).map((font) => ({
+	value: `'${font.f}', ${genericMap[font.c] ?? "sans-serif"}`,
+	label: font.f,
+}));
+
+// Valori iniziali per il server-render del label visibile nel trigger
+const headingValue = theme.fontHeading ?? fontOptions[0]?.value ?? "";
+const headingLabel =
+	fontOptions.find((f) => f.value === headingValue)?.label ??
+	headingValue.replace(/'([^']+)'.*/, "$1");
+const bodyValue = theme.fontBody ?? fontOptions[0]?.value ?? "";
+const bodyLabel =
+	fontOptions.find((f) => f.value === bodyValue)?.label ??
+	bodyValue.replace(/'([^']+)'.*/, "$1");
 ---
 
 <div>
@@ -37,33 +61,53 @@ const { theme } = Astro.props;
 					Custom
 				</label>
 			</div>
-			<div id="heading-standard-panel">
-				<select
+			<div id="heading-standard-panel" class="relative">
+				<input
+					type="hidden"
 					name="theme_fontHeading"
-					id="select-fontHeading"
-					class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
+					id="hidden-font-heading"
+					value={headingValue}
+				/>
+				<button
+					type="button"
+					id="heading-picker-trigger"
+					class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					{
-						[
-							["'Playfair Display', serif", "Playfair Display"],
-							["'Montserrat', sans-serif", "Montserrat"],
-							[
-								"'Cormorant Garamond', serif",
-								"Cormorant Garamond",
-							],
-							["'Inter', sans-serif", "Inter"],
-							["'Lora', serif", "Lora"],
-							["'Oswald', sans-serif", "Oswald"],
-						].map(([val, label]) => (
-							<option
-								value={val}
-								selected={theme.fontHeading === val}
-							>
-								{label}
-							</option>
-						))
-					}
-				</select>
+					<span id="heading-picker-label" class="truncate"
+						>{headingLabel}</span
+					>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-4 w-4 shrink-0 text-gray-400"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+							clip-rule="evenodd"></path>
+					</svg>
+				</button>
+				<div
+					id="heading-picker-panel"
+					class="hidden absolute z-50 left-0 mt-1 rounded-md border border-gray-200 bg-white shadow-lg"
+					style="min-width:220px"
+				>
+					<div class="p-2 border-b border-gray-100">
+						<input
+							type="text"
+							id="heading-picker-search"
+							placeholder="Cerca font…"
+							autocomplete="off"
+							class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-300"
+						/>
+					</div>
+					<ul
+						id="heading-picker-list"
+						class="overflow-y-auto max-h-52 py-1"
+					>
+					</ul>
+				</div>
 			</div>
 			<div id="heading-custom-panel" class="hidden">
 				<input
@@ -166,33 +210,53 @@ const { theme } = Astro.props;
 					Custom
 				</label>
 			</div>
-			<div id="body-standard-panel">
-				<select
+			<div id="body-standard-panel" class="relative">
+				<input
+					type="hidden"
 					name="theme_fontBody"
-					id="select-fontBody"
-					class="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm"
+					id="hidden-font-body"
+					value={bodyValue}
+				/>
+				<button
+					type="button"
+					id="body-picker-trigger"
+					class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-900 text-sm hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					{
-						[
-							["'Playfair Display', serif", "Playfair Display"],
-							["'Montserrat', sans-serif", "Montserrat"],
-							[
-								"'Cormorant Garamond', serif",
-								"Cormorant Garamond",
-							],
-							["'Inter', sans-serif", "Inter"],
-							["'Lora', serif", "Lora"],
-							["'Oswald', sans-serif", "Oswald"],
-						].map(([val, label]) => (
-							<option
-								value={val}
-								selected={theme.fontBody === val}
-							>
-								{label}
-							</option>
-						))
-					}
-				</select>
+					<span id="body-picker-label" class="truncate"
+						>{bodyLabel}</span
+					>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-4 w-4 shrink-0 text-gray-400"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+							clip-rule="evenodd"></path>
+					</svg>
+				</button>
+				<div
+					id="body-picker-panel"
+					class="hidden absolute z-50 left-0 mt-1 rounded-md border border-gray-200 bg-white shadow-lg"
+					style="min-width:220px"
+				>
+					<div class="p-2 border-b border-gray-100">
+						<input
+							type="text"
+							id="body-picker-search"
+							placeholder="Cerca font…"
+							autocomplete="off"
+							class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-300"
+						/>
+					</div>
+					<ul
+						id="body-picker-list"
+						class="overflow-y-auto max-h-52 py-1"
+					>
+					</ul>
+				</div>
 			</div>
 			<div id="body-custom-panel" class="hidden">
 				<input
@@ -333,8 +397,118 @@ const { theme } = Astro.props;
 </div>
 
 <script>
+	// ── FONT PICKER: dropdown custom con ricerca + lazy-load ──────────────────
+	function initFontPicker(role: string) {
+		const hidden = document.getElementById(
+			`hidden-font-${role}`,
+		) as HTMLInputElement | null;
+		const trigger = document.getElementById(
+			`${role}-picker-trigger`,
+		) as HTMLButtonElement | null;
+		const labelEl = document.getElementById(`${role}-picker-label`);
+		const panel = document.getElementById(`${role}-picker-panel`);
+		const search = document.getElementById(
+			`${role}-picker-search`,
+		) as HTMLInputElement | null;
+		const list = document.getElementById(`${role}-picker-list`);
+
+		type FontEntry = { v: string; l: string };
+		let allFonts: FontEntry[] = [];
+		let loaded = false;
+		let isOpen = false;
+		let current = hidden?.value ?? "";
+
+		async function loadFonts() {
+			if (loaded) return;
+			try {
+				const res = await fetch("/admin/api/fonts.json");
+				allFonts = await res.json();
+				loaded = true;
+			} catch {
+				allFonts = [];
+			}
+		}
+
+		function renderList(query: string) {
+			if (!list) return;
+			const q = query.toLowerCase().trim();
+			const filtered = q
+				? allFonts.filter((f) => f.l.toLowerCase().includes(q))
+				: allFonts;
+			list.innerHTML = "";
+			const shown = filtered.slice(0, 100);
+			for (const f of shown) {
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.textContent = f.l;
+				btn.className = [
+					"w-full text-left px-3 py-1.5 text-sm transition-colors",
+					f.v === current
+						? "bg-indigo-50 text-indigo-700 font-medium"
+						: "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+				].join(" ");
+				btn.addEventListener("click", () => pick(f.v, f.l));
+				list.appendChild(btn);
+			}
+			if (shown.length === 0) {
+				const empty = document.createElement("li");
+				empty.className = "px-3 py-2 text-sm text-gray-400 italic";
+				empty.textContent = "Nessun risultato";
+				list.appendChild(empty);
+			}
+		}
+
+		function pick(value: string, label: string) {
+			current = value;
+			if (hidden) {
+				hidden.value = value;
+				hidden.dispatchEvent(new Event("input", { bubbles: true }));
+			}
+			if (labelEl) labelEl.textContent = label;
+			closePanel();
+		}
+
+		async function openPanel() {
+			if (!list) return;
+			list.innerHTML =
+				'<li class="px-3 py-2 text-sm text-gray-400">Caricamento…</li>';
+			panel?.classList.remove("hidden");
+			isOpen = true;
+			search?.focus();
+			await loadFonts();
+			renderList(search?.value ?? "");
+		}
+
+		function closePanel() {
+			panel?.classList.add("hidden");
+			isOpen = false;
+		}
+
+		trigger?.addEventListener("click", (e) => {
+			e.stopPropagation();
+			isOpen ? closePanel() : openPanel();
+		});
+		search?.addEventListener("input", () => renderList(search.value));
+		// Blocca il click dentro il panel per non far scattare il listener globale
+		panel?.addEventListener("click", (e) => e.stopPropagation());
+		document.addEventListener("click", () => {
+			if (isOpen) closePanel();
+		});
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape" && isOpen) closePanel();
+		});
+
+		return {
+			setDisabled(disabled: boolean) {
+				if (trigger) trigger.disabled = disabled;
+				if (disabled && isOpen) closePanel();
+			},
+		};
+	}
+
 	// ── FONT SELECTOR: toggle Standard / Custom per Heading e Body ────────────
-	function initFontSelector(role: string, selectId: string) {
+	function initFontSelector(role: string) {
+		const picker = initFontPicker(role);
 		const standardRadio = document.querySelector<HTMLInputElement>(
 			`input[name="font_${role}_mode"][value="standard"]`,
 		);
@@ -343,31 +517,27 @@ const { theme } = Astro.props;
 		);
 		const standardPanel = document.getElementById(`${role}-standard-panel`);
 		const customPanel = document.getElementById(`${role}-custom-panel`);
-		const select = document.getElementById(
-			selectId,
-		) as HTMLSelectElement | null;
 
 		function applyMode(mode: string) {
 			if (mode === "standard") {
 				standardPanel?.classList.remove("hidden");
 				customPanel?.classList.add("hidden");
-				if (select) select.disabled = false;
+				picker.setDisabled(false);
 			} else {
 				standardPanel?.classList.add("hidden");
 				customPanel?.classList.remove("hidden");
-				if (select) select.disabled = true;
+				picker.setDisabled(true);
 			}
 		}
 
 		// Sincronizza con il radio già checked al caricamento
 		applyMode(customRadio?.checked ? "custom" : "standard");
-
 		standardRadio?.addEventListener("change", () => applyMode("standard"));
 		customRadio?.addEventListener("change", () => applyMode("custom"));
 	}
 
-	initFontSelector("heading", "select-fontHeading");
-	initFontSelector("body", "select-fontBody");
+	initFontSelector("heading");
+	initFontSelector("body");
 
 	// ── Font Size Base: converte px → rem per l'input nascosto ────────────────
 	const fsRange = document.getElementById(
