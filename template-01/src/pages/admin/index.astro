@@ -219,6 +219,125 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 				footer_facebook: "footer",
 			};
 
+			// ── IMAGE & FILE DROPZONES ─────────────────────────────────────────────
+			function initDropzones() {
+				document
+					.querySelectorAll<HTMLElement>("[data-dropzone]")
+					.forEach((dz) => {
+						const type = dz.dataset.dropzone as
+							| "image"
+							| "images"
+							| "file";
+						const input =
+							dz.querySelector<HTMLInputElement>(
+								'input[type="file"]',
+							);
+						const emptyEl =
+							dz.querySelector<HTMLElement>(".dz-empty");
+						const filledEl =
+							dz.querySelector<HTMLElement>(".dz-filled");
+						if (!input) return;
+
+						// Highlight durante drag
+						dz.addEventListener("dragover", (e) => {
+							e.preventDefault();
+							dz.classList.add(
+								"border-indigo-500",
+								"bg-indigo-50",
+							);
+						});
+						dz.addEventListener("dragleave", (e) => {
+							if (!dz.contains(e.relatedTarget as Node))
+								dz.classList.remove(
+									"border-indigo-500",
+									"bg-indigo-50",
+								);
+						});
+						dz.addEventListener("drop", (e) => {
+							e.preventDefault();
+							dz.classList.remove(
+								"border-indigo-500",
+								"bg-indigo-50",
+							);
+							const files = e.dataTransfer?.files;
+							if (files?.length) handleFiles(files);
+						});
+
+						// Selezione via file picker
+						input.addEventListener("change", () => {
+							if (input.files?.length) handleFiles(input.files);
+						});
+
+						function handleFiles(files: FileList) {
+							if (type === "image") {
+								const file = files[0];
+								if (!file.type.startsWith("image/")) return;
+								const dt = new DataTransfer();
+								dt.items.add(file);
+								input.files = dt.files;
+								const thumb =
+									filledEl?.querySelector<HTMLImageElement>(
+										".dz-thumb",
+									);
+								if (thumb)
+									thumb.src = URL.createObjectURL(file);
+								emptyEl?.classList.add("hidden");
+								filledEl?.classList.remove("hidden");
+							} else if (type === "images") {
+								const previews =
+									filledEl?.querySelector<HTMLElement>(
+										".dz-previews",
+									);
+								if (previews) previews.innerHTML = "";
+								const dt = new DataTransfer();
+								Array.from(files).forEach((file) => {
+									if (!file.type.startsWith("image/")) return;
+									dt.items.add(file);
+									const img = document.createElement("img");
+									img.src = URL.createObjectURL(file);
+									img.className =
+										"w-20 h-20 object-cover rounded-lg flex-shrink-0";
+									previews?.appendChild(img);
+								});
+								input.files = dt.files;
+								if (dt.files.length > 0) {
+									emptyEl?.classList.add("hidden");
+									filledEl?.classList.remove("hidden");
+								}
+							} else if (type === "file") {
+								const file = files[0];
+								const dt = new DataTransfer();
+								dt.items.add(file);
+								input.files = dt.files;
+								const nameEl =
+									filledEl?.querySelector<HTMLElement>(
+										".dz-filename",
+									);
+								const sizeEl =
+									filledEl?.querySelector<HTMLElement>(
+										".dz-filesize",
+									);
+								if (nameEl) nameEl.textContent = file.name;
+								if (sizeEl)
+									sizeEl.textContent = formatSize(file.size);
+								emptyEl?.classList.add("hidden");
+								if (filledEl) {
+									filledEl.classList.remove("hidden");
+									filledEl.style.display = "flex";
+								}
+							}
+						}
+					});
+			}
+
+			function formatSize(bytes: number): string {
+				if (bytes < 1_048_576) return (bytes / 1024).toFixed(0) + " KB";
+				return (bytes / 1_048_576).toFixed(1) + " MB";
+			}
+
+			initDropzones();
+
+			// ── CLICK-TO-EDIT (postMessage dall'iframe preview) ──────────────────────────
 			window.addEventListener("message", (e) => {
 				if (e.origin !== location.origin) return;
 				const data = e.data as { type?: string; field?: string };
