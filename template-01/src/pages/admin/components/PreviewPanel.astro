@@ -1,0 +1,59 @@
+---
+
+---
+
+<div
+	id="preview-panel"
+	class="flex flex-col overflow-hidden bg-gray-900 border-l border-gray-200 hidden"
+	style="width:60%"
+>
+	<!-- Toolbar -->
+	<div
+		class="flex items-center gap-2 px-4 h-11 bg-white border-b border-gray-200 shrink-0"
+	>
+		<span
+			class="text-xs font-bold uppercase tracking-widest text-gray-400 mr-2"
+			>Preview</span
+		>
+		<button
+			id="btn-desktop"
+			class="px-2.5 py-1 text-xs rounded-md border font-medium transition bg-indigo-50 text-indigo-700 border-indigo-300"
+			>🖥 Desktop</button
+		>
+		<button
+			id="btn-mobile"
+			class="px-2.5 py-1 text-xs rounded-md border font-medium transition text-gray-600 border-gray-200 hover:bg-gray-50"
+			>📱 Mobile</button
+		>
+		<button
+			id="btn-typography"
+			class="px-2.5 py-1 text-xs rounded-md border font-medium transition text-gray-600 border-gray-200 hover:bg-gray-50"
+			>Aa Tipografia</button
+		>
+		<div class="ml-auto">
+			<button
+				id="btn-close-preview"
+				title="Chiudi preview"
+				class="px-2.5 py-1 text-xs rounded-md border font-medium transition text-gray-500 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+				>✕ Chiudi</button
+			>
+		</div>
+	</div>
+	<!-- iframe container -->
+	<div
+		class="flex-1 flex items-start justify-center overflow-auto p-4 bg-gray-800"
+	>
+		<div
+			id="preview-wrapper"
+			style="width:100%;height:100%"
+			class="transition-all duration-300"
+		>
+			<iframe
+				id="preview-frame"
+				src="/"
+				title="Live Preview"
+				class="w-full h-full rounded-lg shadow-xl border-0 bg-white"
+			></iframe>
+		</div>
+	</div>
+</div>

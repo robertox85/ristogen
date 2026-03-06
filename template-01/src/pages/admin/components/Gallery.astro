@@ -1,0 +1,45 @@
+---
+const { content } = Astro.props;
+---
+
+<section id="gallery" class="tab-section hidden">
+	<div class="rounded-xl border border-gray-200 bg-white shadow-sm p-7">
+		<h3 class="text-lg font-bold mb-6 text-gray-900">Gallery</h3>
+		<form id="form-gallery" class="space-y-6">
+			<input
+				type="text"
+				name="gallery_title"
+				value={content.sections.gallery.gallery_title}
+				placeholder="Titolo"
+				class="w-full px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-gray-900"
+			/>
+			{
+				Array.isArray(content.sections.gallery.images) &&
+					content.sections.gallery.images.length > 0 && (
+						<div class="mb-4 flex gap-2 flex-wrap">
+							{content.sections.gallery.images.map((img) => (
+								<img
+									src={img}
+									alt="Preview Gallery"
+									class="rounded-lg w-24 h-24 object-cover"
+									onerror="this.style.display='none'"
+								/>
+							))}
+						</div>
+					)
+			}
+			<input
+				type="file"
+				name="gallery_images"
+				accept="image/*"
+				multiple
+				class="w-full text-gray-900"
+			/>
+			<button
+				type="submit"
+				class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+				>Salva</button
+			>
+		</form>
+	</div>
+</section>

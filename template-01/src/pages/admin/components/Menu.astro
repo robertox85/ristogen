@@ -1,0 +1,34 @@
+---
+const { content } = Astro.props;
+---
+
+<section id="menu" class="tab-section hidden">
+	<div class="rounded-xl border border-gray-200 bg-white shadow-sm p-7">
+		<h3 class="text-lg font-bold mb-6 text-gray-900">Menu</h3>
+		<form id="form-menu" class="space-y-6">
+			{
+				content.sections.menu.menu_pdfLink && (
+					<a
+						href={content.sections.menu.menu_pdfLink}
+						target="_blank"
+						rel="noopener"
+						class="block mb-4 text-indigo-600 underline"
+					>
+						PDF attuale
+					</a>
+				)
+			}
+			<input
+				type="file"
+				name="menu_pdfLink"
+				accept="application/pdf"
+				class="w-full"
+			/>
+			<button
+				type="submit"
+				class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
+				>Salva</button
+			>
+		</form>
+	</div>
+</section>
