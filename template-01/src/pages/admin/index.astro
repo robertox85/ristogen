@@ -268,41 +268,64 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 							if (input.files?.length) handleFiles(input.files);
 						});
 
-						function handleFiles(files: FileList) {
+						async function handleFiles(files: FileList) {
 							if (type === "image") {
 								const file = files[0];
 								if (!file.type.startsWith("image/")) return;
-								const dt = new DataTransfer();
-								dt.items.add(file);
-								input.files = dt.files;
+
+								// Mostra anteprima immediata + indicatore ottimizzazione
+								emptyEl?.classList.add("hidden");
+								filledEl?.classList.remove("hidden");
 								const thumb =
 									filledEl?.querySelector<HTMLImageElement>(
 										".dz-thumb",
 									);
-								if (thumb)
+								if (thumb) {
 									thumb.src = URL.createObjectURL(file);
-								emptyEl?.classList.add("hidden");
-								filledEl?.classList.remove("hidden");
+									thumb.style.opacity = "0.5";
+								}
+								setDzConverting(dz, true);
+
+								const webpFile = await convertToWebP(file);
+								const dt = new DataTransfer();
+								dt.items.add(webpFile);
+								input.files = dt.files;
+
+								if (thumb) {
+									thumb.src = URL.createObjectURL(webpFile);
+									thumb.style.opacity = "";
+								}
+								setDzConverting(dz, false);
 							} else if (type === "images") {
 								const previews =
 									filledEl?.querySelector<HTMLElement>(
 										".dz-previews",
 									);
 								if (previews) previews.innerHTML = "";
+								emptyEl?.classList.add("hidden");
+								filledEl?.classList.remove("hidden");
+								setDzConverting(dz, true);
+
+								const imageFiles = Array.from(files).filter(
+									(f) => f.type.startsWith("image/"),
+								);
+								const webpFiles = await Promise.all(
+									imageFiles.map((f) => convertToWebP(f)),
+								);
 								const dt = new DataTransfer();
-								Array.from(files).forEach((file) => {
-									if (!file.type.startsWith("image/")) return;
-									dt.items.add(file);
+								webpFiles.forEach((webpFile) => {
+									dt.items.add(webpFile);
 									const img = document.createElement("img");
-									img.src = URL.createObjectURL(file);
+									img.src = URL.createObjectURL(webpFile);
 									img.className =
 										"w-20 h-20 object-cover rounded-lg flex-shrink-0";
 									previews?.appendChild(img);
 								});
 								input.files = dt.files;
-								if (dt.files.length > 0) {
-									emptyEl?.classList.add("hidden");
-									filledEl?.classList.remove("hidden");
+								setDzConverting(dz, false);
+								if (dt.files.length === 0) {
+									emptyEl?.classList.remove("hidden");
+									filledEl?.classList.add("hidden");
 								}
 							} else if (type === "file") {
 								const file = files[0];
@@ -328,6 +351,66 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 							}
 						}
 					});
+			}
+
+			/** Mostra/nasconde badge "Ottimizzazione…" sulla dropzone */
+			function setDzConverting(dz: HTMLElement, active: boolean) {
+				let badge = dz.querySelector<HTMLElement>(".dz-converting");
+				if (active && !badge) {
+					badge = document.createElement("div");
+					badge.className =
+						"dz-converting absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none";
+					badge.innerHTML =
+						'<span class="flex items-center gap-1.5 text-white text-xs font-semibold">' +
+						'<svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>' +
+						"Ottimizzazione…</span>";
+					dz.appendChild(badge);
+				} else if (!active && badge) {
+					badge.remove();
+				}
+			}
+
+			/** Converte un File immagine in WebP tramite Canvas (client-side, 0 dipendenze) */
+			async function convertToWebP(
+				file: File,
+				quality = 0.82,
+			): Promise<File> {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onerror = reject;
+					reader.onload = (e) => {
+						const img = new Image();
+						img.onerror = reject;
+						img.onload = () => {
+							const canvas = document.createElement("canvas");
+							canvas.width = img.naturalWidth;
+							canvas.height = img.naturalHeight;
+							canvas.getContext("2d")!.drawImage(img, 0, 0);
+							canvas.toBlob(
+								(blob) => {
+									if (!blob)
+										return reject(
+											new Error(
+												"Conversione WebP fallita",
+											),
+										);
+									const name =
+										file.name.replace(/\.[^/.]+$/, "") +
+										".webp";
+									resolve(
+										new File([blob], name, {
+											type: "image/webp",
+										}),
+									);
+								},
+								"image/webp",
+								quality,
+							);
+						};
+						img.src = e.target!.result as string;
+					};
+					reader.readAsDataURL(file);
+				});
 			}
 
 			function formatSize(bytes: number): string {
