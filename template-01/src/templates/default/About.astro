@@ -19,8 +19,8 @@ const { about } = Astro.props.sections;
 			)
 		}
 		<div class="about-text">
-			<h2>{about.about_preTitle}</h2>
-			<div set:html={about.about_text} />
+			<h2 data-editable="about_preTitle">{about.about_preTitle}</h2>
+			<div data-editable="about_text" set:html={about.about_text} />
 		</div>
 	</div>
 </section>

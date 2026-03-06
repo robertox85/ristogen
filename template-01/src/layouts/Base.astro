@@ -209,6 +209,37 @@ const cssFontBody = hasCustomBody
 					document.head.appendChild(link);
 				}
 			});
+
+			// ── ADMIN EDIT MODE: attivo solo quando l'iframe è dentro la preview admin ──
+			if (window.parent !== window) {
+				// Inietta CSS hover per gli elementi editabili
+				const s = document.createElement("style");
+				s.textContent =
+					"[data-editable]{cursor:pointer!important;transition:outline .15s}" +
+					"[data-editable]:hover{outline:2px solid #6366f1!important;outline-offset:3px!important}";
+				document.head.appendChild(s);
+
+				// Intercetta click (capture phase) prima di link/tel/mailto
+				document.addEventListener(
+					"click",
+					(e) => {
+						const el = (e.target as Element)?.closest(
+							"[data-editable]",
+						);
+						if (!el) return;
+						e.preventDefault();
+						e.stopPropagation();
+						window.parent.postMessage(
+							{
+								type: "editField",
+								field: el.getAttribute("data-editable"),
+							},
+							window.location.origin,
+						);
+					},
+					true,
+				);
+			}
 		</script>
 	</head>
 	<body>

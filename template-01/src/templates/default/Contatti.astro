@@ -8,11 +8,11 @@ const { contatti } = Astro.props.sections;
 ---
 
 <section class="contatti" id="contatti">
-	<h2>{contatti.contatti_title}</h2>
+	<h2 data-editable="contatti_title">{contatti.contatti_title}</h2>
 	<div class="info">
 		{
 			contatti.contatti_address && (
-				<p>
+				<p data-editable="contatti_address">
 					<strong>📍 Indirizzo:</strong> {contatti.contatti_address}
 				</p>
 			)
@@ -21,7 +21,10 @@ const { contatti } = Astro.props.sections;
 			contatti.contatti_phone && (
 				<p>
 					<strong>📞 Telefono:</strong>{" "}
-					<a href={`tel:${contatti.contatti_phone}`}>
+					<a
+						href={`tel:${contatti.contatti_phone}`}
+						data-editable="contatti_phone"
+					>
 						{contatti.contatti_phone}
 					</a>
 				</p>
@@ -31,7 +34,10 @@ const { contatti } = Astro.props.sections;
 			contatti.contatti_email && (
 				<p>
 					<strong>✉️ Email:</strong>{" "}
-					<a href={`mailto:${contatti.contatti_email}`}>
+					<a
+						href={`mailto:${contatti.contatti_email}`}
+						data-editable="contatti_email"
+					>
 						{contatti.contatti_email}
 					</a>
 				</p>
@@ -39,8 +45,7 @@ const { contatti } = Astro.props.sections;
 		}
 		{
 			contatti.contatti_hours && (
-				<p>
-					<strong>🕐 Orari:</strong> {contatti.hours}
+				<p data-editable="contatti_hours">
 					<strong>🕐 Orari:</strong> {contatti.contatti_hours}
 				</p>
 			)

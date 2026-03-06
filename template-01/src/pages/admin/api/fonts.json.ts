@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import gfontsRaw from '../../../../../data/google-fonts-cache.json';
+import gfontsRaw from '../data/google-fonts-cache.json';
 
 type GFont = { f: string; c: string; v: string[]; last: string };
 

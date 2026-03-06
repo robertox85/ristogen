@@ -200,6 +200,71 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 				document.body.style.userSelect = "";
 				dragOverlay?.classList.add("hidden");
 			});
+
+			// ── CLICK-TO-EDIT (postMessage dall'iframe preview) ──────────────────────────
+			const FIELD_TAB: Record<string, string> = {
+				hero_title: "hero",
+				hero_message: "hero",
+				hero_cta: "hero",
+				about_preTitle: "about",
+				about_text: "about",
+				contatti_title: "contatti",
+				contatti_address: "contatti",
+				contatti_phone: "contatti",
+				contatti_email: "contatti",
+				contatti_hours: "contatti",
+				footer_name: "footer",
+				footer_copy: "footer",
+				footer_instagram: "footer",
+				footer_facebook: "footer",
+			};
+
+			window.addEventListener("message", (e) => {
+				if (e.origin !== location.origin) return;
+				const data = e.data as { type?: string; field?: string };
+				if (data?.type !== "editField" || !data.field) return;
+
+				const field = data.field;
+				const tabId = FIELD_TAB[field];
+				if (!tabId) return;
+
+				// Attiva il tab — simula click per riutilizzare la logica esistente
+				const tabBtn = document.querySelector<HTMLElement>(
+					`.tab-btn[data-tab="${tabId}"]`,
+				);
+				tabBtn?.click();
+
+				// Dopo che il tab è visibile, trova e metti a fuoco l'input
+				setTimeout(() => {
+					// about_text usa Quill: punta all'editor invece dell'hidden input
+					const inputEl =
+						field === "about_text"
+							? document.getElementById("editor-about")
+							: document.querySelector<HTMLElement>(
+									`[name="${field}"]`,
+								);
+					if (!inputEl) return;
+					inputEl.scrollIntoView({
+						behavior: "smooth",
+						block: "center",
+					});
+					inputEl.classList.add(
+						"ring-2",
+						"ring-indigo-400",
+						"ring-offset-2",
+					);
+					setTimeout(
+						() =>
+							inputEl.classList.remove(
+								"ring-2",
+								"ring-indigo-400",
+								"ring-offset-2",
+							),
+						2000,
+					);
+					if ("focus" in inputEl) inputEl.focus();
+				}, 60);
+			});
 		</script>
 	</body>
 </html>
