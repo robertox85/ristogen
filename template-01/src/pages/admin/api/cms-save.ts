@@ -122,7 +122,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	// Gestione tema
 	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius',
 		'fontWeightHeading', 'fontWeightBody', 'fontSizeBase', 'lineHeightHeading',
-		'lineHeightBody', 'textAlign', 'sectionPadding', 'spacing'].forEach((field) => {
+		'lineHeightBody', 'textAlign', 'sectionPadding', 'spacing',
+		'fsH1', 'fsH2', 'fsH3', 'mobileScaleH1', 'mobileScaleH2',
+		'letterSpacingH1', 'letterSpacingH2'].forEach((field) => {
 		const val = formData.get(`theme_${field}`);
 		if (val) update.theme[field] = val.toString();
 	});

@@ -94,6 +94,17 @@ const cssFontBody = hasCustomBody
 				"radius-base": theme.radius,
 				"section-padding": theme.sectionPadding ?? "6rem",
 				"spacing-base": theme.spacing ?? "1.5rem",
+				"fs-h1": theme.fsH1 ?? "4rem",
+				"fs-h2": theme.fsH2 ?? "2.5rem",
+				"fs-h3": theme.fsH3 ?? "1.75rem",
+				"mobile-scale-h1": (
+					parseFloat(theme.mobileScaleH1 ?? "65") / 100
+				).toFixed(2),
+				"mobile-scale-h2": (
+					parseFloat(theme.mobileScaleH2 ?? "80") / 100
+				).toFixed(2),
+				"ls-h1": theme.letterSpacingH1 ?? "0em",
+				"ls-h2": theme.letterSpacingH2 ?? "0em",
 			}}
 		>
 			:root {
@@ -113,6 +124,13 @@ const cssFontBody = hasCustomBody
 				--section-padding: var(--section-padding);
 				--spacing-base: var(--spacing-base);
 				--spacing-section: var(--section-padding);
+				--fs-h1: var(--fs-h1);
+				--fs-h2: var(--fs-h2);
+				--fs-h3: var(--fs-h3);
+				--mobile-scale-h1: var(--mobile-scale-h1);
+				--mobile-scale-h2: var(--mobile-scale-h2);
+				--ls-h1: var(--ls-h1);
+				--ls-h2: var(--ls-h2);
 			}
 			body {
 				background: var(--color-bg);
@@ -130,6 +148,26 @@ const cssFontBody = hasCustomBody
 				font-family: var(--font-heading);
 				font-weight: var(--font-weight-heading);
 				line-height: var(--line-height-heading);
+			}
+			h1 {
+				font-size: var(--fs-h1);
+				letter-spacing: var(--ls-h1);
+			}
+			h2 {
+				font-size: var(--fs-h2);
+				letter-spacing: var(--ls-h2);
+			}
+			h3,
+			h4 {
+				font-size: var(--fs-h3);
+			}
+			@media (max-width: 768px) {
+				h1 {
+					font-size: calc(var(--fs-h1) * var(--mobile-scale-h1));
+				}
+				h2 {
+					font-size: calc(var(--fs-h2) * var(--mobile-scale-h2));
+				}
 			}
 			.card,
 			.rounded-xl {

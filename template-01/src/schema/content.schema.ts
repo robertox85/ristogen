@@ -16,6 +16,13 @@ export const ThemeSchema = z.object({
 	radius: z.string().default('0.5rem'),
 	sectionPadding: z.string().default('6rem'),
 	spacing: z.string().default('1.5rem'),
+	fsH1: z.string().default('4rem'),
+	fsH2: z.string().default('2.5rem'),
+	fsH3: z.string().default('1.75rem'),
+	mobileScaleH1: z.string().default('65'),
+	mobileScaleH2: z.string().default('80'),
+	letterSpacingH1: z.string().default('0em'),
+	letterSpacingH2: z.string().default('0em'),
 	customFonts: z.object({
 		heading: z.string().optional(),
 		headingType: z.string().optional(),

@@ -14,6 +14,13 @@
   "radius": "30px",
   "sectionPadding": "9.5rem",
   "spacing": "3rem",
+"fsH1": "4rem",
+"fsH2": "2.5rem",
+"fsH3": "1.75rem",
+"mobileScaleH1": "65",
+"mobileScaleH2": "80",
+"letterSpacingH1": "0em",
+"letterSpacingH2": "0em",
   "customFonts": {
     "heading": "",
     "headingType": "",
