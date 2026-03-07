@@ -22,9 +22,9 @@
   "letterSpacingH1": "0em",
   "letterSpacingH2": "0em",
   "customFonts": {
-	"heading": "/media/fonts/ApriliaDaisy.woff2",
-	"headingType": "woff2",
-	"body": "/media/fonts/Montserrat.woff2",
-	"bodyType": "woff2"
+    "heading": "",
+    "headingType": "",
+    "body": "",
+    "bodyType": ""
   }
 }
