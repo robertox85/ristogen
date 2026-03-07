@@ -9,7 +9,7 @@
   "fontWeightBody": "700",
   "fontSizeBase": "1.375rem",
   "lineHeightHeading": "1.2",
-  "lineHeightBody": "2.5",
+  "lineHeightBody": "1",
   "textAlign": "left",
   "radius": "30px",
   "sectionPadding": "9.5rem",
@@ -22,8 +22,8 @@
   "letterSpacingH1": "0em",
   "letterSpacingH2": "0em",
   "customFonts": {
-    "heading": "/media/fonts/ApriliaDaisy.woff2",
-    "headingType": "sans-serif",
+    "heading": "",
+    "headingType": "",
     "body": "",
     "bodyType": ""
   }
