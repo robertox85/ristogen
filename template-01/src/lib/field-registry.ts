@@ -20,3 +20,14 @@ export const THEME_SCALAR_FIELDS = [
 
 // Ancora non è necessario, ma in futuro potrebbe essere utile per cambiare dinamicamente il template di una landing.
 export const SECTIONS_ROOT_TEXT_FIELDS = ['template'] as const;
+
+// Inverso di SECTION_TEXT_FIELDS: { fieldName → sectionId }
+// Usato per il click-to-edit dal preview iframe (evita di duplicare FIELD_TAB in index.astro).
+export const FIELD_TO_TAB: Record<string, string> = {
+	...Object.fromEntries(
+		Object.entries(SECTION_TEXT_FIELDS).flatMap(([section, fields]) =>
+			(fields as readonly string[]).map((f) => [f, section])
+		)
+	),
+	...Object.fromEntries(SOCIALS_TEXT_FIELDS.map((f) => [f, 'footer'])),
+};

@@ -108,18 +108,29 @@ const { content } = Astro.props;
 	// Mantiene l'input nascosto sincronizzato ad ogni modifica,
 	// evitando race condition con il listener submit generico in index.astro.
 	document.addEventListener("DOMContentLoaded", () => {
-		const aboutInput = document.querySelector<HTMLInputElement>(
-			'input[name="about_text"]',
-		);
-		const quill = new Quill("#editor-about", { theme: "snow" });
-		(window as any).__quillAbout = quill;
+		try {
+			const aboutInput = document.querySelector<HTMLInputElement>(
+				'input[name="about_text"]',
+			);
+			const quill = new Quill("#editor-about", { theme: "snow" });
+			(window as any).__quillAbout = quill;
 
-		if (aboutInput?.value) {
-			quill.root.innerHTML = aboutInput.value;
+			if (aboutInput?.value) {
+				quill.root.innerHTML = aboutInput.value;
+			}
+
+			quill.on("text-change", () => {
+				if (aboutInput) aboutInput.value = quill.root.innerHTML;
+			});
+		} catch (e) {
+			console.error("[About] Quill non disponibile:", e);
+			const editorEl = document.getElementById("editor-about");
+			if (editorEl) {
+				editorEl.insertAdjacentHTML(
+					"afterend",
+					'<textarea name="about_text" class="w-full px-3 py-2 rounded-md border border-gray-200 text-gray-900" rows="5"></textarea>',
+				);
+			}
 		}
-
-		quill.on("text-change", () => {
-			if (aboutInput) aboutInput.value = quill.root.innerHTML;
-		});
 	});
 </script>

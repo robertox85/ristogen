@@ -10,11 +10,25 @@ const { gallery } = Astro.props.sections;
 {
 	gallery.gallery_enabled && (
 		<section class="gallery">
-			<h2>{gallery.gallery_title}</h2>
+			<h2 data-editable="gallery_title" class="gallery-title">
+				{gallery.gallery_title}
+			</h2>
 			<div class="grid">
-				{gallery.images.map((img: any) => (
-					<img src={img} alt="Foto piatto" loading="lazy" />
+				{gallery.images.map((img: any, i: number) => (
+					<img
+						src={img}
+						alt={`${gallery.gallery_title} – foto ${i + 1}`}
+						loading="lazy"
+						decoding="async"
+					/>
 				))}
+				{/* Se non ci sono immagini, mostra un placeholder */}
+				{gallery.images.length === 0 && (
+					<div class="col-span-full text-center text-gray-500">
+						Nessuna immagine in galleria. Aggiungi immagini nella
+						sezione Galleria del CMS.
+					</div>
+				)}
 			</div>
 		</section>
 	)

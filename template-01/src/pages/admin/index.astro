@@ -78,6 +78,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 		<div id="toastr" class="fixed top-6 right-6 z-50 flex flex-col gap-2">
 		</div>
 		<script>
+			import { FIELD_TO_TAB } from '../../lib/field-registry';
 			// ── TAB NAVIGATION ──────────────────────────────────────────────────
 			// Gli script dei componenti (Sidebar, PreviewPanel, ThemeTypography, …)
 			// sono autonomi. index.astro gestisce solo la navigazione fra sezioni,
@@ -213,22 +214,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 			});
 
 			// ── CLICK-TO-EDIT (postMessage dall'iframe preview) ──────────────────────────
-			const FIELD_TAB: Record<string, string> = {
-				hero_title: "hero",
-				hero_message: "hero",
-				hero_cta: "hero",
-				about_preTitle: "about",
-				about_text: "about",
-				contatti_title: "contatti",
-				contatti_address: "contatti",
-				contatti_phone: "contatti",
-				contatti_email: "contatti",
-				contatti_hours: "contatti",
-				footer_name: "footer",
-				footer_copy: "footer",
-				footer_instagram: "footer",
-				footer_facebook: "footer",
-			};
+			// FIELD_TO_TAB è importato da field-registry.ts (derivato automaticamente da SECTION_TEXT_FIELDS)
 
 			// ── IMAGE & FILE DROPZONES ─────────────────────────────────────────────
 
@@ -525,7 +511,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 				if (data?.type !== "editField" || !data.field) return;
 
 				const field = data.field;
-				const tabId = FIELD_TAB[field];
+				const tabId = FIELD_TO_TAB[field];
 				if (!tabId) return;
 
 				// Attiva il tab — simula click per riutilizzare la logica esistente

@@ -61,6 +61,23 @@ const cssFontBody = hasCustomBody
 			)
 		}
 
+		{/* P3: preconnect mancante per fonts.gstatic.com */}
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+		{
+			/* P4: preload immagine hero per LCP (funziona sia con <img> che con background-image) */
+		}
+		{
+			content.sections.hero.hero_image && (
+				<link
+					rel="preload"
+					as="image"
+					href={content.sections.hero.hero_image}
+					fetchpriority="high"
+				/>
+			)
+		}
+
 		{
 			hasCustomHeading && (
 				<style

@@ -13,7 +13,7 @@ const OWNER = import.meta.env.GITHUB_OWNER;
 const REPO = import.meta.env.GITHUB_REPO;
 const PAT = import.meta.env.GITHUB_PAT;
 const CLIENT_SLUG = import.meta.env.CLIENT_SLUG;
-
+const DEFAULT_LANG = import.meta.env.DEFAULT_LANG || 'it';
 /** Utility per il confronto profondo tra oggetti JSON */
 function isDeepEqual(a: unknown, b: unknown): boolean {
 	return JSON.stringify(sortKeys(a)) === JSON.stringify(sortKeys(b));
@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	const formData = await request.formData();
 	let currentContent: any;
 	try {
-		currentContent = getContent('it');
+		currentContent = getContent(DEFAULT_LANG);
 		console.log('[CMS-SAVE] Contenuto attuale:', currentContent);
 	} catch (e) {
 		return new Response('Errore lettura contenuto attuale', { status: 500 });
