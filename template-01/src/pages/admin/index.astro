@@ -12,6 +12,7 @@ import PreviewPanel from "./components/PreviewPanel.astro";
 import Sidebar from "./components/Sidebar.astro";
 import Topbar from "./components/Topbar.astro";
 import ActionSidebar from "./components/ActionSidebar.astro";
+import "../../styles/admin.css";
 
 const session = Astro.cookies.get("admin_session");
 if (session?.value !== "authenticated") {
@@ -28,8 +29,10 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 		<title>Dashboard Admin | Ristogen</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<script is:inline src="https://cdn.tailwindcss.com"></script>
-		<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
+
+		<script
+			is:inline
+			src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
 		></script>
 		<link
 			href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
@@ -38,6 +41,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 	</head>
 	<body class="h-screen overflow-hidden bg-gray-50 flex flex-col">
 		<Topbar siteUrl={siteUrl} />
+
 		<div class="flex flex-1 overflow-hidden">
 			<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
 			<Sidebar />
@@ -227,7 +231,6 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 			};
 
 			// ── IMAGE & FILE DROPZONES ─────────────────────────────────────────────
-
 
 			function initDropzones() {
 				document

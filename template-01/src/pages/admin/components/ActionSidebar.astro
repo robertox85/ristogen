@@ -1,5 +1,5 @@
 ---
-export const prerender = false;
+
 ---
 
 <aside
@@ -322,6 +322,16 @@ export const prerender = false;
 
 	function restoreDraft(fields: Record<string, string>) {
 		Object.entries(fields).forEach(([name, value]) => {
+			// Caso speciale: Quill gestisce il proprio stato interno,
+			// dangerouslyPasteHTML aggiorna l'editor visivo e il listener
+			// text-change sincronizza automaticamente l'input nascosto.
+			if (name === "about_text") {
+				const quill = (window as any).__quillAbout;
+				if (quill) {
+					quill.clipboard.dangerouslyPasteHTML(value);
+				}
+				return;
+			}
 			const el = document.querySelector<
 				HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 			>(`[name="${CSS.escape(name)}"]`);
@@ -445,6 +455,9 @@ export const prerender = false;
 		autoSaveTimer = setTimeout(saveDraft, 30_000);
 	});
 
+	window.addEventListener("beforeunload", () => {
+		if (autoSaveTimer) clearTimeout(autoSaveTimer);
+	});
 	// ── GLOBAL EVENTS (da index.astro) ────────────────────────────────────────
 
 	document.addEventListener("ristogen:publishing", () => {

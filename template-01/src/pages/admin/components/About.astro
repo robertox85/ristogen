@@ -1,5 +1,4 @@
 ---
-export const prerender = false;
 const { content } = Astro.props;
 ---
 
@@ -40,7 +39,8 @@ const { content } = Astro.props;
 					</svg>
 					<p class="text-sm text-gray-500">
 						Trascina un'immagine o <span
-							class="font-medium text-indigo-600">sfoglia</span>
+							class="font-medium text-indigo-600">sfoglia</span
+						>
 					</p>
 					<p class="text-xs text-gray-400">PNG · JPG · WebP</p>
 				</div>
@@ -112,6 +112,7 @@ const { content } = Astro.props;
 			'input[name="about_text"]',
 		);
 		const quill = new Quill("#editor-about", { theme: "snow" });
+		(window as any).__quillAbout = quill;
 
 		if (aboutInput?.value) {
 			quill.root.innerHTML = aboutInput.value;

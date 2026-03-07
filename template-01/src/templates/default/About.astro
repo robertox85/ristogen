@@ -1,6 +1,6 @@
 ---
 import type { ClientContent } from "../../schema/content.schema";
-
+import { sanitizeHtml } from "../../lib/sanitize";
 interface Props {
 	sections: ClientContent["sections"];
 }
@@ -20,7 +20,10 @@ const { about } = Astro.props.sections;
 		}
 		<div class="about-text">
 			<h2 data-editable="about_preTitle">{about.about_preTitle}</h2>
-			<div data-editable="about_text" set:html={about.about_text} />
+			<div
+				data-editable="about_text"
+				set:html={sanitizeHtml(about.about_text)}
+			/>
 		</div>
 	</div>
 </section>

@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import "../../styles/admin.css";
 
 let errorMsg = "";
 
@@ -28,10 +29,6 @@ if (Astro.request.method === "POST") {
 		<title>Login Admin | Ristogen</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link
-			href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css"
-			rel="stylesheet"
-		/>
 	</head>
 	<body
 		class="min-h-screen flex items-center justify-center bg-gray-950 text-white"

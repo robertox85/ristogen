@@ -38,6 +38,7 @@ export const ThemeSchema = z.object({
 export const ClientContentSchema = z.object({
 	theme: ThemeSchema,
 	sections: z.object({
+		template: z.string().default('default'),
 		hero: z.object({
 			hero_title: z.string(),
 			hero_message: z.string(),

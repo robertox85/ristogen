@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import tailwind from '@astrojs/tailwind';
+
 
 // Carica .env manualmente solo se esiste
 const envPath = join(process.cwd(), '.env');
@@ -38,7 +40,7 @@ export default defineConfig({
 	output: 'static',
 	site: process.env.SITE_URL || 'https://ristolanding.netlify.app',
 	...(adapter ? { adapter } : {}),
-	integrations: [sitemap()],
+	integrations: [sitemap(), tailwind({ applyBaseStyles: false })],
 	vite: {
 		define: {
 			'__CLIENT_SLUG__': JSON.stringify(clientSlug),

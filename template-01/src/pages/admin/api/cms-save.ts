@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { createRequire } from 'module';
 import { ClientContentSchema } from '../../../schema/content.schema';
 import { getContent } from '../../../content';
-
+import { SECTION_TEXT_FIELDS, SOCIALS_TEXT_FIELDS, THEME_SCALAR_FIELDS, SECTIONS_ROOT_TEXT_FIELDS } from '../../../lib/field-registry';
 // createRequire permette di caricare moduli CJS puri (wawoff2, fontkit) dall'ESM
 const _require = createRequire(import.meta.url);
 
@@ -15,8 +15,22 @@ const PAT = import.meta.env.GITHUB_PAT;
 const CLIENT_SLUG = import.meta.env.CLIENT_SLUG;
 
 /** Utility per il confronto profondo tra oggetti JSON */
-function isDeepEqual(obj1: any, obj2: any): boolean {
-	return JSON.stringify(obj1) === JSON.stringify(obj2);
+function isDeepEqual(a: unknown, b: unknown): boolean {
+	return JSON.stringify(sortKeys(a)) === JSON.stringify(sortKeys(b));
+}
+
+function sortKeys(obj: any): any {
+	if (Array.isArray(obj)) {
+		return obj.map(sortKeys);
+	} else if (obj && typeof obj === 'object') {
+		return Object.keys(obj)
+			.sort()
+			.reduce((acc, key) => {
+				acc[key] = sortKeys(obj[key]);
+				return acc;
+			}, {} as any);
+	}
+	return obj;
 }
 
 function deepMerge(target: any, source: any) {
@@ -58,76 +72,44 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		return new Response('Errore lettura contenuto attuale', { status: 500 });
 	}
 
+	// Il template lo lasciamo di default. In futuro sarà una select nel form, ma per ora non è una priorità e così evitiamo di esporre questa scelta all'admin. Nel field-registry e nello schema è già previsto, quindi sarà facile da abilitare quando necessario.
 	let update: any = {
-		sections: { hero: {}, about: {}, gallery: {}, menu: {}, contatti: {}, footer: { socials: {} } },
+		sections: {
+			template: 'default',
+			hero: {},
+			about: {},
+			gallery: {},
+			menu: {},
+			contatti: {},
+			footer: {
+				socials: {}
+			}
+		},
 		theme: {}
 	};
 
 	// Estrazione dati con prefissi univoci per evitare collisioni
-	const hero_title = formData.get('hero_title');
-	if (hero_title !== null) update.sections.hero.hero_title = hero_title.toString();
+	for (const [section, fields] of Object.entries(SECTION_TEXT_FIELDS)) {
+		for (const field of fields) {
+			const val = formData.get(field);
+			if (val !== null) (update.sections as any)[section][field] = val.toString();
+		}
+	}
+	for (const field of SOCIALS_TEXT_FIELDS) {
+		const val = formData.get(field);
+		if (val !== null) update.sections.footer.socials[field] = val.toString();
+	}
 
-	const hero_message = formData.get('hero_message');
-	if (hero_message !== null) update.sections.hero.hero_message = hero_message.toString();
-
-	const hero_cta = formData.get('hero_cta');
-	if (hero_cta !== null) update.sections.hero.hero_cta = hero_cta.toString();
-
-	const heroImage = formData.get('hero_image') as File | null;
-
-	const about_preTitle = formData.get('about_preTitle');
-	if (about_preTitle !== null) update.sections.about.about_preTitle = about_preTitle.toString();
-
-	const about_text = formData.get('about_text');
-	if (about_text !== null) update.sections.about.about_text = about_text.toString();
-
-	const aboutImage = formData.get('about_image') as File | null;
-	const gallery_title = formData.get('gallery_title');
-
-	if (gallery_title !== null) update.sections.gallery.gallery_title = gallery_title.toString();
-
-	const galleryImages = formData.getAll('gallery_images').filter((img) => img instanceof File && (img as File).size > 0) as File[];
-	const menuPdf = formData.get('menu_pdfLink') as File | null;
-
-	const contatti_title = formData.get('contatti_title');
-	if (contatti_title !== null) update.sections.contatti.contatti_title = contatti_title.toString();
-
-	const contatti_address = formData.get('contatti_address');
-	if (contatti_address !== null) update.sections.contatti.contatti_address = contatti_address.toString();
-
-	const contatti_hours = formData.get('contatti_hours');
-	if (contatti_hours !== null) update.sections.contatti.contatti_hours = contatti_hours.toString();
-
-	const contatti_phone = formData.get('contatti_phone');
-	if (contatti_phone !== null) update.sections.contatti.contatti_phone = contatti_phone.toString();
-
-	const contatti_email = formData.get('contatti_email');
-	if (contatti_email !== null) update.sections.contatti.contatti_email = contatti_email.toString();
-
-	const contatti_googleMapsEmbed = formData.get('contatti_googleMapsEmbed');
-	if (contatti_googleMapsEmbed !== null) update.sections.contatti.contatti_googleMapsEmbed = contatti_googleMapsEmbed.toString();
-
-	const footer_name = formData.get('footer_name');
-	if (footer_name !== null) update.sections.footer.footer_name = footer_name.toString();
-
-	const footer_copy = formData.get('footer_copy');
-	if (footer_copy !== null) update.sections.footer.footer_copy = footer_copy.toString();
-
-	const footer_instagram = formData.get('footer_instagram');
-	if (footer_instagram !== null) update.sections.footer.socials.footer_instagram = footer_instagram.toString();
-
-	const footer_facebook = formData.get('footer_facebook');
-	if (footer_facebook !== null) update.sections.footer.socials.footer_facebook = footer_facebook.toString();
-
-	// Gestione tema
-	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius',
-		'fontWeightHeading', 'fontWeightBody', 'fontSizeBase', 'lineHeightHeading',
-		'lineHeightBody', 'textAlign', 'sectionPadding', 'spacing',
-		'fsH1', 'fsH2', 'fsH3', 'mobileScaleH1', 'mobileScaleH2',
-		'letterSpacingH1', 'letterSpacingH2'].forEach((field) => {
+	for (const field of THEME_SCALAR_FIELDS) {
 		const val = formData.get(`theme_${field}`);
-			if (val !== null) update.theme[field] = val.toString();
-	});
+		if (val !== null) update.theme[field] = val.toString();
+	}
+
+	// Se in futuro decidiamo di esporre il cambio template, basterà abilitare questa parte e aggiungere un select nel form con name="template" e value corrispondente al nome del template (es. "default", "alternative", ecc.)
+	// for (const field of SECTIONS_ROOT_TEXT_FIELDS) {
+	// 	const val = formData.get(field);
+	// 	if (val !== null) update.sections[field] = val.toString();
+	// }
 
 	// Inizializza customFonts conservando i valori correnti
 	const currentCustomFonts = currentContent.theme.customFonts || {};
