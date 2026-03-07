@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 	}
 
 	const res = await fetch(
-		`${GITHUB_API}/repos/${OWNER}/${REPO}/commits?path=clients/${CLIENT_SLUG}/content&per_page=5`,
+		`${GITHUB_API}/repos/${OWNER}/${REPO}/commits?path=clients/${CLIENT_SLUG}/content&per_page=20`,
 		{
 			headers: {
 				Authorization: `Bearer ${PAT}`,
@@ -33,7 +33,10 @@ export const GET: APIRoute = async ({ cookies }) => {
 	}
 
 	const commits: any[] = await res.json();
-	const simplified = commits.map((c) => ({
+	const simplified = commits
+		.filter((c) => c.commit.message.startsWith('Aggiornamento ottimizzato'))
+		.slice(0, 5)
+		.map((c) => ({
 		sha: c.sha.slice(0, 7),
 		message: c.commit.message.split('\n')[0],
 		date: c.commit.committer.date,
