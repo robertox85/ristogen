@@ -24,9 +24,13 @@ export const ThemeSchema = z.object({
 	letterSpacingH1: z.string().default('0em'),
 	letterSpacingH2: z.string().default('0em'),
 	customFonts: z.object({
-		heading: z.string().optional(),
+		heading: z.string()
+			.refine((v) => !v || v.startsWith('/media/fonts/'), 'URL font non valido')
+			.optional(),
 		headingType: z.string().optional(),
-		body: z.string().optional(),
+		body: z.string()
+			.refine((v) => !v || v.startsWith('/media/fonts/'), 'URL font non valido')
+			.optional(),
 		bodyType: z.string().optional()
 	}).default({})
 });
@@ -47,6 +51,7 @@ export const ClientContentSchema = z.object({
 		}),
 		gallery: z.object({
 			gallery_title: z.string(),
+			gallery_enabled: z.boolean().default(true),
 			images: z.array(z.string())
 		}),
 		menu: z.object({
@@ -58,7 +63,12 @@ export const ClientContentSchema = z.object({
 			contatti_hours: z.string(),
 			contatti_phone: z.string(),
 			contatti_email: z.string(),
-			contatti_googleMapsEmbed: z.string().optional()
+			contatti_googleMapsEmbed: z.string()
+				.refine(
+					(v) => !v || v.startsWith('https://www.google.com/maps/embed'),
+					{ message: 'Solo URL Google Maps embed consentiti' }
+				)
+				.optional()
 		}),
 		footer: z.object({
 			footer_name: z.string(),

@@ -1,6 +1,6 @@
 ---
 export const prerender = false;
-import { getContent } from "../../content";
+import { getContent, getDefaultLang } from "../../content";
 import About from "./components/About.astro";
 import Contacts from "./components/Contacts.astro";
 import Footer from "./components/Footer.astro";
@@ -18,11 +18,12 @@ if (session?.value !== "authenticated") {
 	return Astro.redirect("/admin/login");
 }
 
-const content = getContent("it");
+const defaultLang = getDefaultLang();
+const content = getContent(defaultLang);
 const siteUrl = import.meta.env.SITE_URL || "/";
 ---
 
-<html lang="it">
+<html lang={defaultLang}>
 	<head>
 		<title>Dashboard Admin | Ristogen</title>
 		<meta charset="utf-8" />

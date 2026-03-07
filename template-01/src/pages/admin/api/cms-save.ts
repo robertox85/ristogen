@@ -65,59 +65,59 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 	// Estrazione dati con prefissi univoci per evitare collisioni
 	const hero_title = formData.get('hero_title');
-	if (hero_title) update.sections.hero.hero_title = hero_title.toString();
+	if (hero_title !== null) update.sections.hero.hero_title = hero_title.toString();
 
 	const hero_message = formData.get('hero_message');
-	if (hero_message) update.sections.hero.hero_message = hero_message.toString();
+	if (hero_message !== null) update.sections.hero.hero_message = hero_message.toString();
 
 	const hero_cta = formData.get('hero_cta');
-	if (hero_cta) update.sections.hero.hero_cta = hero_cta.toString();
+	if (hero_cta !== null) update.sections.hero.hero_cta = hero_cta.toString();
 
 	const heroImage = formData.get('hero_image') as File | null;
 
 	const about_preTitle = formData.get('about_preTitle');
-	if (about_preTitle) update.sections.about.about_preTitle = about_preTitle.toString();
+	if (about_preTitle !== null) update.sections.about.about_preTitle = about_preTitle.toString();
 
 	const about_text = formData.get('about_text');
-	if (about_text) update.sections.about.about_text = about_text.toString();
+	if (about_text !== null) update.sections.about.about_text = about_text.toString();
 
 	const aboutImage = formData.get('about_image') as File | null;
 	const gallery_title = formData.get('gallery_title');
 
-	if (gallery_title) update.sections.gallery.gallery_title = gallery_title.toString();
+	if (gallery_title !== null) update.sections.gallery.gallery_title = gallery_title.toString();
 
 	const galleryImages = formData.getAll('gallery_images').filter((img) => img instanceof File && (img as File).size > 0) as File[];
 	const menuPdf = formData.get('menu_pdfLink') as File | null;
 
 	const contatti_title = formData.get('contatti_title');
-	if (contatti_title) update.sections.contatti.contatti_title = contatti_title.toString();
+	if (contatti_title !== null) update.sections.contatti.contatti_title = contatti_title.toString();
 
 	const contatti_address = formData.get('contatti_address');
-	if (contatti_address) update.sections.contatti.contatti_address = contatti_address.toString();
+	if (contatti_address !== null) update.sections.contatti.contatti_address = contatti_address.toString();
 
 	const contatti_hours = formData.get('contatti_hours');
-	if (contatti_hours) update.sections.contatti.contatti_hours = contatti_hours.toString();
+	if (contatti_hours !== null) update.sections.contatti.contatti_hours = contatti_hours.toString();
 
 	const contatti_phone = formData.get('contatti_phone');
-	if (contatti_phone) update.sections.contatti.contatti_phone = contatti_phone.toString();
+	if (contatti_phone !== null) update.sections.contatti.contatti_phone = contatti_phone.toString();
 
 	const contatti_email = formData.get('contatti_email');
-	if (contatti_email) update.sections.contatti.contatti_email = contatti_email.toString();
+	if (contatti_email !== null) update.sections.contatti.contatti_email = contatti_email.toString();
 
 	const contatti_googleMapsEmbed = formData.get('contatti_googleMapsEmbed');
-	if (contatti_googleMapsEmbed) update.sections.contatti.contatti_googleMapsEmbed = contatti_googleMapsEmbed.toString();
+	if (contatti_googleMapsEmbed !== null) update.sections.contatti.contatti_googleMapsEmbed = contatti_googleMapsEmbed.toString();
 
 	const footer_name = formData.get('footer_name');
-	if (footer_name) update.sections.footer.footer_name = footer_name.toString();
+	if (footer_name !== null) update.sections.footer.footer_name = footer_name.toString();
 
 	const footer_copy = formData.get('footer_copy');
-	if (footer_copy) update.sections.footer.footer_copy = footer_copy.toString();
+	if (footer_copy !== null) update.sections.footer.footer_copy = footer_copy.toString();
 
 	const footer_instagram = formData.get('footer_instagram');
-	if (footer_instagram) update.sections.footer.socials.footer_instagram = footer_instagram.toString();
+	if (footer_instagram !== null) update.sections.footer.socials.footer_instagram = footer_instagram.toString();
 
 	const footer_facebook = formData.get('footer_facebook');
-	if (footer_facebook) update.sections.footer.socials.footer_facebook = footer_facebook.toString();
+	if (footer_facebook !== null) update.sections.footer.socials.footer_facebook = footer_facebook.toString();
 
 	// Gestione tema
 	['primary', 'secondary', 'bg', 'text', 'fontHeading', 'fontBody', 'radius',
@@ -126,7 +126,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		'fsH1', 'fsH2', 'fsH3', 'mobileScaleH1', 'mobileScaleH2',
 		'letterSpacingH1', 'letterSpacingH2'].forEach((field) => {
 		const val = formData.get(`theme_${field}`);
-		if (val) update.theme[field] = val.toString();
+			if (val !== null) update.theme[field] = val.toString();
 	});
 
 	// Inizializza customFonts conservando i valori correnti
@@ -140,11 +140,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 	// Se l'utente ha scelto Standard (select abilitato → value in FormData),
 	// azzera il font personalizzato per quel ruolo: la select sovrascriverà fontHeading/fontBody
-	if (formData.get('theme_fontHeading')) {
+	if (formData.get('theme_fontHeading') !== null) {
 		update.theme.customFonts.heading = '';
 		update.theme.customFonts.headingType = '';
 	}
-	if (formData.get('theme_fontBody')) {
+	if (formData.get('theme_fontBody') !== null) {
 		update.theme.customFonts.body = '';
 		update.theme.customFonts.bodyType = '';
 	}
@@ -355,9 +355,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 				encoding: 'utf-8'
 			});
 			const sha = (await res.json()).sha;
+			const DEFAULT_LANG = import.meta.env.DEFAULT_LANG || 'it';
 			const path = file.name === 'theme'
 				? `clients/${CLIENT_SLUG}/content/theme.json`
-				: `clients/${CLIENT_SLUG}/content/it/${file.name}.json`;
+				: `clients/${CLIENT_SLUG}/content/${DEFAULT_LANG}/${file.name}.json`;
 			blobsJson[path] = sha;
 		}
 	}

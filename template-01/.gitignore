@@ -30,3 +30,4 @@ pnpm-debug.log*
 
 # Generato a build time da config.template.yml
 public/admin/config.yml
+todo.md
