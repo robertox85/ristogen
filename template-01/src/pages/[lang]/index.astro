@@ -1,39 +1,24 @@
 ---
 import Base from "../../layouts/Base.astro";
-// Nessun import statico dei componenti template
-import { getContent, getI18nPaths } from "../../content";
+import { getContent, getDefaultLang, getI18nPaths } from "../../content";
+import { resolveTemplate } from "../../lib/resolveTemplate";
 
 export function getStaticPaths() {
 	return getI18nPaths();
 }
 
-const { lang } = Astro.params as { lang: string };
-const restaurantData = getContent(lang);
+const defaultLang = getDefaultLang();
+const restaurantData = getContent(defaultLang);
 
-// 1. Carica tutti i Master template in un colpo solo a tempo di build
-const templateFiles = import.meta.glob<{ default: any }>(
-	"../../templates/*/index.astro",
-	{
-		eager: true,
-	},
-);
+const templateFiles = import.meta.glob("../../templates/*/index.astro", {
+	eager: true,
+}) as Record<string, { default: any }>;
 
-// Supponiamo che il CMS passi 'template_name' (es. "template-02"). Fallback a "default".
 const selectedTemplateName =
 	restaurantData.sections?.template || __DEFAULT_TEMPLATE__;
-// 2. Trova il file il cui percorso include la cartella scelta
-const matchKey = Object.keys(templateFiles).find((path) =>
-	path.includes(`/${selectedTemplateName}/index.astro`),
-);
 
-// 3. Risolvi il componente (se non lo trova, fallback sicuro al default)
-const FallbackKey = Object.keys(templateFiles).find((path) =>
-	path.includes("/default/index.astro"),
-);
-const templateKey = matchKey || FallbackKey || Object.keys(templateFiles)[0];
-const TemplateComponent = templateKey
-	? (templateFiles[templateKey] as { default: any }).default
-	: null;
+// Una riga invece di ~10
+const TemplateComponent = resolveTemplate(templateFiles, selectedTemplateName);
 ---
 
 <Base content={restaurantData}>

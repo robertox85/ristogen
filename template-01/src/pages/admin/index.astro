@@ -138,7 +138,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 					}
 					const res = await fetch("/admin/api/cms-save", {
 						method: "POST",
-						body: buildFormData(form),
+						body: collectFormsData([form]),
 					});
 					if (btn) {
 						btn.disabled = false;
@@ -227,54 +227,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 			};
 
 			// ── IMAGE & FILE DROPZONES ─────────────────────────────────────────────
-			/** Costruisce un FormData sostituendo i file immagine con le versioni WebP convertite */
-			function buildFormData(form: HTMLFormElement): FormData {
-				const fd = new FormData();
-				for (const el of Array.from(form.elements)) {
-					const field = el as
-						| HTMLInputElement
-						| HTMLTextAreaElement
-						| HTMLSelectElement;
-					if (!field.name) continue;
-					if (
-						field instanceof HTMLInputElement &&
-						field.type === "file"
-					) {
-						const converted = convertedFiles.get(field);
-						if (converted) {
-							// Usa il/i file convertiti in WebP
-							if (Array.isArray(converted)) {
-								converted.forEach((f) =>
-									fd.append(field.name, f),
-								);
-							} else {
-								fd.append(field.name, converted);
-							}
-						} else if (field.files?.length) {
-							// Nessuna conversione effettuata: usa i file originali
-							Array.from(field.files).forEach((f) =>
-								fd.append(field.name, f),
-							);
-						}
-					} else if (
-						field instanceof HTMLInputElement &&
-						field.type === "checkbox"
-					) {
-						if (field.checked) fd.append(field.name, field.value);
-					} else if (
-						field instanceof HTMLInputElement &&
-						field.type === "radio"
-					) {
-						if (field.checked) fd.append(field.name, field.value);
-					} else if ("value" in field && field.value !== undefined) {
-						fd.append(
-							field.name,
-							(field as HTMLInputElement).value,
-						);
-					}
-				}
-				return fd;
-			}
+
 
 			function initDropzones() {
 				document
@@ -481,62 +434,54 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 
 			initDropzones();
 
-			// ── PUBLISH ALL (triggered by ActionSidebar "Pubblica su GitHub") ─────────
-			/** Costruisce un FormData unificato raccogliendo tutti i form della pagina */
-			function buildAllFormsData(): FormData {
+			function collectFormsData(forms: HTMLFormElement[]): FormData {
 				const fd = new FormData();
-				const seen = new Set<string>(); // evita duplicati su campi radio/checkbox
-				document
-					.querySelectorAll<HTMLFormElement>("form")
-					.forEach((form) => {
-						for (const el of Array.from(form.elements)) {
-							const field = el as
-								| HTMLInputElement
-								| HTMLTextAreaElement
-								| HTMLSelectElement;
-							if (!field.name) continue;
-							if (
-								field instanceof HTMLInputElement &&
-								field.type === "file"
-							) {
-								const converted = convertedFiles.get(field);
-								if (converted) {
-									if (Array.isArray(converted))
-										converted.forEach((f) =>
-											fd.append(field.name, f),
-										);
-									else fd.append(field.name, converted);
-								} else if (field.files?.length) {
-									Array.from(field.files).forEach((f) =>
+				forms.forEach((form) => {
+					for (const el of Array.from(form.elements)) {
+						const field = el as
+							| HTMLInputElement
+							| HTMLTextAreaElement
+							| HTMLSelectElement;
+						if (!field.name) continue;
+						if (
+							field instanceof HTMLInputElement &&
+							field.type === "file"
+						) {
+							const converted = convertedFiles.get(field);
+							if (converted) {
+								if (Array.isArray(converted))
+									converted.forEach((f) =>
 										fd.append(field.name, f),
 									);
-								}
-							} else if (
-								field instanceof HTMLInputElement &&
-								field.type === "checkbox"
-							) {
-								if (field.checked)
-									fd.append(field.name, field.value);
-							} else if (
-								field instanceof HTMLInputElement &&
-								field.type === "radio"
-							) {
-								// Prendi solo il radio selezionato
-								if (field.checked && !seen.has(field.name)) {
-									fd.append(field.name, field.value);
-									seen.add(field.name);
-								}
-							} else if (
-								"value" in field &&
-								field.value !== undefined
-							) {
-								fd.append(
-									field.name,
-									(field as HTMLInputElement).value,
+								else fd.append(field.name, converted);
+							} else if (field.files?.length) {
+								Array.from(field.files).forEach((f) =>
+									fd.append(field.name, f),
 								);
 							}
+						} else if (
+							field instanceof HTMLInputElement &&
+							field.type === "checkbox"
+						) {
+							if (field.checked)
+								fd.append(field.name, field.value);
+						} else if (
+							field instanceof HTMLInputElement &&
+							field.type === "radio"
+						) {
+							if (field.checked)
+								fd.append(field.name, field.value);
+						} else if (
+							"value" in field &&
+							field.value !== undefined
+						) {
+							fd.append(
+								field.name,
+								(field as HTMLInputElement).value,
+							);
 						}
-					});
+					}
+				});
 				return fd;
 			}
 
@@ -545,7 +490,9 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 				try {
 					const res = await fetch("/admin/api/cms-save", {
 						method: "POST",
-						body: buildAllFormsData(),
+						body: collectFormsData(
+							Array.from(document.querySelectorAll("form")),
+						),
 					});
 					if (res.ok) {
 						showToastr("Pubblicato su GitHub!", "success");

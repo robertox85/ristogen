@@ -6,10 +6,12 @@ import type { Article } from "../../../schema/content.schema";
 export function getStaticPaths() {
 	return getI18nPaths().flatMap(({ params: { lang } }) => {
 		const content = getContent(lang);
-		return content.articles.map((article: Article) => ({
-			params: { lang, slug: article.slug },
-			props: { article, lang },
-		}));
+		return (
+			content.articles?.map((article: Article) => ({
+				params: { lang, slug: article.slug },
+				props: { article, lang },
+			})) || []
+		);
 	});
 }
 
