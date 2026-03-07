@@ -24,10 +24,24 @@ const { content } = Astro.props;
 						{ hidden: content.sections.about.about_image },
 					]}
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="w-8 h-8 text-gray-400"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="1.5"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+						></path>
 					</svg>
-					<p class="text-sm text-gray-500">Trascina un'immagine o <span class="font-medium text-indigo-600">sfoglia</span></p>
+					<p class="text-sm text-gray-500">
+						Trascina un'immagine o <span
+							class="font-medium text-indigo-600">sfoglia</span>
+					</p>
 					<p class="text-xs text-gray-400">PNG · JPG · WebP</p>
 				</div>
 				<div
@@ -41,8 +55,12 @@ const { content } = Astro.props;
 						src={content.sections.about.about_image || ""}
 						alt="Anteprima immagine"
 					/>
-					<div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-						<span class="text-white text-sm font-semibold">Cambia immagine</span>
+					<div
+						class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+					>
+						<span class="text-white text-sm font-semibold"
+							>Cambia immagine</span
+						>
 					</div>
 				</div>
 			</div>
@@ -80,11 +98,7 @@ const { content } = Astro.props;
 				/>
 			</div>
 
-			<button
-				type="submit"
-				class="w-full py-2 rounded-md bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition"
-				>Salva</button
-			>
+			<button type="submit" class="hidden">Salva</button>
 		</form>
 	</div>
 </section>

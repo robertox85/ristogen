@@ -11,6 +11,7 @@ import Theme from "./components/Theme.astro";
 import PreviewPanel from "./components/PreviewPanel.astro";
 import Sidebar from "./components/Sidebar.astro";
 import Topbar from "./components/Topbar.astro";
+import ActionSidebar from "./components/ActionSidebar.astro";
 
 const session = Astro.cookies.get("admin_session");
 if (session?.value !== "authenticated") {
@@ -46,7 +47,7 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 				id="control-panel"
 				class="flex-1 min-w-0 overflow-y-auto bg-gray-50 p-6"
 			>
-				<div class="w-full max-w-2xl mx-auto flex flex-col gap-8">
+				<div class="w-full mx-auto flex flex-col gap-8">
 					<Theme content={content} />
 					<Hero content={content} />
 					<About content={content} />
@@ -56,6 +57,8 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 					<Footer content={content} />
 				</div>
 			</main>
+
+			<ActionSidebar />
 			<!-- ── RESIZE HANDLE ─────────────────────────────────────────── -->
 			<div
 				id="resize-handle"
@@ -476,6 +479,93 @@ const siteUrl = import.meta.env.SITE_URL || "/";
 			}
 
 			initDropzones();
+
+			// ── PUBLISH ALL (triggered by ActionSidebar "Pubblica su GitHub") ─────────
+			/** Costruisce un FormData unificato raccogliendo tutti i form della pagina */
+			function buildAllFormsData(): FormData {
+				const fd = new FormData();
+				const seen = new Set<string>(); // evita duplicati su campi radio/checkbox
+				document
+					.querySelectorAll<HTMLFormElement>("form")
+					.forEach((form) => {
+						for (const el of Array.from(form.elements)) {
+							const field = el as
+								| HTMLInputElement
+								| HTMLTextAreaElement
+								| HTMLSelectElement;
+							if (!field.name) continue;
+							if (
+								field instanceof HTMLInputElement &&
+								field.type === "file"
+							) {
+								const converted = convertedFiles.get(field);
+								if (converted) {
+									if (Array.isArray(converted))
+										converted.forEach((f) =>
+											fd.append(field.name, f),
+										);
+									else fd.append(field.name, converted);
+								} else if (field.files?.length) {
+									Array.from(field.files).forEach((f) =>
+										fd.append(field.name, f),
+									);
+								}
+							} else if (
+								field instanceof HTMLInputElement &&
+								field.type === "checkbox"
+							) {
+								if (field.checked)
+									fd.append(field.name, field.value);
+							} else if (
+								field instanceof HTMLInputElement &&
+								field.type === "radio"
+							) {
+								// Prendi solo il radio selezionato
+								if (field.checked && !seen.has(field.name)) {
+									fd.append(field.name, field.value);
+									seen.add(field.name);
+								}
+							} else if (
+								"value" in field &&
+								field.value !== undefined
+							) {
+								fd.append(
+									field.name,
+									(field as HTMLInputElement).value,
+								);
+							}
+						}
+					});
+				return fd;
+			}
+
+			async function publishAll() {
+				document.dispatchEvent(new CustomEvent("ristogen:publishing"));
+				try {
+					const res = await fetch("/admin/api/cms-save", {
+						method: "POST",
+						body: buildAllFormsData(),
+					});
+					if (res.ok) {
+						showToastr("Pubblicato su GitHub!", "success");
+						document.dispatchEvent(
+							new CustomEvent("ristogen:saved"),
+						);
+					} else {
+						showToastr("Errore pubblicazione", "error");
+						document.dispatchEvent(
+							new CustomEvent("ristogen:save-error"),
+						);
+					}
+				} catch {
+					showToastr("Errore di rete", "error");
+					document.dispatchEvent(
+						new CustomEvent("ristogen:save-error"),
+					);
+				}
+			}
+
+			document.addEventListener("ristogen:publish", publishAll);
 
 			// ── CLICK-TO-EDIT (postMessage dall'iframe preview) ──────────────────────────
 			window.addEventListener("message", (e) => {
