@@ -425,6 +425,9 @@ export const prerender = false;
 		.getElementById("btn-save-draft")
 		?.addEventListener("click", saveDraft);
 
+	// Permette alla FAB nella preview di triggerare il salvataggio bozza
+	document.addEventListener("ristogen:save-draft", saveDraft);
+
 	// ── SESSION INFO: traccia ultima modifica ─────────────────────────────────
 
 	let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;

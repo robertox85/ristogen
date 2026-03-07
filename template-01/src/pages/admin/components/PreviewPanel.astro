@@ -1,6 +1,5 @@
 ---
 export const prerender = false;
-
 ---
 
 <div
@@ -93,7 +92,59 @@ export const prerender = false;
 			class="px-2.5 py-1 text-xs rounded-md border font-medium transition text-gray-600 border-gray-200 hover:bg-gray-50"
 			>Aa Tipografia</button
 		>
-		<div class="ml-auto">
+		<div class="ml-auto flex items-center gap-2">
+			<!-- Floating action bar (visibile solo in preview) -->
+			<div
+				id="preview-fab"
+				class="flex items-center gap-1.5 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl px-2 py-1.5 shadow-md"
+			>
+				<!-- Status dot -->
+				<span
+					id="fab-status-dot"
+					class="w-2 h-2 rounded-full bg-green-400 shrink-0"
+					title="Stato salvataggio"></span>
+				<!-- Salva bozza -->
+				<button
+					id="fab-save-draft"
+					title="Salva Bozza"
+					class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+				>
+					<svg
+						class="w-4 h-4"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+						></path>
+					</svg>
+				</button>
+				<!-- Pubblica -->
+				<button
+					id="fab-publish"
+					title="Pubblica su GitHub"
+					class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					<svg
+						class="w-3.5 h-3.5 shrink-0"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+						></path>
+					</svg>
+					<span id="fab-publish-label">Pubblica</span>
+				</button>
+			</div>
 			<button
 				id="btn-close-preview"
 				title="Chiudi preview"
@@ -375,6 +426,8 @@ export const prerender = false;
 	function setPreview(open: boolean) {
 		previewOpen = open;
 
+		const actionSidebar = document.getElementById("action-sidebar");
+
 		if (open) {
 			previewPanel?.classList.remove("hidden");
 			resizeHandle?.classList.remove("hidden");
@@ -382,6 +435,13 @@ export const prerender = false;
 				controlPanel.style.cssText = "width:380px;flex-shrink:0;";
 			if (previewPanel)
 				previewPanel.style.cssText = "flex:1;min-width:200px;";
+			// Focus mode: nascondi ActionSidebar per cedere spazio alla preview
+			if (actionSidebar) {
+				actionSidebar.style.width = "0";
+				actionSidebar.style.overflow = "hidden";
+				actionSidebar.style.borderLeft = "none";
+				actionSidebar.style.padding = "0";
+			}
 			// Chiede alla sidebar di chiudersi per dare spazio al preview
 			document.dispatchEvent(
 				new CustomEvent("admin:setSidebar", {
@@ -396,6 +456,10 @@ export const prerender = false;
 			if (controlPanel)
 				controlPanel.style.cssText = "flex:1;min-width:0;";
 			if (previewPanel) previewPanel.style.cssText = "";
+			// Ripristina ActionSidebar
+			if (actionSidebar) {
+				actionSidebar.style.cssText = "";
+			}
 			// Ripristina lo stato sidebar precedente all'apertura del preview
 			document.dispatchEvent(
 				new CustomEvent("admin:setSidebar", {
@@ -414,4 +478,63 @@ export const prerender = false;
 	document
 		.getElementById("btn-close-preview")
 		?.addEventListener("click", () => setPreview(false));
+
+	// ── FAB: proxy verso gli eventi globali di ActionSidebar ─────────────────
+	document
+		.getElementById("fab-publish")
+		?.addEventListener("click", () =>
+			document.dispatchEvent(new CustomEvent("ristogen:publish")),
+		);
+	document
+		.getElementById("fab-save-draft")
+		?.addEventListener("click", () =>
+			document.dispatchEvent(new CustomEvent("ristogen:save-draft")),
+		);
+
+	// Sincronizza il dot della FAB con lo stato di ActionSidebar
+	const FAB_DOT_MAP: Record<string, string> = {
+		synced: "bg-green-400",
+		dirty: "bg-amber-400",
+		loading: "bg-blue-400 animate-pulse",
+	};
+	function syncFabDot(state: "synced" | "dirty" | "loading") {
+		const dot = document.getElementById("fab-status-dot");
+		if (!dot) return;
+		dot.className = `w-2 h-2 rounded-full shrink-0 ${FAB_DOT_MAP[state]}`;
+	}
+
+	document.addEventListener("ristogen:publishing", () => {
+		const btn = document.getElementById(
+			"fab-publish",
+		) as HTMLButtonElement | null;
+		if (btn) {
+			btn.disabled = true;
+			btn.innerHTML =
+				'<svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Deploy…</span>';
+		}
+		syncFabDot("loading");
+	});
+	document.addEventListener("ristogen:saved", () => {
+		const btn = document.getElementById(
+			"fab-publish",
+		) as HTMLButtonElement | null;
+		if (btn) {
+			btn.disabled = false;
+			btn.innerHTML =
+				'<svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg><span id="fab-publish-label">Pubblica</span>';
+		}
+		syncFabDot("synced");
+	});
+	document.addEventListener("ristogen:save-error", () => {
+		const btn = document.getElementById(
+			"fab-publish",
+		) as HTMLButtonElement | null;
+		if (btn) {
+			btn.disabled = false;
+			btn.innerHTML =
+				'<svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg><span id="fab-publish-label">Pubblica</span>';
+		}
+		syncFabDot("dirty");
+	});
+	document.addEventListener("input", () => syncFabDot("dirty"));
 </script>
