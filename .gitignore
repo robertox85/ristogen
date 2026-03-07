@@ -6,3 +6,4 @@ build-*/
 # Local Netlify folder
 .netlify
 CLAUDE.md
+template-01/IMPROVEMENT_PLAN.md
