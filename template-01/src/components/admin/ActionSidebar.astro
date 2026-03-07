@@ -1,5 +1,5 @@
 ---
-export const prerender = false;
+
 ---
 
 <aside
@@ -322,9 +322,7 @@ export const prerender = false;
 
 	function restoreDraft(fields: Record<string, string>) {
 		Object.entries(fields).forEach(([name, value]) => {
-			// Caso speciale: Quill gestisce il proprio stato interno,
-			// dangerouslyPasteHTML aggiorna l'editor visivo e il listener
-			// text-change sincronizza automaticamente l'input nascosto.
+			// Caso speciale: Quill
 			if (name === "about_text") {
 				const quill = (window as any).__quillAbout;
 				if (quill) {
@@ -332,14 +330,31 @@ export const prerender = false;
 				}
 				return;
 			}
+
+			// Fix radio: querySelector restituisce solo il primo elemento con quel name.
+			// Bisogna iterare tutti i radio e impostare checked solo su quello corretto.
+			const radios = document.querySelectorAll<HTMLInputElement>(
+				`input[name="${CSS.escape(name)}"][type="radio"]`,
+			);
+			if (radios.length > 0) {
+				radios.forEach((r) => {
+					r.checked = r.value === value;
+				});
+				const checked = Array.from(radios).find(
+					(r) => r.value === value,
+				);
+				if (checked)
+					checked.dispatchEvent(
+						new Event("change", { bubbles: true }),
+					);
+				return;
+			}
+
 			const el = document.querySelector<
 				HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 			>(`[name="${CSS.escape(name)}"]`);
 			if (!el) return;
-			if (
-				el instanceof HTMLInputElement &&
-				(el.type === "checkbox" || el.type === "radio")
-			) {
+			if (el instanceof HTMLInputElement && el.type === "checkbox") {
 				el.checked = el.value === value;
 			} else {
 				(
@@ -352,6 +367,11 @@ export const prerender = false;
 				el.dispatchEvent(new Event("change", { bubbles: true }));
 			}
 		});
+
+		// Notifica PreviewPanel di ricalcolare tutte le CSS vars
+		// (necessario per i font Google che richiedono previewLoadFont)
+		document.dispatchEvent(new CustomEvent("ristogen:draft-restored"));
+
 		setStatus("dirty");
 		document.getElementById("draft-banner")?.classList.add("hidden");
 	}

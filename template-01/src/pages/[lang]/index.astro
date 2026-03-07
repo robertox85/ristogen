@@ -1,14 +1,14 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { getContent, getDefaultLang, getI18nPaths } from "../../content";
+import { getContent, getI18nPaths } from "../../content";
 import { resolveTemplate } from "../../lib/resolveTemplate";
 
 export function getStaticPaths() {
 	return getI18nPaths();
 }
 
-const defaultLang = getDefaultLang();
-const restaurantData = getContent(defaultLang);
+const { lang } = Astro.params as { lang: string };
+const restaurantData = getContent(lang);
 
 const templateFiles = import.meta.glob("../../templates/*/index.astro", {
 	eager: true,

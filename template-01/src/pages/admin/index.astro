@@ -1,17 +1,17 @@
 ---
 export const prerender = false;
 import { getContent, getDefaultLang } from "../../content";
-import About from "./components/About.astro";
-import Contacts from "./components/Contacts.astro";
-import Footer from "./components/Footer.astro";
-import Gallery from "./components/Gallery.astro";
-import Hero from "./components/Hero.astro";
-import Menu from "./components/Menu.astro";
-import Theme from "./components/Theme.astro";
-import PreviewPanel from "./components/PreviewPanel.astro";
-import Sidebar from "./components/Sidebar.astro";
-import Topbar from "./components/Topbar.astro";
-import ActionSidebar from "./components/ActionSidebar.astro";
+import About from "../../components/admin/About.astro";
+import Contacts from "../../components/admin/Contacts.astro";
+import Footer from "../../components/admin/Footer.astro";
+import Gallery from "../../components/admin/Gallery.astro";
+import Hero from "../../components/admin/Hero.astro";
+import Menu from "../../components/admin/Menu.astro";
+import Theme from "../../components/admin/Theme.astro";
+import PreviewPanel from "../../components/admin/PreviewPanel.astro";
+import Sidebar from "../../components/admin/Sidebar.astro";
+import Topbar from "../../components/admin/Topbar.astro";
+import ActionSidebar from "../../components/admin/ActionSidebar.astro";
 import "../../styles/admin.css";
 
 const session = Astro.cookies.get("admin_session");

@@ -1,6 +1,5 @@
 ---
-export const prerender = false;
-import gfontsRaw from "../../data/google-fonts-cache.json";
+import gfontsRaw from "../../../pages/admin/data/google-fonts-cache.json";
 const { theme } = Astro.props;
 
 type GFont = { f: string; c: string; v: string[]; last: string };
@@ -627,6 +626,18 @@ const bodyLabel =
 		});
 		document.addEventListener("keydown", (e) => {
 			if (e.key === "Escape" && isOpen) closePanel();
+		});
+
+		// Sincronizza il picker quando il valore viene impostato esternamente (es. restoreDraft)
+		hidden?.addEventListener("input", () => {
+			const v = hidden.value;
+			if (v && v !== current) {
+				current = v;
+				// Estrae solo il nome: "'Aleo', serif" → "Aleo"
+				const displayName = v.replace(/'([^']+)'.*/, "$1") || v;
+				if (labelEl) labelEl.textContent = displayName;
+				loadGoogleFontsBatch([displayName]);
+			}
 		});
 
 		return {
